@@ -1,0 +1,724 @@
+/* ===== STYLES POUR LE PLANNING ===== */
+
+.planning-page {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 56px);
+    padding: 20px 0;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.page-title i {
+    margin-right: 15px;
+}
+
+/* ===== CONTAINER PLANNING ===== */
+.planning-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+/* ===== HEADER DU PLANNING ===== */
+.planning-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.planning-titre {
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004494);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* ===== VUE DESKTOP - GRILLE ===== */
+.planning-desktop {
+    overflow-x: auto;
+}
+
+.planning-grid {
+    min-width: 800px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 15px;
+}
+
+.grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.jour-header {
+    background: linear-gradient(135deg, #495057, #343a40);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.grid-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    min-height: 600px;
+}
+
+/* ===== CELLULES DE JOUR ===== */
+.jour-cell {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 120px;
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.jour-cell:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.jour-cell.aujourd-hui {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-color: #2196f3;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+}
+
+.jour-cell.autre-mois {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+.jour-cell.weekend {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+}
+
+.numero-jour {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.jour-cell.aujourd-hui .numero-jour {
+    color: #1976d2;
+}
+
+/* ===== ITEMS DE RÉSERVATION ===== */
+.reservation-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.reservation-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.reservation-item.reservation-confirmee {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(90deg, #d4edda, #f8fff9);
+}
+
+.reservation-item.reservation-en-attente {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(90deg, #fff3cd, #fffef7);
+}
+
+.reservation-time {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 2px;
+}
+
+.reservation-alveole {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.reservation-status {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.7rem;
+}
+
+.reservation-more {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    text-align: center;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.reservation-more:hover {
+    background: linear-gradient(135deg, #495057, #343a40);
+    transform: translateY(-1px);
+}
+
+/* ===== VUE MOBILE ===== */
+.planning-mobile {
+    padding: 10px 0;
+}
+
+.jour-mobile-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.jour-mobile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.jour-mobile-header {
+    background: linear-gradient(135deg, #343a40, #495057);
+    color: white;
+    padding: 20px;
+    position: relative;
+}
+
+.jour-mobile-header.aujourd-hui {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.jour-mobile-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.jour-mobile-body {
+    padding: 15px;
+}
+
+.reservation-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.reservation-mobile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.reservation-mobile.reservation-confirmee {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(90deg, #d4edda, #ffffff);
+}
+
+.reservation-mobile.reservation-en-attente {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(90deg, #fff3cd, #ffffff);
+}
+
+.reservation-mobile-left {
+    flex: 1;
+}
+
+.reservation-mobile-time {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.reservation-mobile-alveole {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.reservation-mobile-right {
+    text-align: right;
+}
+
+.reservation-mobile-membres {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* ===== COMPOSANT CRENEAU RESERVATION ===== */
+.creneau-reservation {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.creneau-reservation:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: #007bff;
+}
+
+.creneau-reservation.confirmee {
+    border-left: 6px solid #28a745;
+    background: linear-gradient(135deg, #d4edda, #f8fff9);
+}
+
+.creneau-reservation.en-attente {
+    border-left: 6px solid #ffc107;
+    background: linear-gradient(135deg, #fff3cd, #fffef7);
+}
+
+.creneau-reservation.disponible {
+    border-left: 6px solid #17a2b8;
+    background: linear-gradient(135deg, #d1ecf1, #f4fdff);
+}
+
+.creneau-reservation.indisponible {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    opacity: 0.7;
+}
+
+.creneau-reservation.ferme {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border-left: 6px solid #dc3545;
+}
+
+.creneau-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.creneau-time {
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.creneau-time i {
+    margin-right: 8px;
+    color: #6c757d;
+}
+
+.creneau-status i {
+    font-size: 1.2rem;
+}
+
+.creneau-body {
+    position: relative;
+}
+
+.alveole-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.alveole-info i {
+    margin-right: 8px;
+    color: #007bff;
+}
+
+.membres-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #6c757d;
+}
+
+.membres-info i {
+    margin-right: 8px;
+}
+
+.membres-list {
+    margin: 10px 0;
+}
+
+.membres-list .badge {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+}
+
+.moniteur-info {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    color: #495057;
+}
+
+.moniteur-info i {
+    margin-right: 8px;
+}
+
+.creneau-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.creneau-actions .btn {
+    transition: all 0.2s ease;
+}
+
+.creneau-actions .btn:hover {
+    transform: translateY(-1px);
+}
+
+.creneau-disponible {
+    text-align: center;
+    padding: 20px;
+}
+
+.places-disponibles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.places-disponibles i {
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+.creneau-ferme {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+.creneau-ferme i {
+    margin-right: 8px;
+}
+
+/* ===== MODAL DÉTAILS ===== */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-title i {
+    margin-right: 10px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.info-item i {
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+    color: #007bff;
+}
+
+.info-item strong {
+    margin-right: 8px;
+    min-width: 80px;
+}
+
+.participants-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.participants-list .badge {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+}
+
+.participants-list .badge i {
+    margin-right: 5px;
+}
+
+/* ===== LÉGENDE ===== */
+.planning-legend {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #495057;
+}
+
+.legend-item i {
+    margin-right: 8px;
+    font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablettes */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .planning-container {
+        padding: 15px;
+    }
+
+    .grid-body {
+        min-height: 400px;
+    }
+
+    .jour-cell {
+        padding: 10px;
+        min-height: 80px;
+    }
+
+    .reservation-item {
+        padding: 6px;
+        margin-bottom: 4px;
+    }
+
+    .reservation-time {
+        font-size: 0.7rem;
+    }
+
+    .reservation-alveole {
+        font-size: 0.7rem;
+    }
+}
+
+/* Smartphones */
+@media (max-width: 576px) {
+    .planning-page {
+        padding: 10px 0;
+    }
+
+    .page-header {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
+    }
+
+    .planning-container {
+        margin: 0 10px;
+        padding: 10px;
+    }
+
+    .creneau-reservation {
+        padding: 12px;
+    }
+
+    .creneau-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .creneau-actions {
+        width: 100%;
+    }
+
+    .creneau-actions .btn {
+        flex: 1;
+    }
+
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .participants-list {
+        justify-content: flex-start;
+    }
+
+    .jour-mobile-header {
+        padding: 15px;
+    }
+
+    .jour-mobile-body {
+        padding: 10px;
+    }
+
+    .reservation-mobile {
+        padding: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .reservation-mobile-right {
+        text-align: left;
+        width: 100%;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 375px) {
+    .page-header {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 1.2rem;
+    }
+
+    .planning-container {
+        margin: 0 5px;
+        padding: 8px;
+    }
+
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.planning-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.jour-cell {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.reservation-item {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.jour-mobile-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* ===== ACCESSIBILITÉ ===== */
+.creneau-reservation:focus {
+    outline: 3px solid #007bff;
+    outline-offset: 2px;
+}
+
+.reservation-item:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

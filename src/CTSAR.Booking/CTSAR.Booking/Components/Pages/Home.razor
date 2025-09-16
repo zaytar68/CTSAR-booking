@@ -1,7 +1,382 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Accueil - CTSAR Booking</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="home-page">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            <i class="fas fa-crosshairs text-danger me-3"></i>
+                            CTSAR Booking
+                        </h1>
+                        <p class="hero-subtitle">
+                            Système de gestion des réservations d'alvéoles de tir
+                        </p>
+                        <p class="hero-description">
+                            Réservez vos créneaux d'entraînement facilement et suivez l'activité
+                            du club en temps réel. Interface moderne et responsive adaptée à tous vos appareils.
+                        </p>
+                        <div class="hero-actions">
+                            <a href="/planning" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Voir le Planning
+                            </a>
+                            <a href="/reservations/nouvelle" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>
+                                Réserver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-image">
+                        <div class="stats-grid">
+                            <div class="stat-card stat-blue">
+                                <div class="stat-icon">
+                                    <i class="fas fa-crosshairs"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">2</div>
+                                    <div class="stat-label">Alvéoles</div>
+                                </div>
+                            </div>
+                            <div class="stat-card stat-red">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">14</div>
+                                    <div class="stat-label">Tireurs max</div>
+                                </div>
+                            </div>
+                            <div class="stat-card stat-blue-light">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">4</div>
+                                    <div class="stat-label">Créneaux/jour</div>
+                                </div>
+                            </div>
+                            <div class="stat-card stat-white">
+                                <div class="stat-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-number">100%</div>
+                                    <div class="stat-label">Sécurisé</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-Welcome to your new app.
+        <!-- Features Section -->
+        <div class="features-section">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="section-title text-center mb-5">
+                        Fonctionnalités principales
+                    </h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-primary">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3 class="feature-title">Planning en temps réel</h3>
+                        <p class="feature-description">
+                            Consultez les disponibilités et réservations en temps réel
+                            avec notre interface responsive.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-danger">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3 class="feature-title">Validation moniteur</h3>
+                        <p class="feature-description">
+                            Toute séance nécessite la présence d'un moniteur qualifié
+                            pour assurer la sécurité.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon bg-info">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Interface mobile</h3>
+                        <p class="feature-description">
+                            Application optimisée pour smartphone et tablette,
+                            accessible partout.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="quick-actions-card">
+                        <h3 class="text-center mb-4">Actions rapides</h3>
+                        <div class="row justify-content-center">
+                            <div class="col-md-3 col-6 mb-3">
+                                <a href="/planning" class="quick-action-btn">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Planning</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <a href="/reservations/nouvelle" class="quick-action-btn">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Réserver</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <a href="#" class="quick-action-btn">
+                                    <i class="fas fa-users"></i>
+                                    <span>Membres</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <a href="#" class="quick-action-btn">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Configuration</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Styles spécifiques à la page d'accueil */
+.home-page {
+    padding: 40px 0;
+}
+
+.hero-section {
+    padding: 60px 0;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 20px;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    color: var(--primary-blue);
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    color: var(--gray-600);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-actions .btn {
+    font-size: 1.1rem;
+    padding: 15px 30px;
+    font-weight: 600;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.stat-card {
+    padding: 25px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-blue {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    color: var(--white);
+}
+
+.stat-red {
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-red-dark));
+    color: var(--white);
+}
+
+.stat-blue-light {
+    background: linear-gradient(135deg, var(--primary-blue-light), var(--primary-blue-soft));
+    color: var(--navy);
+}
+
+.stat-white {
+    background: var(--white);
+    color: var(--navy);
+    border: 2px solid var(--gray-200);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.features-section {
+    padding: 80px 0;
+    background: var(--white-gray);
+    margin: 60px -15px 0;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.feature-card {
+    text-align: center;
+    padding: 40px 20px;
+    height: 100%;
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    font-size: 2rem;
+    color: var(--white);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 15px;
+}
+
+.feature-description {
+    color: var(--gray-600);
+    line-height: 1.6;
+}
+
+.quick-actions-section {
+    padding: 60px 0;
+}
+
+.quick-actions-card {
+    background: var(--white);
+    padding: 50px;
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-xl);
+    text-align: center;
+}
+
+.quick-actions-card h3 {
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px 15px;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--gray-600);
+    transition: all 0.3s ease;
+    height: 100%;
+    min-height: 120px;
+    justify-content: center;
+}
+
+.quick-action-btn:hover {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue-dark);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+}
+
+.quick-action-btn i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.quick-action-btn span {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+@@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-actions .btn {
+        display: block;
+        margin-bottom: 10px;
+        margin-right: 0 !important;
+    }
+
+    .features-section {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+</style>

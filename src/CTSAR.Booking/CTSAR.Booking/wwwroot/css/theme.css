@@ -1,0 +1,508 @@
+/* ===== THÈME CTSAR - BLANC, BLEU & ROUGE ===== */
+
+:root {
+    /* Couleurs principales - Bleus */
+    --primary-blue-light: #e8f3ff;
+    --primary-blue-soft: #b3d9ff;
+    --primary-blue: #2874a6;
+    --primary-blue-dark: #1f5582;
+    --primary-blue-darker: #1a4a73;
+
+    /* Couleurs secondaires - Bleus foncés */
+    --navy-light: #4a6fa5;
+    --navy: #2c3e50;
+    --navy-dark: #1f2937;
+    --navy-darker: #0f1419;
+
+    /* Couleurs d'accent - Rouges */
+    --accent-red-light: #ffeaea;
+    --accent-red-soft: #ffb3b3;
+    --accent-red: #c0392b;
+    --accent-red-dark: #922b21;
+    --accent-red-darker: #7b241c;
+
+    /* Couleurs de base - Blancs et gris */
+    --white: #ffffff;
+    --white-soft: #fafbfc;
+    --white-gray: #f8f9fa;
+    --gray-100: #f1f3f4;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+
+    /* Couleurs fonctionnelles */
+    --success-light: #e8f5e8;
+    --success: #1e7e34;
+    --success-dark: #155724;
+
+    --warning-light: #fff4e6;
+    --warning: #e67e22;
+    --warning-dark: #d68910;
+
+    --danger-light: var(--accent-red-light);
+    --danger: var(--accent-red);
+    --danger-dark: var(--accent-red-dark);
+
+    --info-light: var(--primary-blue-light);
+    --info: var(--primary-blue);
+    --info-dark: var(--primary-blue-dark);
+
+    /* Ombres */
+    --shadow-sm: 0 2px 4px rgba(44, 62, 80, 0.08);
+    --shadow: 0 4px 12px rgba(44, 62, 80, 0.12);
+    --shadow-lg: 0 8px 25px rgba(44, 62, 80, 0.15);
+    --shadow-xl: 0 15px 35px rgba(44, 62, 80, 0.18);
+
+    /* Bordures */
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 20px;
+}
+
+/* ===== STYLES GLOBAUX ===== */
+
+body {
+    background-color: var(--white-soft);
+    color: var(--gray-800);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== BOUTONS THÉMATIQUES ===== */
+
+.btn-primary {
+    background: var(--primary-blue) !important;
+    border: none !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-blue-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--gray-600) !important;
+    border: none !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--gray-700) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-danger {
+    background: var(--accent-red) !important;
+    border: none !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--accent-red-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-success {
+    background: var(--success) !important;
+    border: none !important;
+    color: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: var(--success-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* Boutons outline */
+.btn-outline-primary {
+    border: 2px solid var(--primary-blue) !important;
+    color: var(--primary-blue) !important;
+    background: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-blue) !important;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-outline-secondary {
+    border: 2px solid var(--gray-600) !important;
+    color: var(--gray-600) !important;
+    background: var(--white) !important;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gray-600) !important;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* ===== CARTES ET CONTENEURS ===== */
+
+.card,
+.planning-container,
+.reservation-card,
+.jour-mobile-card {
+    background: var(--white) !important;
+    border: 1px solid var(--gray-200) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.card-header {
+    background: var(--navy) !important;
+    color: var(--white) !important;
+    border-bottom: 1px solid var(--navy-dark) !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+}
+
+/* ===== NAVIGATION ===== */
+
+.navbar-brand {
+    color: var(--white) !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.nav-link {
+    color: var(--gray-300) !important;
+    font-weight: 500;
+    border-radius: var(--border-radius);
+    margin: 4px 0;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: var(--primary-blue) !important;
+    color: var(--white) !important;
+    transform: translateX(5px);
+}
+
+.top-row {
+    background: var(--navy) !important;
+    border-bottom: 2px solid var(--primary-blue);
+}
+
+/* ===== PLANNING SPÉCIFIQUE ===== */
+
+.page-header {
+    background: var(--primary-blue) !important;
+    color: var(--white) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.planning-titre {
+    color: var(--navy) !important;
+}
+
+.jour-header {
+    background: var(--navy) !important;
+    color: var(--white) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.jour-cell {
+    background: var(--white) !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.jour-cell:hover {
+    border-color: var(--primary-blue) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.jour-cell.aujourd-hui {
+    background: var(--primary-blue-light) !important;
+    border-color: var(--primary-blue) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.jour-cell.weekend {
+    background: var(--white-gray) !important;
+}
+
+/* ===== RÉSERVATIONS ===== */
+
+.reservation-item.reservation-confirmee {
+    border-left: 4px solid var(--success) !important;
+    background: var(--success-light) !important;
+}
+
+.reservation-item.reservation-en-attente {
+    border-left: 4px solid var(--warning) !important;
+    background: var(--warning-light) !important;
+}
+
+.creneau-reservation.confirmee {
+    border-left: 6px solid var(--success) !important;
+    background: var(--success-light) !important;
+}
+
+.creneau-reservation.en-attente {
+    border-left: 6px solid var(--warning) !important;
+    background: var(--warning-light) !important;
+}
+
+.creneau-reservation.disponible {
+    border-left: 6px solid var(--info) !important;
+    background: var(--info-light) !important;
+}
+
+.creneau-reservation.ferme {
+    background: var(--danger-light) !important;
+    border-left: 6px solid var(--danger) !important;
+}
+
+.creneau-ferme {
+    background: rgba(192, 57, 43, 0.9) !important;
+    color: var(--white) !important;
+}
+
+/* ===== FORMULAIRE DE RÉSERVATION ===== */
+
+.reservation-card .card-header {
+    background: var(--primary-blue) !important;
+    color: var(--white) !important;
+}
+
+.form-control,
+.form-select {
+    border: 2px solid var(--gray-200) !important;
+    border-radius: var(--border-radius) !important;
+    background-color: var(--white-gray) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 116, 166, 0.15) !important;
+    background-color: var(--white) !important;
+}
+
+.creneau-option {
+    border: 2px solid var(--gray-200) !important;
+    background: var(--white) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.creneau-option:hover {
+    border-color: var(--primary-blue) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.creneau-option.selected {
+    border-color: var(--success) !important;
+    background: var(--success-light) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.membres-selection {
+    background: var(--white-gray) !important;
+    border: 1px solid var(--gray-200) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.membre-option {
+    background: var(--white) !important;
+    border: 1px solid var(--gray-300) !important;
+    border-radius: var(--border-radius-sm) !important;
+}
+
+.membre-option:hover {
+    border-color: var(--primary-blue) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* ===== ALERTES ===== */
+
+.alert-danger {
+    background: linear-gradient(135deg, var(--danger-light), rgba(192, 57, 43, 0.1)) !important;
+    color: var(--danger-dark) !important;
+    border-left: 4px solid var(--danger) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, var(--success-light), rgba(30, 126, 52, 0.1)) !important;
+    color: var(--success-dark) !important;
+    border-left: 4px solid var(--success) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, var(--info-light), rgba(40, 116, 166, 0.1)) !important;
+    color: var(--info-dark) !important;
+    border-left: 4px solid var(--info) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, var(--warning-light), rgba(230, 126, 34, 0.1)) !important;
+    color: var(--warning-dark) !important;
+    border-left: 4px solid var(--warning) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+/* ===== BADGES ===== */
+
+.badge.bg-success {
+    background: linear-gradient(135deg, var(--success), var(--success-dark)) !important;
+    color: var(--white) !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--warning), var(--warning-dark)) !important;
+    color: var(--white) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, var(--danger), var(--danger-dark)) !important;
+    color: var(--white) !important;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+    color: var(--white) !important;
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, var(--gray-600), var(--gray-700)) !important;
+    color: var(--white) !important;
+}
+
+/* ===== LÉGENDE ===== */
+
+.legend-item {
+    color: var(--gray-700) !important;
+}
+
+.legend-item i.text-success {
+    color: var(--success) !important;
+}
+
+.legend-item i.text-warning {
+    color: var(--warning) !important;
+}
+
+.legend-item i.text-danger {
+    color: var(--danger) !important;
+}
+
+/* ===== MOBILE SPÉCIFIQUE ===== */
+
+.jour-mobile-header {
+    background: linear-gradient(135deg, var(--navy), var(--navy-dark)) !important;
+    color: var(--white) !important;
+}
+
+.jour-mobile-header.aujourd-hui {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark)) !important;
+}
+
+/* ===== SPINNERS ===== */
+
+.spinner-border-primary {
+    color: var(--primary-blue) !important;
+}
+
+/* ===== LIENS ===== */
+
+a {
+    color: var(--primary-blue) !important;
+    text-decoration: none !important;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-blue-dark) !important;
+}
+
+/* ===== OVERRIDES BOOTSTRAP ===== */
+
+.text-primary {
+    color: var(--primary-blue) !important;
+}
+
+.text-success {
+    color: var(--success) !important;
+}
+
+.text-warning {
+    color: var(--warning) !important;
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+.text-info {
+    color: var(--info) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-blue) !important;
+}
+
+.bg-success {
+    background-color: var(--success) !important;
+}
+
+.bg-warning {
+    background-color: var(--warning) !important;
+}
+
+.bg-danger {
+    background-color: var(--danger) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-blue) !important;
+}
+
+.border-success {
+    border-color: var(--success) !important;
+}
+
+.border-warning {
+    border-color: var(--warning) !important;
+}
+
+.border-danger {
+    border-color: var(--danger) !important;
+}

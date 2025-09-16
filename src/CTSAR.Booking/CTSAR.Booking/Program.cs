@@ -1,6 +1,6 @@
-using CTSAR.Booking.Client.Pages;
 using CTSAR.Booking.Components;
 using CTSAR.Booking.Data;
+using CTSAR.Booking.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +16,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         ?? "Data Source=ctsar-booking.db"));
 
 // Services de l'application
-// TODO: Ajouter les services métier ici
+builder.Services.AddScoped<IPlanningService, PlanningService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 var app = builder.Build();
 

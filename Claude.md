@@ -50,6 +50,7 @@ Application **Blazor Web App** (.NET 8) de gestion de réservations d'alvéoles 
 ## Nice to have
 
 - notification Whatsapp
+- Module météo
 
 ## Considérations techniques
 
@@ -80,3 +81,4 @@ public class PeriodeFermeture // Fermetures temporaires des alvéoles
 2. Implémenter le système d'authentification
 3. Développer les notifications modulaires
 4. Préparation du déploiement conteneurisé
+- Use responsive design pour affichage compatible sur smartphone

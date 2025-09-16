@@ -1,0 +1,304 @@
+@using CTSAR.Booking.Services
+@inject IPlanningService PlanningService
+
+<div class="planning-container">
+    <!-- En-tête du planning -->
+    <div class="planning-header">
+        <div class="row align-items-center mb-3">
+            <div class="col-auto">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="NaviguerMoisPrecedent">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="col text-center">
+                <h2 class="planning-titre mb-0">
+                    @Planning.NomMois @Planning.Annee
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="NaviguerMoisSuivant">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-auto">
+                <button class="btn btn-secondary btn-sm" @onclick="AllerAujourdHui">
+                    Aujourd'hui
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm" @onclick="NouvelleReservation">
+                    <i class="fas fa-plus"></i> Réserver
+                </button>
+            </div>
+            <div class="col-auto">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown">
+                        Filtrer
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" @onclick='() => FiltrerParStatut("tous")'>
+                                <i class="fas fa-list"></i> Toutes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" @onclick='() => FiltrerParStatut("confirmees")'>
+                                <i class="fas fa-check text-success"></i> Confirmées
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" @onclick='() => FiltrerParStatut("en-attente")'>
+                                <i class="fas fa-clock text-warning"></i> En attente
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue Desktop : Grille hebdomadaire -->
+    <div class="planning-desktop d-none d-md-block">
+        <div class="planning-grid">
+            <!-- En-têtes des jours -->
+            <div class="grid-header">
+                <div class="jour-header">Lun</div>
+                <div class="jour-header">Mar</div>
+                <div class="jour-header">Mer</div>
+                <div class="jour-header">Jeu</div>
+                <div class="jour-header">Ven</div>
+                <div class="jour-header">Sam</div>
+                <div class="jour-header">Dim</div>
+            </div>
+
+            <!-- Grille des jours -->
+            <div class="grid-body">
+                @{
+                    var premierJour = Planning.Jours.FirstOrDefault()?.Date ?? DateTime.Today;
+                    var premierLundi = premierJour.AddDays(-(int)premierJour.DayOfWeek + (int)DayOfWeek.Monday);
+                    if (premierJour.DayOfWeek == DayOfWeek.Sunday) premierLundi = premierLundi.AddDays(-7);
+
+                    var dernierJour = Planning.Jours.LastOrDefault()?.Date ?? DateTime.Today;
+                    var jourCourant = premierLundi;
+                }
+
+                @while (jourCourant <= dernierJour.AddDays(6 - (int)dernierJour.DayOfWeek))
+                {
+                    <div class="jour-cell @GetCssClasseJour(jourCourant)">
+                        <div class="numero-jour">
+                            @jourCourant.Day
+                        </div>
+
+                        @if (jourCourant.Month == Planning.Mois)
+                        {
+                            var reservationsJour = Planning.Jours
+                                .FirstOrDefault(j => j.Date.Date == jourCourant.Date)?.Reservations
+                                .Where(r => FiltreReservation(r)).ToList() ?? new List<ReservationDto>();
+
+                            @foreach (var reservation in reservationsJour.Take(3))
+                            {
+                                <div class="reservation-item @reservation.StatutCss"
+                                     @onclick="() => VoirDetailsReservation(reservation)"
+                                     title="@GetTooltipReservation(reservation)">
+                                    <div class="reservation-time">
+                                        @reservation.HeureDebut.ToString(@"hh\:mm")
+                                    </div>
+                                    <div class="reservation-alveole">
+                                        @reservation.AlveoleNom
+                                    </div>
+                                    @if (reservation.EstValidee)
+                                    {
+                                        <i class="fas fa-check-circle text-success reservation-status"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-clock text-warning reservation-status"></i>
+                                    }
+                                </div>
+                            }
+
+                            @if (reservationsJour.Count > 3)
+                            {
+                                <div class="reservation-more" @onclick="() => VoirJour(jourCourant)">
+                                    +@(reservationsJour.Count - 3) autres
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    jourCourant = jourCourant.AddDays(1);
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue Mobile : Liste par jour -->
+    <div class="planning-mobile d-md-none">
+        @foreach (var jour in Planning.Jours.Where(j => j.Reservations.Any(r => FiltreReservation(r))))
+        {
+            <div class="jour-mobile-card mb-3">
+                <div class="jour-mobile-header @(jour.EstAujourdhui ? "aujourd-hui" : "")">
+                    <h5 class="mb-0">
+                        @jour.Date.ToString("dddd dd MMMM", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                        @if (jour.EstAujourdhui)
+                        {
+                            <span class="badge bg-primary">Aujourd'hui</span>
+                        }
+                    </h5>
+                </div>
+                <div class="jour-mobile-body">
+                    @foreach (var reservation in jour.Reservations.Where(FiltreReservation))
+                    {
+                        <div class="reservation-mobile @reservation.StatutCss"
+                             @onclick="() => VoirDetailsReservation(reservation)">
+                            <div class="reservation-mobile-left">
+                                <div class="reservation-mobile-time">
+                                    @reservation.HeureDebut.ToString(@"hh\:mm") - @reservation.HeureFin.ToString(@"hh\:mm")
+                                </div>
+                                <div class="reservation-mobile-alveole">
+                                    @reservation.AlveoleNom
+                                </div>
+                            </div>
+                            <div class="reservation-mobile-right">
+                                <span class="badge bg-@reservation.CouleurBadge">
+                                    @reservation.StatutTexte
+                                </span>
+                                <div class="reservation-mobile-membres">
+                                    @reservation.NombreMembres tireur(s)
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!Planning.Jours.Any(j => j.Reservations.Any(r => FiltreReservation(r))))
+        {
+            <div class="alert alert-info text-center">
+                <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                <p>Aucune réservation ce mois-ci.</p>
+                <button class="btn btn-primary" @onclick="NouvelleReservation">
+                    Créer une réservation
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- Légende -->
+    <div class="planning-legend mt-3">
+        <div class="row">
+            <div class="col-auto">
+                <span class="legend-item">
+                    <i class="fas fa-circle text-success"></i> Confirmée
+                </span>
+            </div>
+            <div class="col-auto">
+                <span class="legend-item">
+                    <i class="fas fa-circle text-warning"></i> En attente
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<ReservationDto> OnVoirDetails { get; set; }
+    [Parameter] public EventCallback OnNouvelleReservation { get; set; }
+    [Parameter] public EventCallback<DateTime> OnVoirJour { get; set; }
+
+    private PlanningMensuelDto Planning = new() { Jours = new(), Alveoles = new() };
+    private DateTime DateAffichee = DateTime.Today;
+    private string FiltreActuel = "tous";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerPlanning();
+    }
+
+    private async Task ChargerPlanning()
+    {
+        Planning = await PlanningService.GetPlanningMensuelAsync(DateAffichee.Year, DateAffichee.Month);
+        StateHasChanged();
+    }
+
+    private async Task NaviguerMoisPrecedent()
+    {
+        DateAffichee = DateAffichee.AddMonths(-1);
+        await ChargerPlanning();
+    }
+
+    private async Task NaviguerMoisSuivant()
+    {
+        DateAffichee = DateAffichee.AddMonths(1);
+        await ChargerPlanning();
+    }
+
+    private async Task AllerAujourdHui()
+    {
+        DateAffichee = DateTime.Today;
+        await ChargerPlanning();
+    }
+
+    private async Task NouvelleReservation()
+    {
+        await OnNouvelleReservation.InvokeAsync();
+    }
+
+    private async Task VoirDetailsReservation(ReservationDto reservation)
+    {
+        await OnVoirDetails.InvokeAsync(reservation);
+    }
+
+    private async Task VoirJour(DateTime date)
+    {
+        await OnVoirJour.InvokeAsync(date);
+    }
+
+    private void FiltrerParStatut(string statut)
+    {
+        FiltreActuel = statut;
+        StateHasChanged();
+    }
+
+    private bool FiltreReservation(ReservationDto reservation)
+    {
+        return FiltreActuel switch
+        {
+            "confirmees" => reservation.EstValidee,
+            "en-attente" => !reservation.EstValidee,
+            _ => true
+        };
+    }
+
+    private string GetCssClasseJour(DateTime date)
+    {
+        var classes = new List<string>();
+
+        if (date.Date == DateTime.Today)
+            classes.Add("aujourd-hui");
+
+        if (date.Month != Planning.Mois)
+            classes.Add("autre-mois");
+
+        if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+            classes.Add("weekend");
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetTooltipReservation(ReservationDto reservation)
+    {
+        var membres = string.Join(", ", reservation.NomsMemebres);
+        var moniteur = reservation.MoniteurValidateur ?? "Aucun moniteur";
+        return $"{reservation.HeureDebut:hh\\:mm} - {reservation.HeureFin:hh\\:mm}\n" +
+               $"Alvéole: {reservation.AlveoleNom}\n" +
+               $"Membres: {membres}\n" +
+               $"Moniteur: {moniteur}\n" +
+               $"Statut: {reservation.StatutTexte}";
+    }
+}

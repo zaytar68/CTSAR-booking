@@ -1,0 +1,166 @@
+@using CTSAR.Booking.Services
+
+<div class="creneau-reservation @CssClass" @onclick="OnClick">
+    <div class="creneau-header">
+        <div class="creneau-time">
+            <i class="fas fa-clock"></i>
+            @HeureDebut.ToString(@"hh\:mm") - @HeureFin.ToString(@"hh\:mm")
+        </div>
+        @if (Reservation != null)
+        {
+            <div class="creneau-status">
+                @if (Reservation.EstValidee)
+                {
+                    <i class="fas fa-check-circle text-success" title="Réservation confirmée"></i>
+                }
+                else
+                {
+                    <i class="fas fa-clock text-warning" title="En attente de validation"></i>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="creneau-body">
+        @if (Reservation != null)
+        {
+            <!-- Réservation existante -->
+            <div class="alveole-info">
+                <i class="fas fa-crosshairs"></i>
+                @Reservation.AlveoleNom
+            </div>
+
+            <div class="membres-info">
+                <i class="fas fa-users"></i>
+                @Reservation.NombreMembres/@MaxTireurs tireur(s)
+            </div>
+
+            @if (Reservation.NomsMemebres.Any())
+            {
+                <div class="membres-list">
+                    @foreach (var nom in Reservation.NomsMemebres.Take(2))
+                    {
+                        <span class="badge bg-secondary me-1">@nom</span>
+                    }
+                    @if (Reservation.NomsMemebres.Count > 2)
+                    {
+                        <span class="badge bg-light text-dark">+@(Reservation.NomsMemebres.Count - 2)</span>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Reservation.MoniteurValidateur))
+            {
+                <div class="moniteur-info">
+                    <i class="fas fa-user-shield text-primary"></i>
+                    <small>@Reservation.MoniteurValidateur</small>
+                </div>
+            }
+
+            <div class="creneau-actions mt-2">
+                <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="VoirDetails">
+                    <i class="fas fa-eye"></i> Détails
+                </button>
+                @if (PeutModifier)
+                {
+                    <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Créneau disponible -->
+            <div class="creneau-disponible">
+                <div class="places-disponibles">
+                    <i class="fas fa-plus-circle text-success"></i>
+                    @PlacesDisponibles/@MaxTireurs places
+                </div>
+
+                @if (EstDisponible)
+                {
+                    <button class="btn btn-sm btn-success mt-2" @onclick:stopPropagation="true" @onclick="Reserver">
+                        <i class="fas fa-plus"></i> Réserver
+                    </button>
+                }
+                else
+                {
+                    <div class="text-muted">
+                        <i class="fas fa-times-circle"></i>
+                        Non disponible
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (EstFerme)
+    {
+        <div class="creneau-ferme">
+            <i class="fas fa-lock"></i>
+            Fermé
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ReservationDto? Reservation { get; set; }
+    [Parameter] public TimeSpan HeureDebut { get; set; }
+    [Parameter] public TimeSpan HeureFin { get; set; }
+    [Parameter] public bool EstDisponible { get; set; } = true;
+    [Parameter] public int PlacesDisponibles { get; set; } = 8;
+    [Parameter] public int MaxTireurs { get; set; } = 8;
+    [Parameter] public bool EstFerme { get; set; }
+    [Parameter] public bool PeutModifier { get; set; }
+
+    [Parameter] public EventCallback OnVoirDetails { get; set; }
+    [Parameter] public EventCallback OnModifier { get; set; }
+    [Parameter] public EventCallback OnReserver { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private string CssClass
+    {
+        get
+        {
+            var classes = new List<string> { "creneau-item" };
+
+            if (Reservation != null)
+            {
+                classes.Add(Reservation.StatutCss);
+                if (Reservation.EstValidee)
+                    classes.Add("confirmee");
+                else
+                    classes.Add("en-attente");
+            }
+            else if (EstDisponible && !EstFerme)
+            {
+                classes.Add("disponible");
+            }
+            else
+            {
+                classes.Add("indisponible");
+            }
+
+            if (EstFerme)
+                classes.Add("ferme");
+
+            return string.Join(" ", classes);
+        }
+    }
+
+    private async Task VoirDetails()
+    {
+        await OnVoirDetails.InvokeAsync();
+    }
+
+    private async Task Modifier()
+    {
+        await OnModifier.InvokeAsync();
+    }
+
+    private async Task Reserver()
+    {
+        await OnReserver.InvokeAsync();
+    }
+}

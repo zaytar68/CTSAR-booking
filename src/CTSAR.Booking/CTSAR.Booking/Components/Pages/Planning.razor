@@ -1,0 +1,212 @@
+@page "/planning"
+@using CTSAR.Booking.Components.Planning
+@using CTSAR.Booking.Services
+@inject IPlanningService PlanningService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Planning - CTSAR Booking</PageTitle>
+
+<div class="planning-page">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-header mb-4">
+                    <h1 class="page-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Planning des Réservations
+                    </h1>
+                    <p class="text-muted">
+                        Gérez vos réservations d'alvéoles de tir
+                    </p>
+                </div>
+
+                @if (estChargement)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Chargement du planning...</p>
+                    </div>
+                }
+                else if (erreur != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Erreur :</strong> @erreur
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="ChargerDonnees">
+                            Réessayer
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <PlanningMensuel
+                        OnVoirDetails="VoirDetailsReservation"
+                        OnNouvelleReservation="NouvelleReservation"
+                        OnVoirJour="VoirJour" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Détails Réservation -->
+@if (reservationSelectionnee != null)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-backdrop fade show"></div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle"></i>
+                        Détails de la réservation
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="FermerModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">INFORMATIONS GÉNÉRALES</h6>
+                            <div class="info-item">
+                                <i class="fas fa-calendar"></i>
+                                <strong>Date :</strong>
+                                @reservationSelectionnee.DateSeance.ToString("dddd dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <strong>Horaire :</strong>
+                                @reservationSelectionnee.HeureDebut.ToString(@"hh\:mm") - @reservationSelectionnee.HeureFin.ToString(@"hh\:mm")
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-crosshairs"></i>
+                                <strong>Alvéole :</strong>
+                                @reservationSelectionnee.AlveoleNom
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-users"></i>
+                                <strong>Participants :</strong>
+                                @reservationSelectionnee.NombreMembres tireur(s)
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">STATUT</h6>
+                            <div class="info-item">
+                                @if (reservationSelectionnee.EstValidee)
+                                {
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span class="badge bg-success">Confirmée</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-clock text-warning"></i>
+                                    <span class="badge bg-warning">En attente de validation</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(reservationSelectionnee.MoniteurValidateur))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-user-shield text-primary"></i>
+                                    <strong>Moniteur :</strong>
+                                    @reservationSelectionnee.MoniteurValidateur
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (reservationSelectionnee.NomsMemebres.Any())
+                    {
+                        <hr />
+                        <h6 class="text-muted">PARTICIPANTS INSCRITS</h6>
+                        <div class="participants-list">
+                            @foreach (var nom in reservationSelectionnee.NomsMemebres)
+                            {
+                                <span class="badge bg-secondary me-1 mb-1">
+                                    <i class="fas fa-user"></i> @nom
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="FermerModal">
+                        Fermer
+                    </button>
+                    <button type="button" class="btn btn-primary" @onclick="ModifierReservation">
+                        <i class="fas fa-edit"></i> Modifier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool estChargement = false;
+    private string? erreur = null;
+    private ReservationDto? reservationSelectionnee = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerDonnees();
+    }
+
+    private async Task ChargerDonnees()
+    {
+        estChargement = true;
+        erreur = null;
+
+        try
+        {
+            // Les données seront chargées par le composant PlanningMensuel
+            await Task.Delay(100); // Simulation du chargement
+        }
+        catch (Exception ex)
+        {
+            erreur = $"Impossible de charger le planning : {ex.Message}";
+        }
+        finally
+        {
+            estChargement = false;
+            StateHasChanged();
+        }
+    }
+
+    private Task VoirDetailsReservation(ReservationDto reservation)
+    {
+        reservationSelectionnee = reservation;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task NouvelleReservation()
+    {
+        // Navigation vers la page de création de réservation
+        Navigation.NavigateTo("/reservations/nouvelle");
+        return Task.CompletedTask;
+    }
+
+    private Task VoirJour(DateTime date)
+    {
+        // Navigation vers la vue détaillée du jour
+        Navigation.NavigateTo($"/planning/jour/{date:yyyy-MM-dd}");
+        return Task.CompletedTask;
+    }
+
+    private void FermerModal()
+    {
+        reservationSelectionnee = null;
+        StateHasChanged();
+    }
+
+    private Task ModifierReservation()
+    {
+        if (reservationSelectionnee != null)
+        {
+            Navigation.NavigateTo($"/reservations/{reservationSelectionnee.Id}/modifier");
+        }
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,408 @@
+@page "/reservations/nouvelle"
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.Models
+@inject IReservationService ReservationService
+@inject IPlanningService PlanningService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Nouvelle Réservation - CTSAR Booking</PageTitle>
+
+<div class="reservation-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="reservation-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-plus-circle"></i>
+                            Nouvelle Réservation
+                        </h2>
+                        <p class="card-subtitle">Réservez votre créneau d'entraînement</p>
+                    </div>
+
+                    <div class="card-body">
+                        @if (erreurs.Any())
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Erreur(s) détectée(s) :</strong>
+                                <ul class="mb-0 mt-2">
+                                    @foreach (var erreur in erreurs)
+                                    {
+                                        <li>@erreur</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (messageSucces != null)
+                        {
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                @messageSucces
+                            </div>
+                        }
+
+                        <EditForm Model="formulaire" OnValidSubmit="SoumettreFormulaire">
+                            <DataAnnotationsValidator />
+
+                            <!-- Sélection de la date -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Date de la séance
+                                </label>
+                                <InputDate @bind-Value="formulaire.DateSeance"
+                                          class="@($"form-control {(erreurDate ? "is-invalid" : "")}")"
+                                          min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                          @onchange="OnDateChange" />
+                                <ValidationMessage For="@(() => formulaire.DateSeance)" />
+                                @if (erreurDate)
+                                {
+                                    <div class="invalid-feedback">
+                                        La date doit être dans le futur.
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Sélection de l'alvéole -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-crosshairs"></i>
+                                    Alvéole
+                                </label>
+                                <InputSelect @bind-Value="formulaire.AlveoleId"
+                                           class="form-select"
+                                           @onchange="OnAlveoleChange">
+                                    <option value="0">-- Sélectionnez une alvéole --</option>
+                                    @foreach (var alveole in alveolesDisponibles)
+                                    {
+                                        <option value="@alveole.Id">
+                                            @alveole.Nom (@alveole.NombreMaxTireurs tireurs max)
+                                        </option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => formulaire.AlveoleId)" />
+                            </div>
+
+                            <!-- Sélection du créneau -->
+                            @if (creneauxDisponibles.Any())
+                            {
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock"></i>
+                                        Créneau horaire
+                                    </label>
+                                    <div class="creneaux-grid">
+                                        @foreach (var creneau in creneauxDisponibles)
+                                        {
+                                            <div class="creneau-option @(creneauSelectionne == creneau ? "selected" : "")"
+                                                 @onclick="() => SelectionnerCreneau(creneau)">
+                                                <div class="creneau-horaire">
+                                                    @creneau.HeureDebut.ToString(@"hh\:mm") - @creneau.HeureFin.ToString(@"hh\:mm")
+                                                </div>
+                                                <div class="creneau-places">
+                                                    @if (creneau.EstDisponible)
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            @creneau.PlacesRestantes places libres
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger">Complet</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    @if (erreurCreneau)
+                                    {
+                                        <div class="text-danger mt-1">
+                                            <small>Veuillez sélectionner un créneau.</small>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Sélection des participants -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-users"></i>
+                                    Participants supplémentaires (optionnel)
+                                </label>
+                                <div class="membres-selection">
+                                    @if (membresDisponibles.Any())
+                                    {
+                                        @foreach (var membre in membresDisponibles)
+                                        {
+                                            <div class="form-check membre-option">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       id="membre_@membre.Id"
+                                                       @onchange="@((ChangeEventArgs e) => ToggleMembre(membre.Id, (bool)e.Value!))" />
+                                                <label class="form-check-label" for="membre_@membre.Id">
+                                                    <div class="membre-info">
+                                                        <strong>@membre.NomComplet</strong>
+                                                        <small class="text-muted">@membre.Role</small>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">Aucun autre membre disponible</p>
+                                    }
+                                </div>
+                                <small class="form-text text-muted">
+                                    Vous serez automatiquement inscrit à cette réservation.
+                                    @if (formulaire.AlveoleId > 0 && alveolesDisponibles.Any())
+                                    {
+                                        var alveoleSelectionnee = alveolesDisponibles.First(a => a.Id == formulaire.AlveoleId);
+                                        <br />
+                                        <text>Maximum @alveoleSelectionnee.NombreMaxTireurs participants au total.</text>
+                                    }
+                                </small>
+                            </div>
+
+                            <!-- Commentaires -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-comment"></i>
+                                    Commentaires (optionnel)
+                                </label>
+                                <InputTextArea @bind-Value="formulaire.Commentaires"
+                                              class="form-control"
+                                              rows="3"
+                                              placeholder="Informations additionnelles..." />
+                                <ValidationMessage For="@(() => formulaire.Commentaires)" />
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" @onclick="Annuler">
+                                    <i class="fas fa-times"></i>
+                                    Annuler
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@estEnCreation">
+                                    @if (estEnCreation)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Création...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-save"></i>
+                                        <span>Créer la réservation</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private FormulaireReservation formulaire = new();
+    private List<AlveoleDto> alveolesDisponibles = new();
+    private List<CreneauDisponibleDto> creneauxDisponibles = new();
+    private List<MembreDto> membresDisponibles = new();
+    private List<string> erreurs = new();
+    private string? messageSucces;
+    private bool estEnCreation = false;
+    private bool erreurDate = false;
+    private bool erreurCreneau = false;
+    private CreneauDisponibleDto? creneauSelectionne;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerAlveoles();
+        await ChargerMembres();
+
+        // Initialiser avec la date d'aujourd'hui
+        formulaire.DateSeance = DateTime.Today.AddDays(1);
+        formulaire.MembreCreateurId = 1; // TODO: Récupérer l'utilisateur connecté
+    }
+
+    private Task ChargerAlveoles()
+    {
+        // TODO: Créer un service pour récupérer les alvéoles actives
+        // Pour l'instant, utilisation simplifiée
+        alveolesDisponibles = new List<AlveoleDto>
+        {
+            new() { Id = 1, Nom = "Alvéole 1", NombreMaxTireurs = 8, EstActive = true },
+            new() { Id = 2, Nom = "Alvéole 2", NombreMaxTireurs = 6, EstActive = true }
+        };
+        return Task.CompletedTask;
+    }
+
+    private Task ChargerMembres()
+    {
+        // TODO: Créer un service pour récupérer les membres actifs
+        // Pour l'instant, utilisation simplifiée
+        membresDisponibles = new List<MembreDto>
+        {
+            new() { Id = 2, Nom = "Dubois", Prenom = "Marie", Role = Role.Moniteur }
+        };
+        return Task.CompletedTask;
+    }
+
+    private async Task OnDateChange()
+    {
+        erreurDate = formulaire.DateSeance <= DateTime.Today;
+        if (!erreurDate && formulaire.AlveoleId > 0)
+        {
+            await ChargerCreneaux();
+        }
+        creneauSelectionne = null;
+        StateHasChanged();
+    }
+
+    private async Task OnAlveoleChange()
+    {
+        if (formulaire.AlveoleId > 0 && formulaire.DateSeance > DateTime.Today)
+        {
+            await ChargerCreneaux();
+        }
+        creneauSelectionne = null;
+        StateHasChanged();
+    }
+
+    private async Task ChargerCreneaux()
+    {
+        if (formulaire.AlveoleId <= 0 || formulaire.DateSeance <= DateTime.Today)
+        {
+            creneauxDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            creneauxDisponibles = await PlanningService.GetCreneauxDisponiblesAsync(formulaire.AlveoleId, formulaire.DateSeance);
+        }
+        catch (Exception ex)
+        {
+            erreurs.Add($"Erreur lors du chargement des créneaux : {ex.Message}");
+        }
+    }
+
+    private void SelectionnerCreneau(CreneauDisponibleDto creneau)
+    {
+        if (creneau.EstDisponible)
+        {
+            creneauSelectionne = creneau;
+            formulaire.HeureDebut = creneau.HeureDebut;
+            formulaire.HeureFin = creneau.HeureFin;
+            erreurCreneau = false;
+        }
+    }
+
+    private void ToggleMembre(int membreId, bool estSelectionne)
+    {
+        if (estSelectionne && !formulaire.MembresInscritsIds.Contains(membreId))
+        {
+            formulaire.MembresInscritsIds.Add(membreId);
+        }
+        else if (!estSelectionne && formulaire.MembresInscritsIds.Contains(membreId))
+        {
+            formulaire.MembresInscritsIds.Remove(membreId);
+        }
+    }
+
+    private async Task SoumettreFormulaire()
+    {
+        erreurs.Clear();
+        messageSucces = null;
+
+        // Validations
+        if (formulaire.DateSeance <= DateTime.Today)
+        {
+            erreurDate = true;
+            erreurs.Add("La date doit être dans le futur.");
+        }
+
+        if (creneauSelectionne == null)
+        {
+            erreurCreneau = true;
+            erreurs.Add("Veuillez sélectionner un créneau.");
+        }
+
+        if (erreurs.Any())
+        {
+            StateHasChanged();
+            return;
+        }
+
+        estEnCreation = true;
+        StateHasChanged();
+
+        try
+        {
+            var reservationDto = new CreerReservationDto
+            {
+                DateSeance = formulaire.DateSeance,
+                HeureDebut = formulaire.HeureDebut,
+                HeureFin = formulaire.HeureFin,
+                AlveoleId = formulaire.AlveoleId,
+                MembreCreateurId = formulaire.MembreCreateurId,
+                MembresInscritsIds = formulaire.MembresInscritsIds,
+                Commentaires = formulaire.Commentaires
+            };
+
+            var resultat = await ReservationService.CreerReservationAsync(reservationDto);
+
+            if (resultat.Succes)
+            {
+                messageSucces = "Réservation créée avec succès !";
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/planning");
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(resultat.MessageErreur))
+                    erreurs.Add(resultat.MessageErreur);
+                erreurs.AddRange(resultat.Erreurs);
+            }
+        }
+        catch (Exception ex)
+        {
+            erreurs.Add($"Une erreur inattendue s'est produite : {ex.Message}");
+        }
+        finally
+        {
+            estEnCreation = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Annuler()
+    {
+        Navigation.NavigateTo("/planning");
+    }
+
+    // Classes pour le formulaire
+    public class FormulaireReservation
+    {
+        public DateTime DateSeance { get; set; } = DateTime.Today.AddDays(1);
+        public TimeSpan HeureDebut { get; set; }
+        public TimeSpan HeureFin { get; set; }
+        public int AlveoleId { get; set; }
+        public int MembreCreateurId { get; set; }
+        public List<int> MembresInscritsIds { get; set; } = new();
+        public string? Commentaires { get; set; }
+    }
+
+    public class MembreDto
+    {
+        public int Id { get; set; }
+        public string Nom { get; set; } = string.Empty;
+        public string Prenom { get; set; } = string.Empty;
+        public Role Role { get; set; }
+        public string NomComplet => $"{Prenom} {Nom}";
+    }
+}
