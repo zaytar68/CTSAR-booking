@@ -1,0 +1,33 @@
+﻿@*
+====================================================================
+Routes.razor : Configuration du routage de l'application
+====================================================================
+Ce fichier gère la navigation entre les pages.
+*@
+
+@using CTSAR.Booking.Components.Account.Shared
+
+@* ================================================================ *@
+@* MUDBLAZOR : Providers nécessaires pour le thème et les dialogues *@
+@* ================================================================ *@
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@* ================================================================ *@
+@* ROUTER : Gestion de la navigation                                *@
+@* ================================================================ *@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        @* AuthorizeRouteView : Gère l'autorisation par rôle *@
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                @* Si l'utilisateur n'est pas autorisé, on le redirige vers login *@
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        @* Focus automatique sur le titre h1 lors de la navigation *@
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>

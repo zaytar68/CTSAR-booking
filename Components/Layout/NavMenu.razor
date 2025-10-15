@@ -1,0 +1,124 @@
+﻿@*
+====================================================================
+NavMenu.razor : Menu de navigation principal de l'application
+====================================================================
+Ce composant affiche le menu latéral avec tous les liens de navigation.
+Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
+*@
+
+@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+@* ================================================================ *@
+@* EN-TÊTE DU MENU                                                  *@
+@* ================================================================ *@
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">CTSAR Booking</a>
+    </div>
+</div>
+
+@* Toggle pour afficher/masquer le menu sur mobile *@
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+
+        @* ======================================================== *@
+        @* NAVIGATION PRINCIPALE (accessible à tous)               *@
+        @* ======================================================== *@
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Accueil
+            </NavLink>
+        </div>
+
+        @* ======================================================== *@
+        @* SECTION ADMINISTRATION (visible pour les Administrateurs uniquement) *@
+        @* ======================================================== *@
+        <AuthorizeView Policy="AdminOnly">
+            <Authorized>
+                <div class="nav-item px-3 mt-3">
+                    <div class="text-muted small px-3 mb-2">ADMINISTRATION</div>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="admin/utilisateurs">
+                        <span class="bi bi-people-fill" aria-hidden="true"></span> Gestion utilisateurs
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        @* ======================================================== *@
+        @* SECTION UTILISATEUR (connexion/déconnexion)             *@
+        @* ======================================================== *@
+        <AuthorizeView>
+            <Authorized>
+                @* Utilisateur connecté *@
+                <div class="nav-item px-3 mt-3">
+                    <div class="text-muted small px-3 mb-2">COMPTE</div>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <button type="submit" class="nav-link">
+                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Déconnexion
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                @* Utilisateur non connecté *@
+                <div class="nav-item px-3 mt-3">
+                    <div class="text-muted small px-3 mb-2">CONNEXION</div>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Register">
+                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> S'inscrire
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Login">
+                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Se connecter
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

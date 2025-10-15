@@ -1,0 +1,50 @@
+﻿@*
+====================================================================
+App.razor : Point d'entrée principal de l'application
+====================================================================
+Ce fichier définit la structure HTML de base et charge tous les CSS/JS.
+*@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+
+    @* ============================================================ *@
+    @* CSS : Feuilles de style                                      *@
+    @* ============================================================ *@
+
+    @* Bootstrap (framework CSS de base) *@
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+
+    @* MudBlazor : CSS pour les composants UI modernes *@
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+
+    @* CSS de notre application *@
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["CTSAR.Booking.styles.css"]" />
+
+    <ImportMap />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+
+    @* ============================================================ *@
+    @* JAVASCRIPT : Scripts nécessaires                             *@
+    @* ============================================================ *@
+
+    @* Script principal de Blazor *@
+    <script src="_framework/blazor.web.js"></script>
+
+    @* MudBlazor : JavaScript pour les composants interactifs *@
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+
+</html>

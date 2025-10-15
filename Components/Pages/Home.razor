@@ -1,0 +1,98 @@
+﻿@*
+====================================================================
+Home.razor : Page d'accueil de l'application
+====================================================================
+*@
+
+@page "/"
+
+<PageTitle>Accueil - CTSAR Booking</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4">Bienvenue sur CTSAR Booking</h1>
+            <p class="lead">Système de réservation d'alvéoles pour le club de tir</p>
+            <hr class="my-4" />
+        </div>
+    </div>
+
+    <AuthorizeView>
+        <Authorized>
+            @* Message pour utilisateur connecté *@
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="alert alert-success" role="alert">
+                        <h4 class="alert-heading">Bonjour @context.User.Identity?.Name !</h4>
+                        <p>Vous êtes connecté(e) à l'application CTSAR Booking.</p>
+                        <hr>
+                        <p class="mb-0">
+                            <a href="Account/Manage" class="alert-link">Gérer mon compte</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            @* TODO: Afficher les prochaines réservations de l'utilisateur *@
+        </Authorized>
+
+        <NotAuthorized>
+            @* Message pour visiteur non connecté *@
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="alert alert-info" role="alert">
+                        <h4 class="alert-heading">Vous n'êtes pas connecté</h4>
+                        <p>Pour accéder aux fonctionnalités de réservation, veuillez vous connecter.</p>
+                        <hr>
+                        <p class="mb-0">
+                            <a href="Account/Login" class="btn btn-primary me-2">Se connecter</a>
+                            <a href="Account/Register" class="btn btn-outline-primary">S'inscrire</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    @* Section informations *@
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-check"></i> Réservations
+                    </h5>
+                    <p class="card-text">
+                        Réservez facilement vos créneaux de tir en fonction des disponibilités des alvéoles et des moniteurs.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people"></i> Moniteurs
+                    </h5>
+                    <p class="card-text">
+                        Un moniteur doit valider sa présence pour confirmer votre séance de tir.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-bell"></i> Notifications
+                    </h5>
+                    <p class="card-text">
+                        Recevez des notifications lorsqu'un moniteur valide ou annule une séance.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

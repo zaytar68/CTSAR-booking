@@ -1,0 +1,409 @@
+@*
+====================================================================
+Utilisateurs.razor : Page de gestion des utilisateurs (admin)
+====================================================================
+Cette page permet aux administrateurs de :
+- Voir la liste de tous les utilisateurs
+- Créer de nouveaux utilisateurs
+- Modifier les utilisateurs existants
+- Supprimer des utilisateurs
+- Verrouiller/déverrouiller des comptes
+
+Accessible uniquement aux Administrateurs (Policy="AdminOnly")
+*@
+
+@page "/admin/utilisateurs"
+@attribute [Authorize(Policy = "AdminOnly")]
+@rendermode InteractiveServer
+
+@inject UserService UserService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Gestion des utilisateurs - CTSAR Booking</PageTitle>
+
+@* ================================================================ *@
+@* EN-TÊTE DE LA PAGE                                               *@
+@* ================================================================ *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6">Gestion des utilisateurs</h1>
+        <p class="text-muted">Gérer les membres, moniteurs et administrateurs du club</p>
+    </div>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenCreateUserDialog"
+               Size="Size.Large">
+        Nouvel utilisateur
+    </MudButton>
+</div>
+
+@* ================================================================ *@
+@* FILTRES ET STATISTIQUES                                          *@
+@* ================================================================ *@
+<MudPaper Class="pa-4 mb-4">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <div class="d-flex align-items-center">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" Class="me-3" />
+                        <div>
+                            <MudText Typo="Typo.h4">@_users.Count</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total utilisateurs</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <div class="d-flex align-items-center">
+                        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Size="Size.Large" Class="me-3" />
+                        <div>
+                            <MudText Typo="Typo.h4">@_users.Count(u => u.EstAdministrateur)</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Administrateurs</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <div class="d-flex align-items-center">
+                        <MudIcon Icon="@Icons.Material.Filled.SupervisedUserCircle" Color="Color.Warning" Size="Size.Large" Class="me-3" />
+                        <div>
+                            <MudText Typo="Typo.h4">@_users.Count(u => u.EstMoniteur)</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Moniteurs</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <div class="d-flex align-items-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Info" Size="Size.Large" Class="me-3" />
+                        <div>
+                            <MudText Typo="Typo.h4">@_users.Count(u => !u.EstAdministrateur && !u.EstMoniteur)</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Membres</MudText>
+                        </div>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@* ================================================================ *@
+@* TABLEAU DES UTILISATEURS (MudDataGrid)                           *@
+@* ================================================================ *@
+<MudPaper Class="pa-4">
+    <MudDataGrid T="UserDto"
+                 Items="@_users"
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.ColumnFilterRow"
+                 SortMode="SortMode.Multiple"
+                 Hover="true"
+                 Loading="@_loading"
+                 Dense="true">
+
+        @* Colonne Nom complet *@
+        <Columns>
+            <PropertyColumn Property="x => x.NomComplet" Title="Nom" />
+
+            @* Colonne Email *@
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+
+            @* Colonne Rôles avec badges colorés *@
+            <TemplateColumn Title="Rôles" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    @foreach (var role in context.Item.Roles)
+                    {
+                        <MudChip Size="Size.Small"
+                                 Color="@GetRoleColor(role)"
+                                 Class="me-1 mb-1">
+                            @role
+                        </MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+
+            @* Colonne Téléphone *@
+            <PropertyColumn Property="x => x.PhoneNumber" Title="Téléphone">
+                <CellTemplate>
+                    @(string.IsNullOrEmpty(context.Item.PhoneNumber) ? "-" : context.Item.PhoneNumber)
+                </CellTemplate>
+            </PropertyColumn>
+
+            @* Colonne Langue *@
+            <PropertyColumn Property="x => x.PreferenceLangue" Title="Langue">
+                <CellTemplate>
+                    <MudChip Size="Size.Small" Variant="Variant.Outlined">
+                        @context.Item.PreferenceLangue.ToUpper()
+                    </MudChip>
+                </CellTemplate>
+            </PropertyColumn>
+
+            @* Colonne Statut (verrouillé ou actif) *@
+            <TemplateColumn Title="Statut" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    @if (context.Item.EstVerrouille)
+                    {
+                        <MudChip Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Lock">
+                            Verrouillé
+                        </MudChip>
+                    }
+                    else
+                    {
+                        <MudChip Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">
+                            Actif
+                        </MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+
+            @* Colonne Actions *@
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   OnClick="@(() => OpenEditUserDialog(context.Item))"
+                                   Title="Modifier" />
+
+                    @if (context.Item.EstVerrouille)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.LockOpen"
+                                       Color="Color.Success"
+                                       Size="Size.Small"
+                                       OnClick="@(() => UnlockUser(context.Item))"
+                                       Title="Déverrouiller" />
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Lock"
+                                       Color="Color.Warning"
+                                       Size="Size.Small"
+                                       OnClick="@(() => LockUser(context.Item))"
+                                       Title="Verrouiller" />
+                    }
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   OnClick="@(() => DeleteUser(context.Item))"
+                                   Title="Supprimer" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        @* Message si aucun utilisateur *@
+        <NoRecordsContent>
+            <MudText>Aucun utilisateur trouvé</MudText>
+        </NoRecordsContent>
+
+        @* Pagination *@
+        <PagerContent>
+            <MudDataGridPager T="UserDto" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>
+
+@code {
+    // ================================================================
+    // VARIABLES D'ÉTAT
+    // ================================================================
+
+    /// <summary>
+    /// Liste de tous les utilisateurs à afficher dans le tableau.
+    /// Chargée au démarrage de la page.
+    /// </summary>
+    private List<UserDto> _users = new();
+
+    /// <summary>
+    /// Indique si les données sont en cours de chargement.
+    /// Affiche un spinner pendant le chargement.
+    /// </summary>
+    private bool _loading = true;
+
+    // ================================================================
+    // MÉTHODES DU CYCLE DE VIE
+    // ================================================================
+
+    /// <summary>
+    /// Méthode appelée automatiquement lors de l'initialisation de la page.
+    /// Charge la liste des utilisateurs depuis le UserService.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    // ================================================================
+    // MÉTHODES PRIVÉES
+    // ================================================================
+
+    /// <summary>
+    /// Charge tous les utilisateurs depuis le service.
+    /// Affiche un message d'erreur si le chargement échoue.
+    /// </summary>
+    private async Task LoadUsers()
+    {
+        try
+        {
+            _loading = true;
+            _users = await UserService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors du chargement des utilisateurs : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>
+    /// Retourne la couleur MudBlazor appropriée pour un rôle.
+    /// Administrateur = Rouge, Moniteur = Orange, Membre = Bleu
+    /// </summary>
+    private Color GetRoleColor(string role)
+    {
+        return role switch
+        {
+            "Administrateur" => Color.Error,
+            "Moniteur" => Color.Warning,
+            "Membre" => Color.Info,
+            _ => Color.Default
+        };
+    }
+
+    // ================================================================
+    // DIALOGUES (À IMPLÉMENTER)
+    // ================================================================
+
+    /// <summary>
+    /// Ouvre le dialogue pour créer un nouvel utilisateur.
+    /// TODO: Implémenter le dialogue CreateUserDialog
+    /// </summary>
+    private void OpenCreateUserDialog()
+    {
+        Snackbar.Add("Dialogue de création à implémenter", Severity.Info);
+        // TODO: Implémenter le dialogue
+        // var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        // var dialog = await DialogService.ShowAsync<CreateUserDialog>("Nouvel utilisateur", options);
+        // var result = await dialog.Result;
+        // if (!result.Canceled)
+        // {
+        //     await LoadUsers();
+        //     Snackbar.Add("Utilisateur créé avec succès", Severity.Success);
+        // }
+    }
+
+    /// <summary>
+    /// Ouvre le dialogue pour modifier un utilisateur existant.
+    /// TODO: Implémenter le dialogue EditUserDialog
+    /// </summary>
+    private void OpenEditUserDialog(UserDto user)
+    {
+        Snackbar.Add($"Dialogue d'édition de {user.NomComplet} à implémenter", Severity.Info);
+        // TODO: Implémenter le dialogue
+        // var parameters = new DialogParameters { ["User"] = user };
+        // var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        // var dialog = await DialogService.ShowAsync<EditUserDialog>("Modifier l'utilisateur", parameters, options);
+        // var result = await dialog.Result;
+        // if (!result.Canceled)
+        // {
+        //     await LoadUsers();
+        //     Snackbar.Add("Utilisateur modifié avec succès", Severity.Success);
+        // }
+    }
+
+    // ================================================================
+    // ACTIONS (VERROUILLAGE ET SUPPRESSION)
+    // ================================================================
+
+    /// <summary>
+    /// Verrouille un compte utilisateur (empêche la connexion).
+    /// Demande confirmation avant l'action.
+    /// </summary>
+    private async Task LockUser(UserDto user)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Verrouiller l'utilisateur",
+            $"Êtes-vous sûr de vouloir verrouiller le compte de {user.NomComplet} ?",
+            yesText: "Verrouiller",
+            cancelText: "Annuler");
+
+        if (confirmed == true)
+        {
+            var (success, message) = await UserService.LockUserAsync(user.Id);
+
+            if (success)
+            {
+                Snackbar.Add(message, Severity.Success);
+                await LoadUsers();
+            }
+            else
+            {
+                Snackbar.Add(message, Severity.Error);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Déverrouille un compte utilisateur (permet à nouveau la connexion).
+    /// </summary>
+    private async Task UnlockUser(UserDto user)
+    {
+        var (success, message) = await UserService.UnlockUserAsync(user.Id);
+
+        if (success)
+        {
+            Snackbar.Add(message, Severity.Success);
+            await LoadUsers();
+        }
+        else
+        {
+            Snackbar.Add(message, Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Supprime définitivement un utilisateur de la base de données.
+    /// Demande confirmation avant l'action (IRRÉVERSIBLE).
+    /// </summary>
+    private async Task DeleteUser(UserDto user)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Supprimer l'utilisateur",
+            $"Êtes-vous sûr de vouloir supprimer définitivement {user.NomComplet} ? Cette action est irréversible !",
+            yesText: "Supprimer",
+            cancelText: "Annuler");
+
+        if (confirmed == true)
+        {
+            var (success, message) = await UserService.DeleteUserAsync(user.Id);
+
+            if (success)
+            {
+                Snackbar.Add(message, Severity.Success);
+                await LoadUsers();
+            }
+            else
+            {
+                Snackbar.Add(message, Severity.Error);
+            }
+        }
+    }
+}
