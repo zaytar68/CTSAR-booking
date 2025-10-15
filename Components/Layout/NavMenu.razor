@@ -11,95 +11,75 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 @inject NavigationManager NavigationManager
 
 @* ================================================================ *@
-@* EN-TÊTE DU MENU                                                  *@
+@* MUDBLAZOR DRAWER AVEC MUDNAVMENU                                 *@
 @* ================================================================ *@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">CTSAR Booking</a>
-    </div>
-</div>
+<MudNavMenu Style="background: linear-gradient(to bottom, #808080, #d3d3d3); min-height: 100vh;">
+    @* ======================================================== *@
+    @* EN-TÊTE DU MENU                                          *@
+    @* ======================================================== *@
+    <MudText Typo="Typo.h6" Class="px-4 py-3">CTSAR Booking</MudText>
+    <MudDivider />
 
-@* Toggle pour afficher/masquer le menu sur mobile *@
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    @* ======================================================== *@
+    @* NAVIGATION PRINCIPALE (accessible à tous)               *@
+    @* ======================================================== *@
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Accueil
+    </MudNavLink>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
+    @* ======================================================== *@
+    @* SECTION ADMINISTRATION (visible pour les Administrateurs uniquement) *@
+    @* ======================================================== *@
+    <AuthorizeView Policy="AdminOnly">
+        <Authorized>
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">ADMINISTRATION</MudText>
 
-        @* ======================================================== *@
-        @* NAVIGATION PRINCIPALE (accessible à tous)               *@
-        @* ======================================================== *@
+            <MudNavLink Href="admin/utilisateurs" Icon="@Icons.Material.Filled.People">
+                Gestion utilisateurs
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Accueil
-            </NavLink>
-        </div>
+    @* ======================================================== *@
+    @* SECTION UTILISATEUR (connexion/déconnexion)             *@
+    @* ======================================================== *@
+    <AuthorizeView>
+        <Authorized>
+            @* Utilisateur connecté *@
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">COMPTE</MudText>
 
-        @* ======================================================== *@
-        @* SECTION ADMINISTRATION (visible pour les Administrateurs uniquement) *@
-        @* ======================================================== *@
-        <AuthorizeView Policy="AdminOnly">
-            <Authorized>
-                <div class="nav-item px-3 mt-3">
-                    <div class="text-muted small px-3 mb-2">ADMINISTRATION</div>
-                </div>
+            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">
+                @context.User.Identity?.Name
+            </MudNavLink>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="admin/utilisateurs">
-                        <span class="bi bi-people-fill" aria-hidden="true"></span> Gestion utilisateurs
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
+            <MudNavLink OnClick="@(() => { })" Icon="@Icons.Material.Filled.Logout">
+                <form action="Account/Logout" method="post" style="display: inline;">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                    <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: inherit; text-align: left; width: 100%;">
+                        Déconnexion
+                    </button>
+                </form>
+            </MudNavLink>
+        </Authorized>
 
-        @* ======================================================== *@
-        @* SECTION UTILISATEUR (connexion/déconnexion)             *@
-        @* ======================================================== *@
-        <AuthorizeView>
-            <Authorized>
-                @* Utilisateur connecté *@
-                <div class="nav-item px-3 mt-3">
-                    <div class="text-muted small px-3 mb-2">COMPTE</div>
-                </div>
+        <NotAuthorized>
+            @* Utilisateur non connecté *@
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">CONNEXION</MudText>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
+            <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">
+                S'inscrire
+            </MudNavLink>
 
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Déconnexion
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-
-            <NotAuthorized>
-                @* Utilisateur non connecté *@
-                <div class="nav-item px-3 mt-3">
-                    <div class="text-muted small px-3 mb-2">CONNEXION</div>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> S'inscrire
-                    </NavLink>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Se connecter
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
+            <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">
+                Se connecter
+            </MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>
 
 @code {
     private string? currentUrl;

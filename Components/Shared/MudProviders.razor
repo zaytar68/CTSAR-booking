@@ -1,0 +1,21 @@
+@*
+====================================================================
+MudProviders.razor : Wrapper pour les providers MudBlazor
+====================================================================
+Ce composant fournit tous les providers MudBlazor nécessaires
+pour les pages en mode InteractiveServer sans prérendu.
+*@
+
+@rendermode InteractiveServer
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@ChildContent
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

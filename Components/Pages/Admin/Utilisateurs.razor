@@ -16,9 +16,19 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 @attribute [Authorize(Policy = "AdminOnly")]
 @rendermode InteractiveServer
 
+@using CTSAR.Booking.Components.Dialogs
+
 @inject UserService UserService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+
+@* ============================================================ *@
+@* MUDBLAZOR : Providers nécessaires pour le mode Interactive  *@
+@* ============================================================ *@
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <PageTitle>Gestion des utilisateurs - CTSAR Booking</PageTitle>
 
@@ -114,14 +124,19 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                  SortMode="SortMode.Multiple"
                  Hover="true"
                  Loading="@_loading"
-                 Dense="true">
+                 Dense="true"
+                 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive">
 
         @* Colonne Nom complet *@
         <Columns>
-            <PropertyColumn Property="x => x.NomComplet" Title="Nom" />
+            <PropertyColumn Property="x => x.NomComplet"
+                          Title="Nom"
+                          Filterable="true" />
 
             @* Colonne Email *@
-            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.Email"
+                          Title="Email"
+                          Filterable="true" />
 
             @* Colonne Rôles avec badges colorés *@
             <TemplateColumn Title="Rôles" Sortable="false" Filterable="false">
@@ -138,14 +153,18 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
             </TemplateColumn>
 
             @* Colonne Téléphone *@
-            <PropertyColumn Property="x => x.PhoneNumber" Title="Téléphone">
+            <PropertyColumn Property="x => x.PhoneNumber"
+                          Title="Téléphone"
+                          Filterable="true">
                 <CellTemplate>
                     @(string.IsNullOrEmpty(context.Item.PhoneNumber) ? "-" : context.Item.PhoneNumber)
                 </CellTemplate>
             </PropertyColumn>
 
             @* Colonne Langue *@
-            <PropertyColumn Property="x => x.PreferenceLangue" Title="Langue">
+            <PropertyColumn Property="x => x.PreferenceLangue"
+                          Title="Langue"
+                          Filterable="true">
                 <CellTemplate>
                     <MudChip Size="Size.Small" Variant="Variant.Outlined">
                         @context.Item.PreferenceLangue.ToUpper()
@@ -294,39 +313,47 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 
     /// <summary>
     /// Ouvre le dialogue pour créer un nouvel utilisateur.
-    /// TODO: Implémenter le dialogue CreateUserDialog
+    /// Utilise le composant CreateUserDialog avec MudBlazor.
     /// </summary>
-    private void OpenCreateUserDialog()
+    private async Task OpenCreateUserDialog()
     {
-        Snackbar.Add("Dialogue de création à implémenter", Severity.Info);
-        // TODO: Implémenter le dialogue
-        // var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        // var dialog = await DialogService.ShowAsync<CreateUserDialog>("Nouvel utilisateur", options);
-        // var result = await dialog.Result;
-        // if (!result.Canceled)
-        // {
-        //     await LoadUsers();
-        //     Snackbar.Add("Utilisateur créé avec succès", Severity.Success);
-        // }
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Nouvel utilisateur", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadUsers();
+        }
     }
 
     /// <summary>
     /// Ouvre le dialogue pour modifier un utilisateur existant.
-    /// TODO: Implémenter le dialogue EditUserDialog
+    /// Utilise le composant EditUserDialog avec MudBlazor.
     /// </summary>
-    private void OpenEditUserDialog(UserDto user)
+    private async Task OpenEditUserDialog(UserDto user)
     {
-        Snackbar.Add($"Dialogue d'édition de {user.NomComplet} à implémenter", Severity.Info);
-        // TODO: Implémenter le dialogue
-        // var parameters = new DialogParameters { ["User"] = user };
-        // var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        // var dialog = await DialogService.ShowAsync<EditUserDialog>("Modifier l'utilisateur", parameters, options);
-        // var result = await dialog.Result;
-        // if (!result.Canceled)
-        // {
-        //     await LoadUsers();
-        //     Snackbar.Add("Utilisateur modifié avec succès", Severity.Success);
-        // }
+        var parameters = new DialogParameters { ["User"] = user };
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await DialogService.ShowAsync<EditUserDialog>($"Modifier {user.NomComplet}", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadUsers();
+        }
     }
 
     // ================================================================

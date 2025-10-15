@@ -1,0 +1,350 @@
+@*
+====================================================================
+EditUserDialog.razor : Dialogue de modification d'utilisateur
+====================================================================
+Ce dialogue permet aux administrateurs de modifier un utilisateur existant.
+Utilise les composants MudBlazor pour une interface moderne et réactive.
+*@
+
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Constants
+@using CTSAR.Booking.Services
+@using MudBlazor
+
+@inject UserService UserService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_formIsValid">
+            <MudGrid>
+                @* ======================================================== *@
+                @* INFORMATIONS PERSONNELLES                                *@
+                @* ======================================================== *@
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="me-2" />
+                        Informations personnelles
+                    </MudText>
+                    <MudDivider />
+                </MudItem>
+
+                @* Prénom *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Prenom"
+                                  Label="Prénom"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Le prénom est obligatoire"
+                                  MaxLength="100"
+                                  Counter="100"
+                                  Immediate="true"
+                                  HelperText="Prénom de l'utilisateur" />
+                </MudItem>
+
+                @* Nom *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Nom"
+                                  Label="Nom"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Le nom est obligatoire"
+                                  MaxLength="100"
+                                  Counter="100"
+                                  Immediate="true"
+                                  HelperText="Nom de famille de l'utilisateur" />
+                </MudItem>
+
+                @* Email *@
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Email"
+                                  Label="Adresse email"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="L'email est obligatoire"
+                                  InputType="InputType.Email"
+                                  Validation="@(new EmailAddressAttribute() { ErrorMessage = "L'email n'est pas valide" })"
+                                  Immediate="true"
+                                  HelperText="Sera utilisé comme identifiant de connexion" />
+                </MudItem>
+
+                @* Téléphone *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.PhoneNumber"
+                                  Label="Téléphone"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Telephone"
+                                  HelperText="Optionnel"
+                                  Clearable="true" />
+                </MudItem>
+
+                @* Langue *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_model.PreferenceLangue"
+                               Label="Langue préférée"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               HelperText="Langue de l'interface">
+                        <MudSelectItem Value="@("fr")">🇫🇷 Français</MudSelectItem>
+                        <MudSelectItem Value="@("de")">🇩🇪 Allemand</MudSelectItem>
+                        <MudSelectItem Value="@("en")">🇬🇧 Anglais</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                @* ======================================================== *@
+                @* RÔLES                                                    *@
+                @* ======================================================== *@
+                <MudItem xs="12" Class="mt-4">
+                    <MudText Typo="Typo.h6" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Group" Class="me-2" />
+                        Rôles et permissions
+                    </MudText>
+                    <MudDivider />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        Sélectionnez au moins un rôle pour cet utilisateur :
+                    </MudText>
+
+                    @* Administrateur *@
+                    <MudCheckBox @bind-Value="@_isAdministrateur"
+                                 Color="Color.Error"
+                                 Dense="true"
+                                 Label="Administrateur - Accès complet à toutes les fonctionnalités" />
+
+                    @* Moniteur *@
+                    <MudCheckBox @bind-Value="@_isMoniteur"
+                                 Color="Color.Warning"
+                                 Dense="true"
+                                 Label="Moniteur - Peut valider et gérer les réservations" />
+
+                    @* Membre *@
+                    <MudCheckBox @bind-Value="@_isMembre"
+                                 Color="Color.Info"
+                                 Dense="true"
+                                 Label="Membre - Peut créer et consulter ses réservations" />
+
+                    @if (!_isAdministrateur && !_isMoniteur && !_isMembre)
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mt-2" Dense="true">
+                            Au moins un rôle doit être sélectionné
+                        </MudAlert>
+                    }
+                </MudItem>
+
+                @* ======================================================== *@
+                @* CHANGEMENT DE MOT DE PASSE                               *@
+                @* ======================================================== *@
+                <MudItem xs="12" Class="mt-4">
+                    <MudExpansionPanels>
+                        <MudExpansionPanel Text="Changer le mot de passe" Icon="@Icons.Material.Filled.Lock">
+                            <MudAlert Severity="Severity.Info" Class="mb-3" Dense="true">
+                                Laissez vide pour ne pas modifier le mot de passe actuel
+                            </MudAlert>
+
+                            <MudGrid>
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="_newPassword"
+                                                  Label="Nouveau mot de passe"
+                                                  Variant="Variant.Outlined"
+                                                  InputType="@_passwordInputType"
+                                                  Validation="@(new Func<string, string>(ValidateNewPassword))"
+                                                  Immediate="true"
+                                                  Adornment="Adornment.End"
+                                                  AdornmentIcon="@_passwordIcon"
+                                                  OnAdornmentClick="TogglePasswordVisibility"
+                                                  AdornmentAriaLabel="Afficher/Masquer le mot de passe"
+                                                  Clearable="true"
+                                                  HelperText="Minimum 6 caractères si renseigné" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel"
+                   Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.Cancel">
+            Annuler
+        </MudButton>
+        <MudButton OnClick="Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   Disabled="@(!_formIsValid || _processing || (!_isAdministrateur && !_isMoniteur && !_isMembre))">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <span class="ms-2">Enregistrement...</span>
+            }
+            else
+            {
+                <span>Enregistrer</span>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // ================================================================
+    // PARAMÈTRES DU DIALOGUE
+    // ================================================================
+
+    [CascadingParameter]
+    public MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    /// <summary>
+    /// Utilisateur à modifier (passé en paramètre).
+    /// </summary>
+    [Parameter]
+    public UserDto User { get; set; } = null!;
+
+    // ================================================================
+    // VARIABLES D'ÉTAT
+    // ================================================================
+
+    private MudForm _form = null!;
+    private bool _formIsValid;
+    private UpdateUserDto _model = new();
+    private bool _processing = false;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordIcon = Icons.Material.Filled.VisibilityOff;
+    private string? _newPassword;
+
+    private bool _isAdministrateur = false;
+    private bool _isMoniteur = false;
+    private bool _isMembre = false;
+
+    // ================================================================
+    // INITIALISATION
+    // ================================================================
+
+    protected override void OnInitialized()
+    {
+        // Remplir le modèle avec les valeurs actuelles de l'utilisateur
+        _model.Id = User.Id;
+        _model.Nom = User.Nom;
+        _model.Prenom = User.Prenom;
+        _model.Email = User.Email;
+        _model.PhoneNumber = User.PhoneNumber;
+        _model.PreferenceLangue = User.PreferenceLangue;
+        _model.Roles = User.Roles.ToList();
+
+        // Définir les rôles actuels
+        _isAdministrateur = User.Roles.Contains(RoleConstants.Administrateur);
+        _isMoniteur = User.Roles.Contains(RoleConstants.Moniteur);
+        _isMembre = User.Roles.Contains(RoleConstants.Membre);
+    }
+
+    // ================================================================
+    // VALIDATION
+    // ================================================================
+
+    /// <summary>
+    /// Valide le nouveau mot de passe.
+    /// Optionnel, mais si renseigné, minimum 6 caractères.
+    /// </summary>
+    private string? ValidateNewPassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return null; // Optionnel
+
+        if (password.Length < 6)
+            return "Le mot de passe doit contenir au moins 6 caractères";
+
+        return null;
+    }
+
+    /// <summary>
+    /// Bascule la visibilité du mot de passe.
+    /// </summary>
+    private void TogglePasswordVisibility()
+    {
+        if (_passwordInputType == InputType.Password)
+        {
+            _passwordInputType = InputType.Text;
+            _passwordIcon = Icons.Material.Filled.Visibility;
+        }
+        else
+        {
+            _passwordInputType = InputType.Password;
+            _passwordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+    }
+
+    // ================================================================
+    // ACTIONS
+    // ================================================================
+
+    private void Cancel()
+    {
+        DialogRef?.Close(DialogResult.Cancel());
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+
+        if (!_formIsValid)
+        {
+            Snackbar.Add("Veuillez corriger les erreurs du formulaire", Severity.Error);
+            return;
+        }
+
+        if (!_isAdministrateur && !_isMoniteur && !_isMembre)
+        {
+            Snackbar.Add("Au moins un rôle doit être sélectionné", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            _processing = true;
+
+            // Construire la liste des rôles
+            _model.Roles = new List<string>();
+            if (_isAdministrateur) _model.Roles.Add(RoleConstants.Administrateur);
+            if (_isMoniteur) _model.Roles.Add(RoleConstants.Moniteur);
+            if (_isMembre) _model.Roles.Add(RoleConstants.Membre);
+
+            // Mettre à jour l'utilisateur
+            var (success, message) = await UserService.UpdateUserAsync(_model);
+
+            if (success)
+            {
+                // Si un nouveau mot de passe est fourni, le changer
+                if (!string.IsNullOrWhiteSpace(_newPassword))
+                {
+                    // Note : Cette fonctionnalité nécessiterait une méthode admin
+                    // pour changer le mot de passe sans l'ancien mot de passe
+                    // Pour l'instant, on l'ignore
+                    Snackbar.Add("Note : Le changement de mot de passe n'est pas encore implémenté", Severity.Warning);
+                }
+
+                Snackbar.Add(message, Severity.Success);
+                DialogRef?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add(message, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur inattendue : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}
