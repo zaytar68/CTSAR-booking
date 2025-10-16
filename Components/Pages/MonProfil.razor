@@ -68,7 +68,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <EditForm Model="@updateUserDto" OnValidSubmit="HandleUpdateProfile">
+                        <EditForm Model="@updateUserDto" OnValidSubmit="HandleUpdateProfile" FormName="UpdateProfileForm">
                             <DataAnnotationsValidator />
 
                             <MudGrid>
@@ -157,7 +157,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <EditForm Model="@changePasswordDto" OnValidSubmit="HandleChangePassword">
+                        <EditForm Model="@changePasswordDto" OnValidSubmit="HandleChangePassword" FormName="ChangePasswordForm">
                             <DataAnnotationsValidator />
 
                             @* MOT DE PASSE ACTUEL *@
@@ -292,8 +292,12 @@ personnelles, voir ses rôles et changer son mot de passe.
     private bool changingPassword = false;
 
     private UserDto? currentUser;
-    private UpdateUserDto updateUserDto = new();
-    private ChangePasswordDto changePasswordDto = new();
+
+    [SupplyParameterFromForm]
+    private UpdateUserDto updateUserDto { get; set; } = new();
+
+    [SupplyParameterFromForm]
+    private ChangePasswordDto changePasswordDto { get; set; } = new();
 
     // ================================================================
     // INITIALISATION
