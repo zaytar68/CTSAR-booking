@@ -1,0 +1,441 @@
+@*
+====================================================================
+MonProfil.razor : Page de gestion du profil utilisateur
+====================================================================
+Cette page permet à chaque utilisateur de modifier ses informations
+personnelles, voir ses rôles et changer son mot de passe.
+*@
+
+@page "/mon-profil"
+@attribute [Authorize]
+@inject UserService UserService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Mon profil</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+
+    @* ======================================================== *@
+    @* TITRE DE LA PAGE                                         *@
+    @* ======================================================== *@
+    <MudText Typo="Typo.h4" Class="mb-4">
+        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+        Mon profil
+    </MudText>
+
+    @if (loading)
+    {
+        @* ======================================================== *@
+        @* INDICATEUR DE CHARGEMENT                                 *@
+        @* ======================================================== *@
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (currentUser == null)
+    {
+        @* ======================================================== *@
+        @* MESSAGE D'ERREUR SI UTILISATEUR NON TROUVÉ              *@
+        @* ======================================================== *@
+        <MudAlert Severity="Severity.Error">
+            Impossible de charger votre profil. Veuillez vous reconnecter.
+        </MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @* ======================================================== *@
+            @* COLONNE PRINCIPALE : FORMULAIRES                         *@
+            @* ======================================================== *@
+            <MudItem xs="12" md="8">
+
+                @* ======================================================== *@
+                @* SECTION 1 : INFORMATIONS PERSONNELLES                    *@
+                @* ======================================================== *@
+                <MudCard Class="mb-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Badge" Class="mr-2" />
+                                Informations personnelles
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <EditForm Model="@updateUserDto" OnValidSubmit="HandleUpdateProfile">
+                            <DataAnnotationsValidator />
+
+                            <MudGrid>
+                                @* NOM *@
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Nom"
+                                                  @bind-Value="updateUserDto.Nom"
+                                                  For="@(() => updateUserDto.Nom)"
+                                                  Variant="Variant.Outlined"
+                                                  Required="true" />
+                                </MudItem>
+
+                                @* PRÉNOM *@
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Prénom"
+                                                  @bind-Value="updateUserDto.Prenom"
+                                                  For="@(() => updateUserDto.Prenom)"
+                                                  Variant="Variant.Outlined"
+                                                  Required="true" />
+                                </MudItem>
+
+                                @* EMAIL *@
+                                <MudItem xs="12">
+                                    <MudTextField Label="Email"
+                                                  @bind-Value="updateUserDto.Email"
+                                                  For="@(() => updateUserDto.Email)"
+                                                  Variant="Variant.Outlined"
+                                                  InputType="InputType.Email"
+                                                  Required="true" />
+                                </MudItem>
+
+                                @* TÉLÉPHONE *@
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Label="Téléphone"
+                                                  @bind-Value="updateUserDto.PhoneNumber"
+                                                  For="@(() => updateUserDto.PhoneNumber)"
+                                                  Variant="Variant.Outlined"
+                                                  Placeholder="+41 XX XXX XX XX" />
+                                </MudItem>
+
+                                @* LANGUE PRÉFÉRÉE *@
+                                <MudItem xs="12" sm="6">
+                                    <MudSelect Label="Langue préférée"
+                                               @bind-Value="updateUserDto.PreferenceLangue"
+                                               Variant="Variant.Outlined"
+                                               Required="true">
+                                        <MudSelectItem Value="@("fr")">Français</MudSelectItem>
+                                        <MudSelectItem Value="@("de")">Deutsch</MudSelectItem>
+                                        <MudSelectItem Value="@("en")">English</MudSelectItem>
+                                    </MudSelect>
+                                </MudItem>
+                            </MudGrid>
+
+                            @* BOUTON ENREGISTRER *@
+                            <MudCardActions Class="pt-4">
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="@savingProfile"
+                                           StartIcon="@Icons.Material.Filled.Save">
+                                    @if (savingProfile)
+                                    {
+                                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                        <span>Enregistrement...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Enregistrer les modifications</span>
+                                    }
+                                </MudButton>
+                            </MudCardActions>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+
+                @* ======================================================== *@
+                @* SECTION 2 : CHANGEMENT DE MOT DE PASSE                   *@
+                @* ======================================================== *@
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Class="mr-2" />
+                                Changer mon mot de passe
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <EditForm Model="@changePasswordDto" OnValidSubmit="HandleChangePassword">
+                            <DataAnnotationsValidator />
+
+                            @* MOT DE PASSE ACTUEL *@
+                            <MudTextField Label="Mot de passe actuel"
+                                          @bind-Value="changePasswordDto.CurrentPassword"
+                                          For="@(() => changePasswordDto.CurrentPassword)"
+                                          Variant="Variant.Outlined"
+                                          InputType="InputType.Password"
+                                          Class="mb-3"
+                                          Required="true" />
+
+                            @* NOUVEAU MOT DE PASSE *@
+                            <MudTextField Label="Nouveau mot de passe"
+                                          @bind-Value="changePasswordDto.NewPassword"
+                                          For="@(() => changePasswordDto.NewPassword)"
+                                          Variant="Variant.Outlined"
+                                          InputType="InputType.Password"
+                                          Class="mb-3"
+                                          Required="true"
+                                          HelperText="Au moins 6 caractères" />
+
+                            @* CONFIRMATION DU NOUVEAU MOT DE PASSE *@
+                            <MudTextField Label="Confirmer le nouveau mot de passe"
+                                          @bind-Value="changePasswordDto.ConfirmPassword"
+                                          For="@(() => changePasswordDto.ConfirmPassword)"
+                                          Variant="Variant.Outlined"
+                                          InputType="InputType.Password"
+                                          Required="true" />
+
+                            @* BOUTON CHANGER MOT DE PASSE *@
+                            <MudCardActions Class="pt-4">
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Secondary"
+                                           Disabled="@changingPassword"
+                                           StartIcon="@Icons.Material.Filled.VpnKey">
+                                    @if (changingPassword)
+                                    {
+                                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                        <span>Changement en cours...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Changer le mot de passe</span>
+                                    }
+                                </MudButton>
+                            </MudCardActions>
+                        </EditForm>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            @* ======================================================== *@
+            @* COLONNE LATÉRALE : RÔLES ET INFORMATIONS                 *@
+            @* ======================================================== *@
+            <MudItem xs="12" md="4">
+                @* ======================================================== *@
+                @* SECTION 3 : MES RÔLES                                    *@
+                @* ======================================================== *@
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Shield" Class="mr-2" />
+                                Mes rôles
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (currentUser.Roles.Any())
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var role in currentUser.Roles)
+                                {
+                                    <MudChip T="string"
+                                             Color="GetRoleColor(role)"
+                                             Icon="@Icons.Material.Filled.CheckCircle">
+                                        @role
+                                    </MudChip>
+                                }
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Secondary">Aucun rôle assigné</MudText>
+                        }
+
+                        <MudDivider Class="my-4" />
+
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            Vos rôles sont gérés par un administrateur.
+                            Contactez-le pour toute modification.
+                        </MudAlert>
+                    </MudCardContent>
+                </MudCard>
+
+                @* ======================================================== *@
+                @* INFORMATIONS SUPPLÉMENTAIRES                             *@
+                @* ======================================================== *@
+                <MudCard Class="mt-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                                Informations
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            <strong>Nom complet :</strong> @currentUser.NomComplet
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            <strong>Identifiant :</strong>
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @currentUser.Id
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    // ================================================================
+    // VARIABLES D'ÉTAT
+    // ================================================================
+    private bool loading = true;
+    private bool savingProfile = false;
+    private bool changingPassword = false;
+
+    private UserDto? currentUser;
+    private UpdateUserDto updateUserDto = new();
+    private ChangePasswordDto changePasswordDto = new();
+
+    // ================================================================
+    // INITIALISATION
+    // ================================================================
+
+    /// <summary>
+    /// Charge les données de l'utilisateur connecté au chargement de la page.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+
+            // Récupère l'état d'authentification
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                // Récupère l'ID de l'utilisateur depuis les claims
+                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    // Charge les données depuis la base
+                    currentUser = await UserService.GetUserByIdAsync(userId);
+
+                    if (currentUser != null)
+                    {
+                        // Initialise le DTO de mise à jour avec les données actuelles
+                        updateUserDto = new UpdateUserDto
+                        {
+                            Id = currentUser.Id,
+                            Nom = currentUser.Nom,
+                            Prenom = currentUser.Prenom,
+                            Email = currentUser.Email,
+                            PhoneNumber = currentUser.PhoneNumber,
+                            PreferenceLangue = currentUser.PreferenceLangue,
+                            Roles = currentUser.Roles
+                        };
+
+                        // Initialise le DTO de changement de mot de passe
+                        changePasswordDto = new ChangePasswordDto
+                        {
+                            UserId = currentUser.Id
+                        };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors du chargement du profil : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    // ================================================================
+    // GESTION DES FORMULAIRES
+    // ================================================================
+
+    /// <summary>
+    /// Gère la soumission du formulaire de mise à jour du profil.
+    /// </summary>
+    private async Task HandleUpdateProfile()
+    {
+        try
+        {
+            savingProfile = true;
+
+            var (success, message) = await UserService.UpdateUserAsync(updateUserDto);
+
+            if (success)
+            {
+                Snackbar.Add(message, Severity.Success);
+
+                // Recharge les données pour afficher les changements
+                currentUser = await UserService.GetUserByIdAsync(updateUserDto.Id);
+            }
+            else
+            {
+                Snackbar.Add(message, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            savingProfile = false;
+        }
+    }
+
+    /// <summary>
+    /// Gère la soumission du formulaire de changement de mot de passe.
+    /// </summary>
+    private async Task HandleChangePassword()
+    {
+        try
+        {
+            changingPassword = true;
+
+            var (success, message) = await UserService.ChangePasswordAsync(changePasswordDto);
+
+            if (success)
+            {
+                Snackbar.Add(message, Severity.Success);
+
+                // Réinitialise le formulaire
+                changePasswordDto = new ChangePasswordDto
+                {
+                    UserId = currentUser!.Id
+                };
+            }
+            else
+            {
+                Snackbar.Add(message, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            changingPassword = false;
+        }
+    }
+
+    // ================================================================
+    // MÉTHODES UTILITAIRES
+    // ================================================================
+
+    /// <summary>
+    /// Retourne la couleur appropriée pour chaque rôle.
+    /// </summary>
+    private Color GetRoleColor(string role)
+    {
+        return role switch
+        {
+            RoleConstants.Administrateur => Color.Error,      // Rouge pour admin
+            RoleConstants.Moniteur => Color.Warning,          // Orange pour moniteur
+            RoleConstants.Membre => Color.Info,               // Bleu pour membre
+            _ => Color.Default
+        };
+    }
+}

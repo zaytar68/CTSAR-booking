@@ -50,8 +50,8 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
             <MudDivider Class="my-2" />
             <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">COMPTE</MudText>
 
-            <MudNavLink Href="Account/Manage" Icon="@Icons.Material.Filled.Person">
-                @context.User.Identity?.Name
+            <MudNavLink Href="mon-profil" Icon="@Icons.Material.Filled.Person">
+                Mon profil
             </MudNavLink>
 
             <MudNavLink OnClick="@(() => { })" Icon="@Icons.Material.Filled.Logout">
