@@ -132,4 +132,10 @@
   <data name="AreYouSure" xml:space="preserve">
     <value>Sind Sie sicher?</value>
   </data>
+  <data name="DarkMode" xml:space="preserve">
+    <value>Dunkler Modus</value>
+  </data>
+  <data name="LightMode" xml:space="preserve">
+    <value>Heller Modus</value>
+  </data>
 </root>

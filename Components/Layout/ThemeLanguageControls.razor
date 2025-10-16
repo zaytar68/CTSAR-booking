@@ -7,6 +7,9 @@ Ce composant affiche le sélecteur de langue et le switch de thème.
 
 @rendermode InteractiveServer
 @inject ThemeService ThemeService
+@inject NavigationManager NavigationManager
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<CTSAR.Booking.Resources.Shared> Loc
 
 <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd">
     @* Sélecteur de langue *@
@@ -19,7 +22,7 @@ Ce composant affiche le sélecteur de langue et le switch de thème.
     </MudSelect>
 
     @* Switch thème clair/foncé *@
-    <MudTooltip Text="@(ThemeService.IsDarkMode ? "Mode clair" : "Mode sombre")">
+    <MudTooltip Text="@(ThemeService.IsDarkMode ? Loc["LightMode"] : Loc["DarkMode"])">
         <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                        Color="Color.Inherit"
                        OnClick="@ToggleTheme" />
@@ -41,7 +44,10 @@ Ce composant affiche le sélecteur de langue et le switch de thème.
     private async Task OnLanguageChanged(string newLanguage)
     {
         await ThemeService.SetLanguageAsync(newLanguage);
-        // TODO: Implémenter la logique de changement de langue avec le système de localisation
+
+        // Recharger la page pour appliquer la nouvelle langue
+        // Nécessaire en Blazor Server car la culture est définie au niveau du serveur
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     public void Dispose()

@@ -1,4 +1,4 @@
-﻿@*
+@*
 ====================================================================
 NavMenu.razor : Menu de navigation principal de l'application
 ====================================================================
@@ -9,6 +9,9 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 @implements IDisposable
 
 @inject NavigationManager NavigationManager
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<CTSAR.Booking.Resources.Pages.NavMenu> Loc
+@inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
 
 @* ================================================================ *@
 @* MUDBLAZOR DRAWER AVEC MUDNAVMENU                                 *@
@@ -24,7 +27,7 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
     @* NAVIGATION PRINCIPALE (accessible à tous)               *@
     @* ======================================================== *@
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
-        Accueil
+        @Loc["Home"]
     </MudNavLink>
 
     @* ======================================================== *@
@@ -33,10 +36,10 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
     <AuthorizeView Policy="AdminOnly">
         <Authorized>
             <MudDivider Class="my-2" />
-            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">ADMINISTRATION</MudText>
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">@Loc["Administration"]</MudText>
 
             <MudNavLink Href="admin/utilisateurs" Icon="@Icons.Material.Filled.People">
-                Gestion utilisateurs
+                @Loc["Users"]
             </MudNavLink>
         </Authorized>
     </AuthorizeView>
@@ -48,10 +51,10 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
         <Authorized>
             @* Utilisateur connecté *@
             <MudDivider Class="my-2" />
-            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">COMPTE</MudText>
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">@Loc["Account"]</MudText>
 
             <MudNavLink Href="mon-profil" Icon="@Icons.Material.Filled.Person">
-                Mon profil
+                @Loc["MyProfile"]
             </MudNavLink>
 
             <MudNavLink OnClick="@(() => { })" Icon="@Icons.Material.Filled.Logout">
@@ -59,7 +62,7 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
                     <AntiforgeryToken />
                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                     <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: inherit; text-align: left; width: 100%;">
-                        Déconnexion
+                        @SharedLoc["Logout"]
                     </button>
                 </form>
             </MudNavLink>
@@ -68,14 +71,14 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
         <NotAuthorized>
             @* Utilisateur non connecté *@
             <MudDivider Class="my-2" />
-            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">CONNEXION</MudText>
+            <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">@Loc["Connection"]</MudText>
 
             <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">
-                S'inscrire
+                @SharedLoc["Register"]
             </MudNavLink>
 
             <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">
-                Se connecter
+                @SharedLoc["Login"]
             </MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
@@ -101,4 +104,3 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

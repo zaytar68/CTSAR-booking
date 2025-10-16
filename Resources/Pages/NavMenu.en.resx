@@ -30,9 +30,15 @@
     <value>My Profile</value>
   </data>
   <data name="Administration" xml:space="preserve">
-    <value>Administration</value>
+    <value>ADMINISTRATION</value>
   </data>
   <data name="Users" xml:space="preserve">
-    <value>Users</value>
+    <value>User Management</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>ACCOUNT</value>
+  </data>
+  <data name="Connection" xml:space="preserve">
+    <value>CONNECTION</value>
   </data>
 </root>
