@@ -17,25 +17,28 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 @rendermode InteractiveServer
 
 @using CTSAR.Booking.Components.Dialogs
+@using Microsoft.Extensions.Localization
 
 @inject UserService UserService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<CTSAR.Booking.Resources.Pages.Utilisateurs> Loc
+@inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
 
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<PageTitle>Gestion des utilisateurs - CTSAR Booking</PageTitle>
+<PageTitle>@Loc["PageTitle"]</PageTitle>
 
 @* ================================================================ *@
 @* EN-TÊTE DE LA PAGE                                               *@
 @* ================================================================ *@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="display-6">Gestion des utilisateurs</h1>
-        <p class="text-muted">Gérer les membres, moniteurs et administrateurs du club</p>
+        <h1 class="display-6">@Loc["Title"]</h1>
+        <p class="text-muted">@Loc["Subtitle"]</p>
     </div>
 
     <MudButton Variant="Variant.Filled"
@@ -43,7 +46,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                StartIcon="@Icons.Material.Filled.Add"
                OnClick="OpenCreateUserDialog"
                Size="Size.Large">
-        Nouvel utilisateur
+        @Loc["NewUser"]
     </MudButton>
 </div>
 
@@ -59,7 +62,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                         <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" Size="Size.Large" Class="me-3" />
                         <div>
                             <MudText Typo="Typo.h4">@_users.Count</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total utilisateurs</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["TotalUsers"]</MudText>
                         </div>
                     </div>
                 </MudCardContent>
@@ -73,7 +76,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                         <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Size="Size.Large" Class="me-3" />
                         <div>
                             <MudText Typo="Typo.h4">@_users.Count(u => u.EstAdministrateur)</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Administrateurs</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["Administrators"]</MudText>
                         </div>
                     </div>
                 </MudCardContent>
@@ -87,7 +90,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                         <MudIcon Icon="@Icons.Material.Filled.SupervisedUserCircle" Color="Color.Warning" Size="Size.Large" Class="me-3" />
                         <div>
                             <MudText Typo="Typo.h4">@_users.Count(u => u.EstMoniteur)</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Moniteurs</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["Monitors"]</MudText>
                         </div>
                     </div>
                 </MudCardContent>
@@ -101,7 +104,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                         <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Info" Size="Size.Large" Class="me-3" />
                         <div>
                             <MudText Typo="Typo.h4">@_users.Count(u => !u.EstAdministrateur && !u.EstMoniteur)</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Membres</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["Members"]</MudText>
                         </div>
                     </div>
                 </MudCardContent>
@@ -127,16 +130,16 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         @* Colonne Nom complet *@
         <Columns>
             <PropertyColumn Property="x => x.NomComplet"
-                          Title="Nom"
+                          Title="@Loc["Name"]"
                           Filterable="true" />
 
             @* Colonne Email *@
             <PropertyColumn Property="x => x.Email"
-                          Title="Email"
+                          Title="@SharedLoc["Email"]"
                           Filterable="true" />
 
             @* Colonne Rôles avec badges colorés *@
-            <TemplateColumn Title="Rôles" Sortable="false" Filterable="false">
+            <TemplateColumn Title="@SharedLoc["Roles"]" Sortable="false" Filterable="false">
                 <CellTemplate>
                     @foreach (var role in context.Item.Roles)
                     {
@@ -151,7 +154,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 
             @* Colonne Téléphone *@
             <PropertyColumn Property="x => x.PhoneNumber"
-                          Title="Téléphone"
+                          Title="@Loc["Phone"]"
                           Filterable="true">
                 <CellTemplate>
                     @(string.IsNullOrEmpty(context.Item.PhoneNumber) ? "-" : context.Item.PhoneNumber)
@@ -160,7 +163,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 
             @* Colonne Langue *@
             <PropertyColumn Property="x => x.PreferenceLangue"
-                          Title="Langue"
+                          Title="@SharedLoc["Language"]"
                           Filterable="true">
                 <CellTemplate>
                     <MudChip Size="Size.Small" Variant="Variant.Outlined">
@@ -170,25 +173,25 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
             </PropertyColumn>
 
             @* Colonne Statut (verrouillé ou actif) *@
-            <TemplateColumn Title="Statut" Sortable="false" Filterable="false">
+            <TemplateColumn Title="@Loc["Status"]" Sortable="false" Filterable="false">
                 <CellTemplate>
                     @if (context.Item.EstVerrouille)
                     {
                         <MudChip Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Lock">
-                            Verrouillé
+                            @Loc["Locked"]
                         </MudChip>
                     }
                     else
                     {
                         <MudChip Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">
-                            Actif
+                            @Loc["Active"]
                         </MudChip>
                     }
                 </CellTemplate>
             </TemplateColumn>
 
             @* Colonne Actions *@
-            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+            <TemplateColumn Title="@Loc["Actions"]" Sortable="false" Filterable="false">
                 <CellTemplate>
                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                    Color="Color.Primary"
@@ -224,7 +227,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 
         @* Message si aucun utilisateur *@
         <NoRecordsContent>
-            <MudText>Aucun utilisateur trouvé</MudText>
+            <MudText>@Loc["NoUsers"]</MudText>
         </NoRecordsContent>
 
         @* Pagination *@
@@ -281,7 +284,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erreur lors du chargement des utilisateurs : {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(Loc["LoadError"], ex.Message), Severity.Error);
         }
         finally
         {
@@ -321,7 +324,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
             CloseOnEscapeKey = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateUserDialog>("Nouvel utilisateur", options);
+        var dialog = await DialogService.ShowAsync<CreateUserDialog>(Loc["NewUser"], options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -344,7 +347,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
             CloseOnEscapeKey = true
         };
 
-        var dialog = await DialogService.ShowAsync<EditUserDialog>($"Modifier {user.NomComplet}", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditUserDialog>(string.Format(Loc["EditUser"], user.NomComplet), parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -364,10 +367,10 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
     private async Task LockUser(UserDto user)
     {
         var confirmed = await DialogService.ShowMessageBox(
-            "Verrouiller l'utilisateur",
-            $"Êtes-vous sûr de vouloir verrouiller le compte de {user.NomComplet} ?",
-            yesText: "Verrouiller",
-            cancelText: "Annuler");
+            Loc["LockUserTitle"],
+            string.Format(Loc["LockUserMessage"], user.NomComplet),
+            yesText: Loc["Lock"],
+            cancelText: SharedLoc["Cancel"]);
 
         if (confirmed == true)
         {
@@ -410,10 +413,10 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
     private async Task DeleteUser(UserDto user)
     {
         var confirmed = await DialogService.ShowMessageBox(
-            "Supprimer l'utilisateur",
-            $"Êtes-vous sûr de vouloir supprimer définitivement {user.NomComplet} ? Cette action est irréversible !",
-            yesText: "Supprimer",
-            cancelText: "Annuler");
+            Loc["DeleteUserTitle"],
+            string.Format(Loc["DeleteUserMessage"], user.NomComplet),
+            yesText: SharedLoc["Delete"],
+            cancelText: SharedLoc["Cancel"]);
 
         if (confirmed == true)
         {
