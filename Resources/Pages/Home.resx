@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Title" xml:space="preserve">
+    <value>Accueil - CTSAR Booking</value>
+  </data>
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>Bienvenue sur CTSAR Booking</value>
+  </data>
+  <data name="WelcomeSubtitle" xml:space="preserve">
+    <value>Système de réservation d'alvéoles pour le club de tir</value>
+  </data>
+  <data name="HelloUser" xml:space="preserve">
+    <value>Bonjour {0} !</value>
+  </data>
+  <data name="YouAreLoggedIn" xml:space="preserve">
+    <value>Vous êtes connecté(e) à l'application CTSAR Booking.</value>
+  </data>
+  <data name="ManageAccount" xml:space="preserve">
+    <value>Gérer mon compte</value>
+  </data>
+  <data name="NotLoggedIn" xml:space="preserve">
+    <value>Vous n'êtes pas connecté</value>
+  </data>
+  <data name="LoginToAccess" xml:space="preserve">
+    <value>Pour accéder aux fonctionnalités de réservation, veuillez vous connecter.</value>
+  </data>
+  <data name="ReservationsTitle" xml:space="preserve">
+    <value>Réservations</value>
+  </data>
+  <data name="ReservationsDesc" xml:space="preserve">
+    <value>Réservez facilement vos créneaux de tir en fonction des disponibilités des alvéoles et des moniteurs.</value>
+  </data>
+  <data name="MonitorsTitle" xml:space="preserve">
+    <value>Moniteurs</value>
+  </data>
+  <data name="MonitorsDesc" xml:space="preserve">
+    <value>Un moniteur doit valider sa présence pour confirmer votre séance de tir.</value>
+  </data>
+  <data name="NotificationsTitle" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="NotificationsDesc" xml:space="preserve">
+    <value>Recevez des notifications lorsqu'un moniteur valide ou annule une séance.</value>
+  </data>
+</root>

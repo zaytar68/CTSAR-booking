@@ -1,18 +1,21 @@
-﻿@*
+@*
 ====================================================================
 Home.razor : Page d'accueil de l'application
 ====================================================================
 *@
 
 @page "/"
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<CTSAR.Booking.Resources.Pages.Home> Loc
+@inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
 
-<PageTitle>Accueil - CTSAR Booking</PageTitle>
+<PageTitle>@Loc["Title"]</PageTitle>
 
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <h1 class="display-4">Bienvenue sur CTSAR Booking</h1>
-            <p class="lead">Système de réservation d'alvéoles pour le club de tir</p>
+            <h1 class="display-4">@Loc["WelcomeTitle"]</h1>
+            <p class="lead">@Loc["WelcomeSubtitle"]</p>
             <hr class="my-4" />
         </div>
     </div>
@@ -23,11 +26,11 @@ Home.razor : Page d'accueil de l'application
             <div class="row mt-4">
                 <div class="col-md-12">
                     <div class="alert alert-success" role="alert">
-                        <h4 class="alert-heading">Bonjour @context.User.Identity?.Name !</h4>
-                        <p>Vous êtes connecté(e) à l'application CTSAR Booking.</p>
+                        <h4 class="alert-heading">@string.Format(Loc["HelloUser"], context.User.Identity?.Name)</h4>
+                        <p>@Loc["YouAreLoggedIn"]</p>
                         <hr>
                         <p class="mb-0">
-                            <a href="Account/Manage" class="alert-link">Gérer mon compte</a>
+                            <a href="mon-profil" class="alert-link">@Loc["ManageAccount"]</a>
                         </p>
                     </div>
                 </div>
@@ -41,12 +44,12 @@ Home.razor : Page d'accueil de l'application
             <div class="row mt-4">
                 <div class="col-md-12">
                     <div class="alert alert-info" role="alert">
-                        <h4 class="alert-heading">Vous n'êtes pas connecté</h4>
-                        <p>Pour accéder aux fonctionnalités de réservation, veuillez vous connecter.</p>
+                        <h4 class="alert-heading">@Loc["NotLoggedIn"]</h4>
+                        <p>@Loc["LoginToAccess"]</p>
                         <hr>
                         <p class="mb-0">
-                            <a href="Account/Login" class="btn btn-primary me-2">Se connecter</a>
-                            <a href="Account/Register" class="btn btn-outline-primary">S'inscrire</a>
+                            <a href="Account/Login" class="btn btn-primary me-2">@SharedLoc["Login"]</a>
+                            <a href="Account/Register" class="btn btn-outline-primary">@SharedLoc["Register"]</a>
                         </p>
                     </div>
                 </div>
@@ -60,10 +63,10 @@ Home.razor : Page d'accueil de l'application
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="bi bi-calendar-check"></i> Réservations
+                        <i class="bi bi-calendar-check"></i> @Loc["ReservationsTitle"]
                     </h5>
                     <p class="card-text">
-                        Réservez facilement vos créneaux de tir en fonction des disponibilités des alvéoles et des moniteurs.
+                        @Loc["ReservationsDesc"]
                     </p>
                 </div>
             </div>
@@ -73,10 +76,10 @@ Home.razor : Page d'accueil de l'application
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="bi bi-people"></i> Moniteurs
+                        <i class="bi bi-people"></i> @Loc["MonitorsTitle"]
                     </h5>
                     <p class="card-text">
-                        Un moniteur doit valider sa présence pour confirmer votre séance de tir.
+                        @Loc["MonitorsDesc"]
                     </p>
                 </div>
             </div>
@@ -86,10 +89,10 @@ Home.razor : Page d'accueil de l'application
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="bi bi-bell"></i> Notifications
+                        <i class="bi bi-bell"></i> @Loc["NotificationsTitle"]
                     </h5>
                     <p class="card-text">
-                        Recevez des notifications lorsqu'un moniteur valide ou annule une séance.
+                        @Loc["NotificationsDesc"]
                     </p>
                 </div>
             </div>

@@ -8,6 +8,8 @@ using CTSAR.Booking.Components;
 using CTSAR.Booking.Components.Account;
 using CTSAR.Booking.Data;
 using MudBlazor.Services;  // Pour MudBlazor (interface utilisateur moderne)
+using Blazored.LocalStorage;  // Pour le stockage local (thème, langue, etc.)
+using System.Globalization;  // Pour la gestion des cultures (langues)
 
 // ====================================================================
 // CONFIGURATION DE L'APPLICATION
@@ -29,6 +31,27 @@ builder.Services.AddRazorComponents()
 // --------------------------------------------------------------------
 // Ajoute tous les services MudBlazor (dialogues, snackbars, etc.)
 builder.Services.AddMudServices();
+
+// --------------------------------------------------------------------
+// LOCAL STORAGE : Stockage local pour les préférences utilisateur
+// --------------------------------------------------------------------
+// Permet de sauvegarder le thème, la langue, etc. dans le navigateur
+builder.Services.AddBlazoredLocalStorage();
+
+// --------------------------------------------------------------------
+// LOCALISATION : Configuration du système multilingue
+// --------------------------------------------------------------------
+// Configure les cultures supportées par l'application
+var supportedCultures = new[] { "fr", "de", "en" };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("fr");
+    options.SupportedCultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+    options.SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+});
+
+// Ajoute les services de localisation
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // --------------------------------------------------------------------
 // AUTHENTIFICATION : Configuration de ASP.NET Core Identity
@@ -96,6 +119,10 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // Ajoute notre UserService pour gérer les utilisateurs
 // Scoped : Une nouvelle instance par requête HTTP
 builder.Services.AddScoped<CTSAR.Booking.Services.UserService>();
+
+// Ajoute notre ThemeService pour gérer le thème et la langue
+// Scoped : Une nouvelle instance par requête HTTP
+builder.Services.AddScoped<CTSAR.Booking.Services.ThemeService>();
 
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)
@@ -169,6 +196,9 @@ app.UseAntiforgery();
 
 // Sert les fichiers statiques (CSS, JS, images)
 app.MapStaticAssets();
+
+// Active le middleware de localisation
+app.UseRequestLocalization();
 
 // Configure les composants Razor en mode Interactive Server
 app.MapRazorComponents<App>()

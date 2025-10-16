@@ -1,0 +1,52 @@
+@*
+====================================================================
+ThemeLanguageControls.razor : Contrôles de thème et langue
+====================================================================
+Ce composant affiche le sélecteur de langue et le switch de thème.
+*@
+
+@rendermode InteractiveServer
+@inject ThemeService ThemeService
+
+<MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd">
+    @* Sélecteur de langue *@
+    <MudSelect T="string" Value="@ThemeService.SelectedLanguage" ValueChanged="@OnLanguageChanged"
+               Variant="Variant.Outlined" Dense="true"
+               Style="width: 120px;" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="@("fr")">Français</MudSelectItem>
+        <MudSelectItem Value="@("de")">Deutsch</MudSelectItem>
+        <MudSelectItem Value="@("en")">English</MudSelectItem>
+    </MudSelect>
+
+    @* Switch thème clair/foncé *@
+    <MudTooltip Text="@(ThemeService.IsDarkMode ? "Mode clair" : "Mode sombre")">
+        <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="@ToggleTheme" />
+    </MudTooltip>
+</MudStack>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ThemeService.OnThemeChanged += StateHasChanged;
+        ThemeService.OnLanguageChanged += StateHasChanged;
+    }
+
+    private async Task ToggleTheme()
+    {
+        await ThemeService.ToggleThemeAsync();
+    }
+
+    private async Task OnLanguageChanged(string newLanguage)
+    {
+        await ThemeService.SetLanguageAsync(newLanguage);
+        // TODO: Implémenter la logique de changement de langue avec le système de localisation
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= StateHasChanged;
+        ThemeService.OnLanguageChanged -= StateHasChanged;
+    }
+}
