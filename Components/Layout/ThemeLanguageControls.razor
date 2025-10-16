@@ -2,38 +2,60 @@
 ====================================================================
 ThemeLanguageControls.razor : Contrôles de thème et langue
 ====================================================================
-Ce composant affiche le sélecteur de langue et le switch de thème.
+Ce composant affiche un sélecteur de langue avec dropdown et drapeaux,
+et un bouton pour basculer entre le mode clair et le mode sombre.
 *@
 
 @rendermode InteractiveServer
+@using System.Globalization
+@inject NavigationManager Navigation
 @inject ThemeService ThemeService
-@inject NavigationManager NavigationManager
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> Loc
+@implements IDisposable
 
 <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd">
-    @* Sélecteur de langue *@
-    <MudSelect T="string" Value="@ThemeService.SelectedLanguage" ValueChanged="@OnLanguageChanged"
-               Variant="Variant.Outlined" Dense="true"
-               Style="width: 120px;" AnchorOrigin="Origin.BottomCenter">
-        <MudSelectItem Value="@("fr")">Français</MudSelectItem>
-        <MudSelectItem Value="@("de")">Deutsch</MudSelectItem>
-        <MudSelectItem Value="@("en")">English</MudSelectItem>
-    </MudSelect>
+    @* Sélecteur de langue avec drapeaux HTML simple *@
+    <MudPaper Elevation="2" Class="d-flex align-center px-3 py-1" Style="min-width: 160px; cursor: pointer;">
+        <select @bind="_currentCulture" @bind:after="OnCultureChangedAsync" class="mud-input-slot mud-input-root" style="border: none; background: transparent; cursor: pointer; font-size: 14px; width: 100%;">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="en">🇬🇧 English</option>
+        </select>
+    </MudPaper>
 
     @* Switch thème clair/foncé *@
-    <MudTooltip Text="@(ThemeService.IsDarkMode ? Loc["LightMode"] : Loc["DarkMode"])">
-        <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                       Color="Color.Inherit"
-                       OnClick="@ToggleTheme" />
-    </MudTooltip>
+    <MudIconButton Icon="@(ThemeService.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                   Color="Color.Inherit"
+                   Title="@(ThemeService.IsDarkMode ? Loc["LightMode"] : Loc["DarkMode"])"
+                   OnClick="@ToggleTheme" />
 </MudStack>
 
 @code {
-    protected override void OnInitialized()
+    private string _currentCulture = "fr";
+
+    protected override async Task OnInitializedAsync()
     {
+        // Initialiser le ThemeService
+        await ThemeService.InitializeAsync();
+
+        // Récupérer la culture actuelle
+        _currentCulture = CultureInfo.CurrentCulture.Name;
+
+        // S'abonner aux événements du ThemeService
         ThemeService.OnThemeChanged += StateHasChanged;
-        ThemeService.OnLanguageChanged += StateHasChanged;
+    }
+
+    private Task OnCultureChangedAsync()
+    {
+        // Construire l'URL pour changer la culture
+        var currentUri = new Uri(Navigation.Uri).PathAndQuery;
+        var cultureUrl = $"/Culture/Set?culture={_currentCulture}&redirectUri={Uri.EscapeDataString(currentUri)}";
+
+        // Forcer le rechargement complet de la page pour appliquer la nouvelle culture
+        Navigation.NavigateTo(cultureUrl, forceLoad: true);
+
+        return Task.CompletedTask;
     }
 
     private async Task ToggleTheme()
@@ -41,18 +63,8 @@ Ce composant affiche le sélecteur de langue et le switch de thème.
         await ThemeService.ToggleThemeAsync();
     }
 
-    private async Task OnLanguageChanged(string newLanguage)
-    {
-        await ThemeService.SetLanguageAsync(newLanguage);
-
-        // Recharger la page pour appliquer la nouvelle langue
-        // Nécessaire en Blazor Server car la culture est définie au niveau du serveur
-        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
-    }
-
     public void Dispose()
     {
         ThemeService.OnThemeChanged -= StateHasChanged;
-        ThemeService.OnLanguageChanged -= StateHasChanged;
     }
 }

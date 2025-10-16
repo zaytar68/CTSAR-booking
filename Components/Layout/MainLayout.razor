@@ -1,5 +1,17 @@
-﻿@inherits LayoutComponentBase
-@inject IJSRuntime JS
+﻿@*
+====================================================================
+MainLayout.razor : Layout principal de l'application
+====================================================================
+Ce composant définit la structure globale de l'application avec
+la sidebar (NavMenu) et les contrôles de thème/langue.
+*@
+
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <div class="page">
     <div class="sidebar">
@@ -8,24 +20,7 @@
 
     <main>
         <div class="top-row px-4">
-            @* Sélecteur de langue *@
-            <select @onchange="OnLanguageChanged" value="@_selectedLanguage" class="form-select" style="width: 150px; display: inline-block; margin-right: 1rem;">
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="en">English</option>
-            </select>
-
-            @* Switch thème clair/foncé *@
-            <button @onclick="ToggleTheme" class="btn btn-link" title="@(_isDarkMode ? "Mode clair" : "Mode sombre")">
-                @if (_isDarkMode)
-                {
-                    <text>☀️</text>
-                }
-                else
-                {
-                    <text>🌙</text>
-                }
-            </button>
+            <ThemeLanguageControls />
         </div>
 
         <article class="content px-4">
@@ -39,68 +34,3 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
-
-@code {
-    private bool _isDarkMode = false;
-    private string _selectedLanguage = "fr";
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                // Charger les préférences depuis localStorage
-                var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "theme");
-                _isDarkMode = savedTheme == "dark";
-
-                var savedLanguage = await JS.InvokeAsync<string>("localStorage.getItem", "language");
-                if (!string.IsNullOrEmpty(savedLanguage))
-                {
-                    _selectedLanguage = savedLanguage;
-                }
-
-                // Appliquer le thème
-                await ApplyTheme();
-                StateHasChanged();
-            }
-            catch (Exception)
-            {
-                // Ignorer les erreurs de localStorage
-            }
-        }
-    }
-
-    private async Task ToggleTheme()
-    {
-        _isDarkMode = !_isDarkMode;
-        await JS.InvokeVoidAsync("localStorage.setItem", "theme", _isDarkMode ? "dark" : "light");
-        await ApplyTheme();
-    }
-
-    private async Task OnLanguageChanged(ChangeEventArgs e)
-    {
-        _selectedLanguage = e.Value?.ToString() ?? "fr";
-        await JS.InvokeVoidAsync("localStorage.setItem", "language", _selectedLanguage);
-        // TODO: Implémenter le changement de langue effectif
-    }
-
-    private async Task ApplyTheme()
-    {
-        try
-        {
-            if (_isDarkMode)
-            {
-                await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-bs-theme", "dark");
-            }
-            else
-            {
-                await JS.InvokeVoidAsync("document.documentElement.removeAttribute", "data-bs-theme");
-            }
-        }
-        catch (Exception)
-        {
-            // Ignorer les erreurs JS
-        }
-    }
-}

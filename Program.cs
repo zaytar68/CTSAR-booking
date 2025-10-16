@@ -27,6 +27,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // --------------------------------------------------------------------
+// CONTROLLERS : Support des contrôleurs MVC (pour CultureController)
+// --------------------------------------------------------------------
+builder.Services.AddControllers();
+
+// --------------------------------------------------------------------
 // MUDBLAZOR : Framework UI moderne (Material Design)
 // --------------------------------------------------------------------
 // Ajoute tous les services MudBlazor (dialogues, snackbars, etc.)
@@ -199,6 +204,9 @@ app.MapStaticAssets();
 
 // Active le middleware de localisation
 app.UseRequestLocalization();
+
+// Map les controllers (pour CultureController)
+app.MapControllers();
 
 // Configure les composants Razor en mode Interactive Server
 app.MapRazorComponents<App>()
