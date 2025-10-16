@@ -702,79 +702,125 @@ public class UserDto
 
 ---
 
+## 📈 ÉTAT ACTUEL DU PROJET (Dernière mise à jour: 16 octobre 2025)
+
+### ✅ Phase 1 - TERMINÉE
+
+**Fonctionnalités implémentées :**
+- ✅ Gestion complète des utilisateurs (CRUD)
+- ✅ Interface admin avec MudBlazor DataGrid
+- ✅ Dialogues de création et modification d'utilisateurs
+- ✅ Système de filtrage et recherche
+- ✅ Gestion des rôles (Administrateur, Moniteur, Membre)
+- ✅ Sécurité et autorisations
+- ✅ Navigation et menu adaptatif selon les rôles
+- ✅ Page Mon Profil pour tous les utilisateurs
+
+**Améliorations UI récentes :**
+- ✅ Ajout du sélecteur de langue (FR/DE/EN) dans le header
+- ✅ Switch thème clair/foncé avec persistance localStorage
+- ✅ Navbar avec fond gris clair uni (#e8e8e8)
+- ✅ Suppression du lien "About" remplacé par les contrôles thème/langue
+- ✅ Page Mon Profil avec 3 sections : Infos personnelles, Rôles, Mot de passe
+
+**Fichiers créés/modifiés :**
+- `Components/Layout/MainLayout.razor` - Ajout switch thème et sélecteur langue
+- `Components/Layout/MainLayout.razor.css` - Style navbar gris clair
+- `Components/Layout/NavMenu.razor` - Menu avec lien Mon Profil
+- `Components/Pages/Admin/Utilisateurs.razor` - Page de gestion utilisateurs
+- `Components/Pages/MonProfil.razor` - Page de profil utilisateur
+- `Components/Dialogs/CreateUserDialog.razor` - Dialogue création utilisateur
+- `Components/Dialogs/EditUserDialog.razor` - Dialogue modification utilisateur
+- `Services/UserService.cs` - Service métier utilisateurs (avec ChangePasswordAsync)
+- `DTOs/UserDto.cs` - Objets de transfert (UserDto, CreateUserDto, UpdateUserDto, ChangePasswordDto)
+- `Constants/RoleConstants.cs` - Constantes des rôles
+- `Data/DbInitializer.cs` - Initialisation données de test
+
+---
+
 ## ✅ CHECKLIST PHASE 1
 
 ### Étape 1 : Initialisation (15 min)
-- [ ] Créer nouveau projet Blazor Web App avec Identity
-- [ ] Mode Interactive Server configuré
-- [ ] Installer package NuGet `MudBlazor`
-- [ ] Configurer MudBlazor dans `Program.cs`
-- [ ] Configurer SQLite dans `appsettings.json`
-- [ ] Créer structure de dossiers
-- [ ] Init Git + premier commit
+- [x] Créer nouveau projet Blazor Web App avec Identity
+- [x] Mode Interactive Server configuré
+- [x] Installer package NuGet `MudBlazor`
+- [x] Configurer MudBlazor dans `Program.cs`
+- [x] Configurer SQLite dans `appsettings.json`
+- [x] Créer structure de dossiers
+- [x] Init Git + premier commit
 
 ### Étape 2 : Modèle utilisateur (30 min)
-- [ ] Créer `ApplicationUser.cs` avec Nom, Prénom, PreferenceLangue
-- [ ] Créer `RoleConstants.cs` avec les 3 rôles
-- [ ] Créer `DbInitializer.cs` pour seed data
-- [ ] Modifier `ApplicationDbContext.cs`
-- [ ] Créer migration `dotnet ef migrations add InitialCreate`
-- [ ] Appliquer migration `dotnet ef database update`
-- [ ] Vérifier données de test en base (admin + moniteurs + membres)
+- [x] Créer `ApplicationUser.cs` avec Nom, Prénom, PreferenceLangue
+- [x] Créer `RoleConstants.cs` avec les 3 rôles
+- [x] Créer `DbInitializer.cs` pour seed data
+- [x] Modifier `ApplicationDbContext.cs`
+- [x] Créer migration `dotnet ef migrations add InitialCreate`
+- [x] Appliquer migration `dotnet ef database update`
+- [x] Vérifier données de test en base (admin + moniteurs + membres)
 
 ### Étape 3 : Service utilisateur (1h)
-- [ ] Créer `DTOs/UserDto.cs` avec validations
-- [ ] Créer `Services/UserService.cs`
-- [ ] Implémenter `GetAllUsersAsync()`
-- [ ] Implémenter `GetUserByIdAsync()`
-- [ ] Implémenter `CreateUserAsync()`
-- [ ] Implémenter `UpdateUserAsync()`
-- [ ] Implémenter `DeleteUserAsync()`
-- [ ] Implémenter `GetUsersInRoleAsync()`
-- [ ] Enregistrer service dans `Program.cs` avec `builder.Services.AddScoped<UserService>()`
+- [x] Créer `DTOs/UserDto.cs` avec validations
+- [x] Créer `Services/UserService.cs`
+- [x] Implémenter `GetAllUsersAsync()`
+- [x] Implémenter `GetUserByIdAsync()`
+- [x] Implémenter `CreateUserAsync()`
+- [x] Implémenter `UpdateUserAsync()`
+- [x] Implémenter `DeleteUserAsync()`
+- [x] Implémenter `GetUsersInRoleAsync()`
+- [x] Enregistrer service dans `Program.cs` avec `builder.Services.AddScoped<UserService>()`
 
 ### Étape 4 : Interface admin (2h30)
-- [ ] Créer page `Components/Pages/Admin/Utilisateurs/Liste.razor`
-- [ ] MudDataGrid avec colonnes (Avatar, Nom, Prénom, Email, Rôles, Actions)
-- [ ] Barre de recherche fonctionnelle
-- [ ] Filtre par rôle fonctionnel
-- [ ] Créer composant `Components/Shared/CreateUserDialog.razor`
-- [ ] Formulaire création avec validation
-- [ ] Sélection multi-rôles avec checkboxes
-- [ ] Créer composant `Components/Shared/EditUserDialog.razor`
-- [ ] Formulaire modification avec validation
-- [ ] Gestion rôles (ajout/retrait)
-- [ ] Dialogue de confirmation suppression
-- [ ] MudSnackbar pour notifications (succès/erreur)
+- [x] Créer page `Components/Pages/Admin/Utilisateurs.razor`
+- [x] MudDataGrid avec colonnes (Avatar, Nom, Prénom, Email, Rôles, Actions)
+- [x] Barre de recherche fonctionnelle
+- [x] Filtre par rôle fonctionnel
+- [x] Créer composant `Components/Dialogs/CreateUserDialog.razor`
+- [x] Formulaire création avec validation
+- [x] Sélection multi-rôles avec checkboxes
+- [x] Créer composant `Components/Dialogs/EditUserDialog.razor`
+- [x] Formulaire modification avec validation
+- [x] Gestion rôles (ajout/retrait)
+- [x] Dialogue de confirmation suppression
+- [x] MudSnackbar pour notifications (succès/erreur)
 
 ### Étape 5 : Sécurité (30 min)
-- [ ] Créer policy `AdminOnly` dans `Program.cs`
-- [ ] Ajouter `@attribute [Authorize(Policy = "AdminOnly")]` sur page Liste
-- [ ] Tester qu'un Membre ne peut PAS accéder à `/admin/utilisateurs`
-- [ ] Tester qu'un Admin PEUT accéder
-- [ ] Validation côté serveur dans tous les services
+- [x] Créer policy `AdminOnly` dans `Program.cs`
+- [x] Ajouter `@attribute [Authorize(Roles = "Administrateur")]` sur page Utilisateurs
+- [x] Tester qu'un Membre ne peut PAS accéder à `/admin/utilisateurs`
+- [x] Tester qu'un Admin PEUT accéder
+- [x] Validation côté serveur dans tous les services
 
-### Étape 6 : Navigation (45 min)
-- [ ] Modifier `NavMenu.razor` : ajouter section Admin (visible Admin only)
-- [ ] Item menu "Gestion utilisateurs" → `/admin/utilisateurs`
-- [ ] Créer page `Components/Pages/MonProfil.razor`
-- [ ] Formulaire modification nom, prénom
-- [ ] Sélecteur de langue (FR/DE/EN) - préparation Phase 2
-- [ ] Section changement de mot de passe
-- [ ] Affichage rôles actuels (lecture seule)
+### Étape 6 : Navigation et UI (45 min)
+- [x] Modifier `NavMenu.razor` : ajouter section Admin (visible Admin only)
+- [x] Item menu "Gestion utilisateurs" → `/admin/utilisateurs`
+- [x] Ajout sélecteur de langue dans le header (FR/DE/EN)
+- [x] Ajout switch thème clair/foncé avec persistance
+- [x] Navbar avec fond gris clair uni
+- [x] Créer page `Components/Pages/MonProfil.razor`
+- [x] Formulaire modification nom, prénom, email, téléphone, langue
+- [x] Section changement de mot de passe avec validation
+- [x] Affichage rôles actuels (lecture seule avec chips colorés)
 
 ### Étape 7 : Tests (30 min)
-- [ ] Tester création utilisateur Membre
-- [ ] Tester création utilisateur avec plusieurs rôles
-- [ ] Tester modification nom/prénom
-- [ ] Tester modification rôles
-- [ ] Tester suppression utilisateur
-- [ ] Tester recherche par nom
-- [ ] Tester filtre par rôle
-- [ ] Tester responsive (desktop, tablette, mobile)
-- [ ] Tester validation formulaires (champs requis, email, password)
-- [ ] Tester restrictions accès (Membre → Admin page)
-- [ ] Commit Git final Phase 1
+- [x] Tester création utilisateur Membre
+- [x] Tester création utilisateur avec plusieurs rôles
+- [x] Tester modification nom/prénom
+- [x] Tester modification rôles
+- [x] Tester suppression utilisateur
+- [x] Tester recherche par nom
+- [x] Tester filtre par rôle
+- [x] Tester responsive (desktop, tablette, mobile)
+- [x] Tester validation formulaires (champs requis, email, password)
+- [x] Tester restrictions accès (Membre → Admin page)
+- [x] Commits Git réguliers effectués
+
+### 🎯 Prochaines tâches
+- [x] Créer la page MonProfil pour que les utilisateurs puissent modifier leurs propres informations
+- [ ] Implémenter la traduction multilingue (Phase 2)
+- [ ] Tester le changement de langue dans toute l'application
+- [ ] Phase 2 : Traduction FR/DE/EN
+- [ ] Phase 3 : Gestion alvéoles + fermetures
+- [ ] Phase 4 : Planning + réservations
 
 ---
 
