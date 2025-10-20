@@ -1,12 +1,8 @@
-// ====================================================================
-// Shared.cs : Classe vide pour les ressources partagées
-// ====================================================================
-// Cette classe sert de référence pour IStringLocalizer<Shared>
-
 namespace CTSAR.Booking.Resources;
 
 /// <summary>
-/// Classe pour les ressources partagées (Shared.resx)
+/// Classe dummy pour les ressources partagées
+/// Utilisée avec ResourcesPath pour la localisation
 /// </summary>
 public class Shared
 {

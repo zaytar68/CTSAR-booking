@@ -6,10 +6,22 @@ Home.razor : Page d'accueil de l'application
 
 @page "/"
 @using Microsoft.Extensions.Localization
-@inject IStringLocalizer<CTSAR.Booking.Resources.Pages.Home> Loc
+@using System.Globalization
+@inject IStringLocalizer<Home> Loc
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
+@inject ILogger<Home> Logger
 
 <PageTitle>@Loc["Title"]</PageTitle>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation($"Culture actuelle: {CultureInfo.CurrentCulture.Name}");
+        Logger.LogInformation($"UI Culture actuelle: {CultureInfo.CurrentUICulture.Name}");
+        Logger.LogInformation($"Loc[\"WelcomeTitle\"] = {Loc["WelcomeTitle"]}");
+        Logger.LogInformation($"Loc[\"WelcomeTitle\"].ResourceNotFound = {Loc["WelcomeTitle"].ResourceNotFound}");
+    }
+}
 
 <div class="container mt-4">
     <div class="row">
