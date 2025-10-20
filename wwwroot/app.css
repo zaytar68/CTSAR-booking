@@ -58,3 +58,56 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* ====================================================================
+   THÈME SOMBRE : Styles pour le mode dark
+   ==================================================================== */
+body.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .page {
+    background-color: #1a1a1a;
+}
+
+body.dark-mode .sidebar {
+    background-color: #2d2d2d;
+}
+
+body.dark-mode .top-row {
+    background-color: #2d2d2d;
+    border-bottom: 1px solid #404040;
+}
+
+body.dark-mode .content {
+    background-color: #1a1a1a;
+}
+
+body.dark-mode a {
+    color: #64b5f6;
+}
+
+body.dark-mode .btn-primary {
+    background-color: #1976d2;
+    border-color: #1565c0;
+}
+
+body.dark-mode .form-control {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #404040;
+}
+
+body.dark-mode .card {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+body.dark-mode .border {
+    border-color: #404040 !important;
+}
+
+body.dark-mode .bg-white {
+    background-color: #2d2d2d !important;
+}

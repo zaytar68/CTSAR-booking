@@ -1,14 +1,18 @@
-﻿@*
+@*
 ====================================================================
 MainLayout.razor : Layout principal de l'application
 ====================================================================
 Ce composant définit la structure globale de l'application avec
 la sidebar (NavMenu) et les contrôles de thème/langue.
+Utilise MudBlazor pour la gestion automatique du thème.
 *@
 
 @inherits LayoutComponentBase
+@inject ThemeService ThemeService
+@implements IDisposable
 
-<MudThemeProvider />
+@* MudBlazor Theme Provider : Gère automatiquement le dark/light mode *@
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -34,3 +38,31 @@ la sidebar (NavMenu) et les contrôles de thème/langue.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private bool _isDarkMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialiser le ThemeService et charger les préférences
+        await ThemeService.InitializeAsync();
+
+        // Charger l'état du thème depuis le service
+        _isDarkMode = ThemeService.IsDarkMode;
+
+        // S'abonner aux changements de thème
+        ThemeService.OnThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged()
+    {
+        // Mettre à jour l'état local quand le service change
+        _isDarkMode = ThemeService.IsDarkMode;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= OnThemeChanged;
+    }
+}
