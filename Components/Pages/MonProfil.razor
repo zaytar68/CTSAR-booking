@@ -8,16 +8,10 @@ personnelles, voir ses rôles et changer son mot de passe.
 
 @page "/mon-profil"
 @attribute [Authorize]
-@rendermode InteractiveServer
 
 @inject UserService UserService
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
-<MudThemeProvider />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
 
 <PageTitle>Mon profil</PageTitle>
 

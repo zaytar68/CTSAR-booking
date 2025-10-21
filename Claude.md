@@ -85,15 +85,59 @@ Les 4 providers MudBlazor sont configurés dans `Components/Layout/MainLayout.ra
 - **MudDialogProvider** : Requis pour MudDialog (utilisé dans EditUser/CreateUser)
 - **MudSnackbarProvider** : Pour les notifications toast
 
+**Architecture de rendu - SOLUTION FINALE :**
+✅ **@rendermode="InteractiveServer" sur HeadOutlet et Routes dans App.razor**
+   ```razor
+   <HeadOutlet @rendermode="InteractiveServer" />
+   <Routes @rendermode="InteractiveServer" />
+   ```
+   - Cela active le mode InteractiveServer pour toute l'application
+   - Évite la double création des providers (pas de prerendering sur les composants interactifs)
+   - Permet au SSR initial de fonctionner pour la localisation (lecture du cookie)
+   - ⚠️ Ne PAS mettre `@rendermode` directement sur le Router (erreur de sérialisation RenderFragment)
+
 **Problèmes à éviter :**
 1. ❌ **Ne JAMAIS dupliquer les providers** dans d'autres composants
-2. ❌ Éviter `@rendermode InteractiveServer` sur les composants qui utilisent MudBlazor (crée des scopes séparés)
-3. ✅ Les providers au niveau MainLayout sont accessibles à toute l'application
+2. ❌ **Ne JAMAIS ajouter `@rendermode InteractiveServer` sur des pages/composants individuels**
+   - Le rendermode est déjà défini au niveau App.razor
+   - Ajouter `@rendermode` sur une page crée un **scope de rendering séparé**
+   - Les composants enfants (comme les dialogues) n'auront pas accès aux providers du MainLayout
+3. ❌ **Ne JAMAIS ajouter `@rendermode` sur les dialogues MudBlazor**
+   - Les dialogues héritent automatiquement du mode de leur parent
+   - Ajouter un rendermode crée un conflit de scopes avec les providers
+4. ❌ **Ne JAMAIS ajouter `@attribute [StreamRendering(false)]` sur MainLayout**
+   - Cela désactive complètement le SSR et empêche la localisation de fonctionner
+   - Le cookie de culture ne serait pas détecté au chargement initial
+5. ❌ **Ne JAMAIS ajouter `@rendermode` sur le Router directement**
+   - Erreur : "Cannot pass RenderFragment<T> parameter 'Found' to component 'Router' with rendermode"
+   - Le Router contient des RenderFragment qui ne peuvent pas être sérialisés
+6. ✅ Les providers au niveau MainLayout sont accessibles à toute l'application
+7. ✅ L'interactivité est gérée dans App.razor sur HeadOutlet et Routes
 
-**Erreur typique si duplication :**
-```
-There is already a subscriber to the content with the given section ID 'mud-overlay-to-popover-provider'
-```
+**Erreurs typiques :**
+- **Si duplication de providers :**
+  ```
+  There is already a subscriber to the content with the given section ID 'mud-overlay-to-popover-provider'
+  ```
+  Solution : Retirer les providers dupliqués, garder uniquement ceux dans MainLayout.razor
+
+- **Si `@rendermode InteractiveServer` sur une page avec MudBlazor :**
+  ```
+  Missing <MudPopoverProvider />, please add it to your layout
+  ```
+  Cause : Le composant a un scope séparé qui n'a pas accès aux providers du MainLayout
+  Solution : Retirer le `@rendermode` de la page individuelle
+
+- **Si changement de langue ne fonctionne plus :**
+  Cause probable : `StreamRendering(false)` désactive le SSR et empêche la détection du cookie
+  Solution : Retirer `StreamRendering(false)`, utiliser `@rendermode="InteractiveServer"` sur HeadOutlet/Routes
+
+- **Si erreur "Cannot pass RenderFragment<T> parameter" :**
+  ```
+  Cannot pass RenderFragment<T> parameter 'Found' to component 'Router' with rendermode 'InteractiveServerRenderMode'
+  ```
+  Cause : `@rendermode` placé directement sur le composant Router
+  Solution : Placer `@rendermode="InteractiveServer"` sur HeadOutlet et Routes dans App.razor, pas sur Router
 
 ### Système de localisation multilingue
 
