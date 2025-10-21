@@ -132,6 +132,12 @@ builder.Services.AddScoped<CTSAR.Booking.Services.ThemeService>();
 // Ajoute AlveoleService pour gérer les alvéoles (postes de tir)
 builder.Services.AddScoped<CTSAR.Booking.Services.AlveoleService>();
 
+// Ajoute ReservationService pour gérer les inscriptions de tir
+builder.Services.AddScoped<CTSAR.Booking.Services.ReservationService>();
+
+// Ajoute FermetureAlveoleService pour gérer les fermetures planifiées
+builder.Services.AddScoped<CTSAR.Booking.Services.FermetureAlveoleService>();
+
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)
 // --------------------------------------------------------------------
