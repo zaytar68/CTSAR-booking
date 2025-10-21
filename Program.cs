@@ -129,6 +129,9 @@ builder.Services.AddScoped<CTSAR.Booking.Services.UserService>();
 // Scoped : Une nouvelle instance par requête HTTP
 builder.Services.AddScoped<CTSAR.Booking.Services.ThemeService>();
 
+// Ajoute AlveoleService pour gérer les alvéoles (postes de tir)
+builder.Services.AddScoped<CTSAR.Booking.Services.AlveoleService>();
+
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)
 // --------------------------------------------------------------------
