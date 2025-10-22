@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Page principale -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Gestion des Alvéoles</value>
+  </data>
+  <data name="PageDescription" xml:space="preserve">
+    <value>Gérez les postes de tir et planifiez les fermetures</value>
+  </data>
+
+  <!-- Liste des alvéoles -->
+  <data name="AlveoleListTitle" xml:space="preserve">
+    <value>Alvéoles de tir</value>
+  </data>
+  <data name="CreateAlveole" xml:space="preserve">
+    <value>Créer une alvéole</value>
+  </data>
+  <data name="NoAlveoles" xml:space="preserve">
+    <value>Aucune alvéole configurée</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Ordre</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="CreatedDate" xml:space="preserve">
+    <value>Date de création</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="PlanClosure" xml:space="preserve">
+    <value>Planifier une fermeture</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Désactiver</value>
+  </data>
+
+  <!-- Fermetures planifiées -->
+  <data name="PlannedClosuresTitle" xml:space="preserve">
+    <value>Fermetures planifiées (3 prochains mois)</value>
+  </data>
+  <data name="NoClosures" xml:space="preserve">
+    <value>Aucune fermeture planifiée</value>
+  </data>
+  <data name="Alveole" xml:space="preserve">
+    <value>Alvéole</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Date de début</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Date de fin</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Raison</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+
+  <!-- Types de fermeture -->
+  <data name="TypeTravaux" xml:space="preserve">
+    <value>Travaux</value>
+  </data>
+  <data name="TypeJourFerie" xml:space="preserve">
+    <value>Jour férié</value>
+  </data>
+  <data name="TypeReservationExterne" xml:space="preserve">
+    <value>Réservation externe</value>
+  </data>
+  <data name="TypeAutre" xml:space="preserve">
+    <value>Autre</value>
+  </data>
+
+  <!-- Dialogues -->
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="Creating" xml:space="preserve">
+    <value>Création...</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Mettre à jour</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Mise à jour...</value>
+  </data>
+  <data name="EditAlveole" xml:space="preserve">
+    <value>Modifier l'alvéole</value>
+  </data>
+
+  <!-- Validation -->
+  <data name="NameRequired" xml:space="preserve">
+    <value>Le nom est requis</value>
+  </data>
+  <data name="NameTooLong" xml:space="preserve">
+    <value>Le nom ne peut pas dépasser 50 caractères</value>
+  </data>
+  <data name="NameHelperText" xml:space="preserve">
+    <value>Nom unique pour identifier l'alvéole</value>
+  </data>
+  <data name="StartDateRequired" xml:space="preserve">
+    <value>La date de début est requise</value>
+  </data>
+  <data name="StartTimeRequired" xml:space="preserve">
+    <value>L'heure de début est requise</value>
+  </data>
+  <data name="EndDateRequired" xml:space="preserve">
+    <value>La date de fin est requise</value>
+  </data>
+  <data name="EndTimeRequired" xml:space="preserve">
+    <value>L'heure de fin est requise</value>
+  </data>
+  <data name="TypeRequired" xml:space="preserve">
+    <value>Le type est requis</value>
+  </data>
+  <data name="ReasonHelperText" xml:space="preserve">
+    <value>Optionnel : précisez la raison de la fermeture</value>
+  </data>
+  <data name="AllFieldsRequired" xml:space="preserve">
+    <value>Tous les champs sont requis</value>
+  </data>
+  <data name="EndDateMustBeAfterStartDate" xml:space="preserve">
+    <value>La date de fin doit être après la date de début</value>
+  </data>
+  <data name="ClosureFor" xml:space="preserve">
+    <value>Fermeture pour</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Heure de début</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>Heure de fin</value>
+  </data>
+
+  <!-- Confirmations -->
+  <data name="ConfirmDeactivation" xml:space="preserve">
+    <value>Confirmer la désactivation</value>
+  </data>
+  <data name="ConfirmDeactivationMessage" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir désactiver l'alvéole "{0}" ?</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Confirmer la suppression</value>
+  </data>
+  <data name="ConfirmDeletionMessage" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer cette fermeture ?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+
+  <!-- Messages de succès -->
+  <data name="AlveoleCreatedSuccess" xml:space="preserve">
+    <value>Alvéole créée avec succès</value>
+  </data>
+  <data name="AlveoleUpdatedSuccess" xml:space="preserve">
+    <value>Alvéole mise à jour avec succès</value>
+  </data>
+  <data name="ClosureCreatedSuccess" xml:space="preserve">
+    <value>Fermeture créée avec succès</value>
+  </data>
+</root>

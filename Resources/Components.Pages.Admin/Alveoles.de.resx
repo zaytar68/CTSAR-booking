@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="PageTitle" xml:space="preserve">
+    <value>Schießstand-Verwaltung</value>
+  </data>
+  <data name="PageDescription" xml:space="preserve">
+    <value>Verwalten Sie Schießstände und planen Sie Schließungen</value>
+  </data>
+  <data name="AlveoleListTitle" xml:space="preserve">
+    <value>Schießstände</value>
+  </data>
+  <data name="CreateAlveole" xml:space="preserve">
+    <value>Schießstand erstellen</value>
+  </data>
+  <data name="NoAlveoles" xml:space="preserve">
+    <value>Keine Schießstände konfiguriert</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Reihenfolge</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="CreatedDate" xml:space="preserve">
+    <value>Erstellungsdatum</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="PlanClosure" xml:space="preserve">
+    <value>Schließung planen</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
+  <data name="PlannedClosuresTitle" xml:space="preserve">
+    <value>Geplante Schließungen (nächste 3 Monate)</value>
+  </data>
+  <data name="NoClosures" xml:space="preserve">
+    <value>Keine geplanten Schließungen</value>
+  </data>
+  <data name="Alveole" xml:space="preserve">
+    <value>Schießstand</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Startdatum</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Enddatum</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Grund</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="TypeTravaux" xml:space="preserve">
+    <value>Arbeiten</value>
+  </data>
+  <data name="TypeJourFerie" xml:space="preserve">
+    <value>Feiertag</value>
+  </data>
+  <data name="TypeReservationExterne" xml:space="preserve">
+    <value>Externe Reservierung</value>
+  </data>
+  <data name="TypeAutre" xml:space="preserve">
+    <value>Andere</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Erstellen</value>
+  </data>
+  <data name="Creating" xml:space="preserve">
+    <value>Wird erstellt...</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Wird aktualisiert...</value>
+  </data>
+  <data name="EditAlveole" xml:space="preserve">
+    <value>Schießstand bearbeiten</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name ist erforderlich</value>
+  </data>
+  <data name="NameTooLong" xml:space="preserve">
+    <value>Name darf 50 Zeichen nicht überschreiten</value>
+  </data>
+  <data name="NameHelperText" xml:space="preserve">
+    <value>Eindeutiger Name zur Identifizierung des Schießstands</value>
+  </data>
+  <data name="StartDateRequired" xml:space="preserve">
+    <value>Startdatum ist erforderlich</value>
+  </data>
+  <data name="StartTimeRequired" xml:space="preserve">
+    <value>Startzeit ist erforderlich</value>
+  </data>
+  <data name="EndDateRequired" xml:space="preserve">
+    <value>Enddatum ist erforderlich</value>
+  </data>
+  <data name="EndTimeRequired" xml:space="preserve">
+    <value>Endzeit ist erforderlich</value>
+  </data>
+  <data name="TypeRequired" xml:space="preserve">
+    <value>Typ ist erforderlich</value>
+  </data>
+  <data name="ReasonHelperText" xml:space="preserve">
+    <value>Optional: Grund für die Schließung angeben</value>
+  </data>
+  <data name="AllFieldsRequired" xml:space="preserve">
+    <value>Alle Felder sind erforderlich</value>
+  </data>
+  <data name="EndDateMustBeAfterStartDate" xml:space="preserve">
+    <value>Enddatum muss nach Startdatum liegen</value>
+  </data>
+  <data name="ClosureFor" xml:space="preserve">
+    <value>Schließung für</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Startzeit</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>Endzeit</value>
+  </data>
+  <data name="ConfirmDeactivation" xml:space="preserve">
+    <value>Deaktivierung bestätigen</value>
+  </data>
+  <data name="ConfirmDeactivationMessage" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie den Schießstand "{0}" deaktivieren möchten?</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Löschen bestätigen</value>
+  </data>
+  <data name="ConfirmDeletionMessage" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie diese Schließung löschen möchten?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="AlveoleCreatedSuccess" xml:space="preserve">
+    <value>Schießstand erfolgreich erstellt</value>
+  </data>
+  <data name="AlveoleUpdatedSuccess" xml:space="preserve">
+    <value>Schießstand erfolgreich aktualisiert</value>
+  </data>
+  <data name="ClosureCreatedSuccess" xml:space="preserve">
+    <value>Schließung erfolgreich erstellt</value>
+  </data>
+</root>

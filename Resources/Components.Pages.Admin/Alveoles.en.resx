@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="PageTitle" xml:space="preserve">
+    <value>Lane Management</value>
+  </data>
+  <data name="PageDescription" xml:space="preserve">
+    <value>Manage shooting lanes and plan closures</value>
+  </data>
+  <data name="AlveoleListTitle" xml:space="preserve">
+    <value>Shooting Lanes</value>
+  </data>
+  <data name="CreateAlveole" xml:space="preserve">
+    <value>Create Lane</value>
+  </data>
+  <data name="NoAlveoles" xml:space="preserve">
+    <value>No lanes configured</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="CreatedDate" xml:space="preserve">
+    <value>Created Date</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="PlanClosure" xml:space="preserve">
+    <value>Plan Closure</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="PlannedClosuresTitle" xml:space="preserve">
+    <value>Planned Closures (next 3 months)</value>
+  </data>
+  <data name="NoClosures" xml:space="preserve">
+    <value>No planned closures</value>
+  </data>
+  <data name="Alveole" xml:space="preserve">
+    <value>Lane</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="TypeTravaux" xml:space="preserve">
+    <value>Maintenance</value>
+  </data>
+  <data name="TypeJourFerie" xml:space="preserve">
+    <value>Public Holiday</value>
+  </data>
+  <data name="TypeReservationExterne" xml:space="preserve">
+    <value>External Booking</value>
+  </data>
+  <data name="TypeAutre" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Creating" xml:space="preserve">
+    <value>Creating...</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Updating...</value>
+  </data>
+  <data name="EditAlveole" xml:space="preserve">
+    <value>Edit Lane</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="NameTooLong" xml:space="preserve">
+    <value>Name cannot exceed 50 characters</value>
+  </data>
+  <data name="NameHelperText" xml:space="preserve">
+    <value>Unique name to identify the lane</value>
+  </data>
+  <data name="StartDateRequired" xml:space="preserve">
+    <value>Start date is required</value>
+  </data>
+  <data name="StartTimeRequired" xml:space="preserve">
+    <value>Start time is required</value>
+  </data>
+  <data name="EndDateRequired" xml:space="preserve">
+    <value>End date is required</value>
+  </data>
+  <data name="EndTimeRequired" xml:space="preserve">
+    <value>End time is required</value>
+  </data>
+  <data name="TypeRequired" xml:space="preserve">
+    <value>Type is required</value>
+  </data>
+  <data name="ReasonHelperText" xml:space="preserve">
+    <value>Optional: specify the reason for closure</value>
+  </data>
+  <data name="AllFieldsRequired" xml:space="preserve">
+    <value>All fields are required</value>
+  </data>
+  <data name="EndDateMustBeAfterStartDate" xml:space="preserve">
+    <value>End date must be after start date</value>
+  </data>
+  <data name="ClosureFor" xml:space="preserve">
+    <value>Closure for</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Start Time</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>End Time</value>
+  </data>
+  <data name="ConfirmDeactivation" xml:space="preserve">
+    <value>Confirm Deactivation</value>
+  </data>
+  <data name="ConfirmDeactivationMessage" xml:space="preserve">
+    <value>Are you sure you want to deactivate lane "{0}"?</value>
+  </data>
+  <data name="ConfirmDeletion" xml:space="preserve">
+    <value>Confirm Deletion</value>
+  </data>
+  <data name="ConfirmDeletionMessage" xml:space="preserve">
+    <value>Are you sure you want to delete this closure?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="AlveoleCreatedSuccess" xml:space="preserve">
+    <value>Lane created successfully</value>
+  </data>
+  <data name="AlveoleUpdatedSuccess" xml:space="preserve">
+    <value>Lane updated successfully</value>
+  </data>
+  <data name="ClosureCreatedSuccess" xml:space="preserve">
+    <value>Closure created successfully</value>
+  </data>
+</root>

@@ -1,0 +1,323 @@
+@page "/admin/alveoles"
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Data
+@using CTSAR.Booking.Components.Dialogs
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject AlveoleService AlveoleService
+@inject FermetureAlveoleService FermetureAlveoleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<Alveoles> Loc
+
+@attribute [Authorize(Policy = "AdminOnly")]
+
+<PageTitle>@Loc["PageTitle"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" GutterBottom="true">@Loc["PageTitle"]</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">@Loc["PageDescription"]</MudText>
+
+    <!-- Section : Liste des alvéoles -->
+    <MudPaper Class="pa-4 mb-4">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudText Typo="Typo.h6">@Loc["AlveoleListTitle"]</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateAlveoleDialog">
+                @Loc["CreateAlveole"]
+            </MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_alveoles == null || !_alveoles.Any())
+        {
+            <MudAlert Severity="Severity.Info">@Loc["NoAlveoles"]</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@_alveoles"
+                      Hover="true"
+                      Dense="true"
+                      Striped="true"
+                      Bordered="true">
+                <HeaderContent>
+                    <MudTh>@Loc["Order"]</MudTh>
+                    <MudTh>@Loc["Name"]</MudTh>
+                    <MudTh>@Loc["Status"]</MudTh>
+                    <MudTh Style="text-align: center;">@Loc["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Loc["Order"]">@context.Ordre</MudTd>
+                    <MudTd DataLabel="@Loc["Name"]">
+                        <MudText Typo="Typo.body2"><strong>@context.Nom</strong></MudText>
+                    </MudTd>
+                    <MudTd DataLabel="@Loc["Status"]">
+                        @if (context.EstActive)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">@Loc["Active"]</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Default" Size="Size.Small">@Loc["Inactive"]</MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="@Loc["Actions"]" Style="text-align: center;">
+                        <MudStack Row="true" Justify="Justify.Center" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenEditAlveoleDialog(context))"
+                                           Title="@Loc["Edit"]" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Block"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OpenCreateFermetureDialog(context))"
+                                           Title="@Loc["PlanClosure"]" />
+                            @if (context.EstActive)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Archive"
+                                               Color="Color.Warning"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DeleteAlveole(context))"
+                                               Title="@Loc["Deactivate"]" />
+                            }
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+
+    <!-- Section : Fermetures planifiées -->
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h6" Class="mb-4">@Loc["PlannedClosuresTitle"]</MudText>
+
+        @if (_loadingFermetures)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_fermetures == null || !_fermetures.Any())
+        {
+            <MudAlert Severity="Severity.Info">@Loc["NoClosures"]</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@_fermetures"
+                      Hover="true"
+                      Dense="true"
+                      Striped="true"
+                      Bordered="true">
+                <HeaderContent>
+                    <MudTh>@Loc["Alveole"]</MudTh>
+                    <MudTh>@Loc["StartDate"]</MudTh>
+                    <MudTh>@Loc["EndDate"]</MudTh>
+                    <MudTh>@Loc["Type"]</MudTh>
+                    <MudTh>@Loc["Reason"]</MudTh>
+                    <MudTh Style="text-align: center;">@Loc["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Loc["Alveole"]">
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small">@context.AlveoleNom</MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@Loc["StartDate"]">@context.DateDebut.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudTd>
+                    <MudTd DataLabel="@Loc["EndDate"]">@context.DateFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudTd>
+                    <MudTd DataLabel="@Loc["Type"]">
+                        <MudChip T="string" Color="@GetFermetureColor(context.TypeFermeture)" Size="Size.Small">
+                            @GetFermetureTypeLabel(context.TypeFermeture)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@Loc["Reason"]">@context.Raison</MudTd>
+                    <MudTd DataLabel="@Loc["Actions"]" Style="text-align: center;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteFermeture(context))"
+                                       Title="@Loc["Delete"]" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<AlveoleDto>? _alveoles;
+    private List<FermetureDto>? _fermetures;
+    private bool _loading = true;
+    private bool _loadingFermetures = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        await Task.WhenAll(LoadAlveoles(), LoadFermetures());
+    }
+
+    private async Task LoadAlveoles()
+    {
+        _loading = true;
+        try
+        {
+            _alveoles = await AlveoleService.GetAllAlveolesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors du chargement des alvéoles : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadFermetures()
+    {
+        _loadingFermetures = true;
+        try
+        {
+            // Charger les fermetures pour les 3 prochains mois
+            var debut = DateTime.UtcNow;
+            var fin = debut.AddMonths(3);
+            _fermetures = await FermetureAlveoleService.GetFermeturesForPeriodAsync(debut, fin);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors du chargement des fermetures : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loadingFermetures = false;
+        }
+    }
+
+    private async Task OpenCreateAlveoleDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CreateAlveoleDialog>(Loc["CreateAlveole"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAlveoles();
+            Snackbar.Add(Loc["AlveoleCreatedSuccess"], Severity.Success);
+        }
+    }
+
+    private async Task OpenEditAlveoleDialog(AlveoleDto alveole)
+    {
+        var parameters = new DialogParameters
+        {
+            { "Alveole", alveole }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EditAlveoleDialog>(Loc["EditAlveole"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAlveoles();
+            Snackbar.Add(Loc["AlveoleUpdatedSuccess"], Severity.Success);
+        }
+    }
+
+    private async Task OpenCreateFermetureDialog(AlveoleDto alveole)
+    {
+        var parameters = new DialogParameters
+        {
+            { "AlveoleId", alveole.Id },
+            { "AlveoleNom", alveole.Nom }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CreateFermetureDialog>(Loc["PlanClosure"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadFermetures();
+            Snackbar.Add(Loc["ClosureCreatedSuccess"], Severity.Success);
+        }
+    }
+
+    private async Task DeleteAlveole(AlveoleDto alveole)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            Loc["ConfirmDeactivation"],
+            string.Format(Loc["ConfirmDeactivationMessage"], alveole.Nom),
+            yesText: Loc["Yes"],
+            cancelText: Loc["Cancel"]);
+
+        if (confirmed == true)
+        {
+            var result = await AlveoleService.DeleteAlveoleAsync(alveole.Id);
+            if (result.Success)
+            {
+                Snackbar.Add(result.Message, Severity.Success);
+                await LoadAlveoles();
+            }
+            else
+            {
+                Snackbar.Add(result.Message, Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteFermeture(FermetureDto fermeture)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            Loc["ConfirmDeletion"],
+            Loc["ConfirmDeletionMessage"],
+            yesText: Loc["Yes"],
+            cancelText: Loc["Cancel"]);
+
+        if (confirmed == true)
+        {
+            var result = await FermetureAlveoleService.DeleteFermetureAsync(fermeture.Id);
+            if (result.Success)
+            {
+                Snackbar.Add(result.Message, Severity.Success);
+                await LoadFermetures();
+            }
+            else
+            {
+                Snackbar.Add(result.Message, Severity.Error);
+            }
+        }
+    }
+
+    private Color GetFermetureColor(TypeFermeture type)
+    {
+        return type switch
+        {
+            TypeFermeture.Travaux => Color.Warning,
+            TypeFermeture.JourFerie => Color.Info,
+            TypeFermeture.ReservationExterne => Color.Secondary,
+            TypeFermeture.Autre => Color.Default,
+            _ => Color.Default
+        };
+    }
+
+    private string GetFermetureTypeLabel(TypeFermeture type)
+    {
+        return type switch
+        {
+            TypeFermeture.Travaux => Loc["TypeTravaux"],
+            TypeFermeture.JourFerie => Loc["TypeJourFerie"],
+            TypeFermeture.ReservationExterne => Loc["TypeReservationExterne"],
+            TypeFermeture.Autre => Loc["TypeAutre"],
+            _ => type.ToString()
+        };
+    }
+}

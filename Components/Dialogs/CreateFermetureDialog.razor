@@ -1,0 +1,160 @@
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Data
+@using Microsoft.Extensions.Localization
+@using CTSAR.Booking.Components.Pages.Admin
+@inject FermetureAlveoleService FermetureAlveoleService
+@inject IStringLocalizer<Alveoles> Loc
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudStack Spacing="3">
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    @Loc["ClosureFor"]: <strong>@AlveoleNom</strong>
+                </MudAlert>
+
+                <MudDatePicker @bind-Date="_dateDebut"
+                               Label="@Loc["StartDate"]"
+                               Required="true"
+                               RequiredError="@Loc["StartDateRequired"]"
+                               MinDate="DateTime.Today"
+                               DateFormat="dd/MM/yyyy" />
+
+                <MudTimePicker @bind-Time="_heureDebut"
+                               Label="@Loc["StartTime"]"
+                               Required="true"
+                               RequiredError="@Loc["StartTimeRequired"]"
+                               AmPm="false" />
+
+                <MudDatePicker @bind-Date="_dateFin"
+                               Label="@Loc["EndDate"]"
+                               Required="true"
+                               RequiredError="@Loc["EndDateRequired"]"
+                               MinDate="@(_dateDebut ?? DateTime.Today)"
+                               DateFormat="dd/MM/yyyy" />
+
+                <MudTimePicker @bind-Time="_heureFin"
+                               Label="@Loc["EndTime"]"
+                               Required="true"
+                               RequiredError="@Loc["EndTimeRequired"]"
+                               AmPm="false" />
+
+                <MudSelect @bind-Value="_typeFermeture"
+                           Label="@Loc["Type"]"
+                           Required="true"
+                           RequiredError="@Loc["TypeRequired"]">
+                    <MudSelectItem Value="TypeFermeture.Travaux">@Loc["TypeTravaux"]</MudSelectItem>
+                    <MudSelectItem Value="TypeFermeture.JourFerie">@Loc["TypeJourFerie"]</MudSelectItem>
+                    <MudSelectItem Value="TypeFermeture.ReservationExterne">@Loc["TypeReservationExterne"]</MudSelectItem>
+                    <MudSelectItem Value="TypeFermeture.Autre">@Loc["TypeAutre"]</MudSelectItem>
+                </MudSelect>
+
+                <MudTextField @bind-Value="_raison"
+                              Label="@Loc["Reason"]"
+                              Lines="3"
+                              MaxLength="500"
+                              Counter="500"
+                              HelperText="@Loc["ReasonHelperText"]" />
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
+                }
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Loc["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">@Loc["Creating"]</MudText>
+            }
+            else
+            {
+                @Loc["Create"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    [Parameter]
+    public int AlveoleId { get; set; }
+
+    [Parameter]
+    public string AlveoleNom { get; set; } = string.Empty;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private string _errorMessage = string.Empty;
+
+    private DateTime? _dateDebut = DateTime.Today;
+    private TimeSpan? _heureDebut = new TimeSpan(8, 0, 0);
+    private DateTime? _dateFin = DateTime.Today;
+    private TimeSpan? _heureFin = new TimeSpan(17, 0, 0);
+    private TypeFermeture _typeFermeture = TypeFermeture.Travaux;
+    private string _raison = string.Empty;
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+
+        _errorMessage = string.Empty;
+
+        // Valider que la date de fin est après la date de début
+        if (_dateDebut == null || _dateFin == null || _heureDebut == null || _heureFin == null)
+        {
+            _errorMessage = Loc["AllFieldsRequired"];
+            return;
+        }
+
+        var dateTimeDebut = _dateDebut.Value.Add(_heureDebut.Value);
+        var dateTimeFin = _dateFin.Value.Add(_heureFin.Value);
+
+        if (dateTimeFin <= dateTimeDebut)
+        {
+            _errorMessage = Loc["EndDateMustBeAfterStartDate"];
+            return;
+        }
+
+        _submitting = true;
+        try
+        {
+            var result = await FermetureAlveoleService.CreateFermetureAsync(
+                AlveoleId,
+                DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
+                DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc),
+                _typeFermeture,
+                string.IsNullOrWhiteSpace(_raison) ? null : _raison.Trim());
+
+            if (result.Success)
+            {
+                DialogRef?.Close(DialogResult.Ok(result.Fermeture));
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        DialogRef?.Close(DialogResult.Cancel());
+    }
+}

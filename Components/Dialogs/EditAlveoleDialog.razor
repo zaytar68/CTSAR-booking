@@ -1,0 +1,98 @@
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.DTOs
+@using Microsoft.Extensions.Localization
+@using CTSAR.Booking.Components.Pages.Admin
+@inject AlveoleService AlveoleService
+@inject IStringLocalizer<Alveoles> Loc
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudTextField @bind-Value="_nom"
+                          Label="@Loc["Name"]"
+                          Required="true"
+                          RequiredError="@Loc["NameRequired"]"
+                          Validation="@(new Func<string, string?>(ValidateName))"
+                          Immediate="true"
+                          MaxLength="50"
+                          Counter="50"
+                          HelperText="@Loc["NameHelperText"]" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Loc["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@(!_isValid || _submitting)">
+            @if (_submitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">@Loc["Updating"]</MudText>
+            }
+            else
+            {
+                @Loc["Update"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    [Parameter]
+    public AlveoleDto Alveole { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _submitting;
+    private string _nom = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _nom = Alveole.Nom;
+    }
+
+    private string? ValidateName(string nom)
+    {
+        if (string.IsNullOrWhiteSpace(nom))
+            return Loc["NameRequired"];
+
+        if (nom.Length > 50)
+            return Loc["NameTooLong"];
+
+        return null;
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+
+        _submitting = true;
+        try
+        {
+            var result = await AlveoleService.UpdateAlveoleAsync(Alveole.Id, _nom.Trim());
+            if (result.Success)
+            {
+                DialogRef?.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                // Afficher l'erreur dans le formulaire
+                await _form.Validate();
+            }
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        DialogRef?.Close(DialogResult.Cancel());
+    }
+}
