@@ -26,6 +26,9 @@
   <data name="Home" xml:space="preserve">
     <value>Home</value>
   </data>
+  <data name="Planning" xml:space="preserve">
+    <value>Schedule</value>
+  </data>
   <data name="MyProfile" xml:space="preserve">
     <value>My Profile</value>
   </data>
@@ -34,6 +37,9 @@
   </data>
   <data name="Users" xml:space="preserve">
     <value>User Management</value>
+  </data>
+  <data name="Lanes" xml:space="preserve">
+    <value>Lane Management</value>
   </data>
   <data name="Account" xml:space="preserve">
     <value>ACCOUNT</value>

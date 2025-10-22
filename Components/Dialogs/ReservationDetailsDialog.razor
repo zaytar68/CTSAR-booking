@@ -1,0 +1,310 @@
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.Data
+@using CTSAR.Booking.Components.Pages
+@using Microsoft.Extensions.Localization
+@using System.Security.Claims
+@using MudBlazor
+@inject ReservationService ReservationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<Planning> Loc
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @Loc["ReservationDetails"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_reservation == null)
+        {
+            <MudAlert Severity="Severity.Error">@Loc["ReservationNotFound"]</MudAlert>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <!-- Statut de la réservation -->
+                <MudAlert Severity="@GetStatusSeverity(_reservation.StatutReservation)" Dense="true">
+                    @GetStatusLabel(_reservation.StatutReservation)
+                </MudAlert>
+
+                <!-- Informations de base -->
+                <MudPaper Class="pa-3" Outlined="true">
+                    <MudStack Spacing="2">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">
+                                <strong>@Loc["Date"]:</strong> @_reservation.DateDebut.ToLocalTime().ToString("dddd dd MMMM yyyy")
+                            </MudText>
+                        </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">
+                                <strong>@Loc["TimeSlot"]:</strong>
+                                @_reservation.DateDebut.ToLocalTime().ToString("HH:mm") - @_reservation.DateFin.ToLocalTime().ToString("HH:mm")
+                            </MudText>
+                        </MudStack>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">
+                                <strong>@Loc["Alveoles"]:</strong> @_reservation.NomsAlveoles
+                            </MudText>
+                        </MudStack>
+                        @if (!string.IsNullOrWhiteSpace(_reservation.Commentaire))
+                        {
+                            <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
+                                <MudText Typo="Typo.body2">
+                                    <strong>@Loc["Comment"]:</strong> @_reservation.Commentaire
+                                </MudText>
+                            </MudStack>
+                        }
+                    </MudStack>
+                </MudPaper>
+
+                <!-- Liste des participants -->
+                <MudText Typo="Typo.h6">@Loc["Participants"] (@_reservation.NombreParticipants)</MudText>
+
+                @if (_reservation.NombreMoniteurs > 0)
+                {
+                    <MudText Typo="Typo.subtitle2" Color="Color.Success">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
+                        @_reservation.NombreMoniteurs @Loc["InstructorsRegistered"]
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle2" Color="Color.Warning">
+                        <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Warning" />
+                        @Loc["NoInstructorYet"]
+                    </MudText>
+                }
+
+                <MudList T="string" Dense="true">
+                    @foreach (var participant in _reservation.Participants.OrderByDescending(p => p.EstMoniteur).ThenBy(p => p.DateInscription))
+                    {
+                        <MudListItem T="string">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudAvatar Color="@(participant.EstMoniteur ? Color.Primary : Color.Secondary)" Size="Size.Small">
+                                    @participant.Initiales
+                                </MudAvatar>
+                                <MudStack Spacing="0" Class="flex-grow-1">
+                                    <MudText Typo="Typo.body2">
+                                        <strong>@participant.NomComplet</strong>
+                                        @if (participant.EstMoniteur)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ml-2">@Loc["Instructor"]</MudChip>
+                                        }
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @Loc["RegisteredOn"] @participant.DateInscription.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudListItem>
+                    }
+                </MudList>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+                }
+                @if (!string.IsNullOrEmpty(_successMessage))
+                {
+                    <MudAlert Severity="Severity.Success">@_successMessage</MudAlert>
+                }
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">@Loc["Close"]</MudButton>
+        @if (_reservation != null && !_loading)
+        {
+            @if (_isCurrentUserRegistered)
+            {
+                <MudButton Color="Color.Error"
+                           Variant="Variant.Filled"
+                           OnClick="Unregister"
+                           Disabled="_isProcessing">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">@Loc["Processing"]</MudText>
+                    }
+                    else
+                    {
+                        @Loc["Unregister"]
+                    }
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           OnClick="Register"
+                           Disabled="_isProcessing">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">@Loc["Processing"]</MudText>
+                    }
+                    else
+                    {
+                        @Loc["Register"]
+                    }
+                </MudButton>
+            }
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    [Parameter]
+    public int ReservationId { get; set; }
+
+    private ReservationDto? _reservation;
+    private bool _loading = true;
+    private bool _isProcessing = false;
+    private string? _errorMessage;
+    private string? _successMessage;
+    private string? _currentUserId;
+    private bool _isMoniteur = false;
+    private bool _isCurrentUserRegistered = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Récupérer l'utilisateur connecté
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _isMoniteur = authState.User.IsInRole("Moniteur");
+
+        await LoadReservation();
+    }
+
+    private async Task LoadReservation()
+    {
+        _loading = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            _reservation = await ReservationService.GetReservationByIdAsync(ReservationId);
+
+            if (_reservation != null && !string.IsNullOrEmpty(_currentUserId))
+            {
+                _isCurrentUserRegistered = _reservation.Participants.Any(p => p.UserId == _currentUserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task Register()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        _isProcessing = true;
+
+        try
+        {
+            var result = await ReservationService.AddParticipantAsync(
+                ReservationId,
+                _currentUserId!,
+                _isMoniteur);
+
+            if (result.Success)
+            {
+                _successMessage = result.Message;
+                await LoadReservation();
+                StateHasChanged();
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task Unregister()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        _isProcessing = true;
+
+        try
+        {
+            var result = await ReservationService.RemoveParticipantAsync(
+                ReservationId,
+                _currentUserId!);
+
+            if (result.Success)
+            {
+                _successMessage = result.Message;
+
+                // Si c'était le dernier participant, fermer le dialogue
+                if (result.Message.Contains("dernier participant") || result.Message.Contains("last participant"))
+                {
+                    await Task.Delay(1500); // Laisser le temps de lire le message
+                    DialogRef?.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    await LoadReservation();
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private void Close()
+    {
+        DialogRef?.Close(DialogResult.Ok(false));
+    }
+
+    private Severity GetStatusSeverity(StatutReservation statut)
+    {
+        return statut == StatutReservation.Confirmee ? Severity.Success : Severity.Warning;
+    }
+
+    private string GetStatusLabel(StatutReservation statut)
+    {
+        return statut == StatutReservation.Confirmee
+            ? Loc["StatusConfirmed"]
+            : Loc["StatusPending"];
+    }
+}

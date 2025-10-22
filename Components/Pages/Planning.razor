@@ -1,0 +1,343 @@
+@page "/planning"
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Data
+@using CTSAR.Booking.Components.Dialogs
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using System.Security.Claims
+@inject ReservationService ReservationService
+@inject AlveoleService AlveoleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<Planning> Loc
+
+@attribute [Authorize]
+
+<PageTitle>@Loc["PageTitle"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <!-- Header avec navigation mois -->
+    <MudPaper Class="pa-4 mb-4">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                               Color="Color.Primary"
+                               OnClick="@PreviousMonth" />
+                <MudText Typo="Typo.h5">
+                    @GetMonthYearLabel(_currentMonth, _currentYear)
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                               Color="Color.Primary"
+                               OnClick="@NextMonth" />
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Primary"
+                           OnClick="@GoToToday">
+                    @Loc["Today"]
+                </MudButton>
+            </MudStack>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="@OpenCreateReservationDialog">
+                @Loc["NewReservation"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Légende des statuts -->
+    <MudPaper Class="pa-3 mb-4">
+        <MudStack Row="true" Spacing="4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" Color="Color.Success" Size="Size.Small" />
+                <MudText Typo="Typo.body2">@Loc["StatusConfirmed"]</MudText>
+            </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" Color="Color.Warning" Size="Size.Small" />
+                <MudText Typo="Typo.body2">@Loc["StatusPending"]</MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <!-- Calendrier mensuel -->
+        <MudPaper Class="pa-4">
+            <MudTable Items="@GetWeeksInMonth()"
+                      Hover="false"
+                      Dense="true"
+                      Bordered="true"
+                      Square="true"
+                      Class="calendar-table">
+                <HeaderContent>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Monday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Tuesday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Wednesday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Thursday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Friday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Saturday"]</MudTh>
+                    <MudTh Style="text-align: center; font-weight: bold;">@Loc["Sunday"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    @foreach (var day in context)
+                    {
+                        <MudTd Style="@($"vertical-align: top; padding: 8px; height: 120px; {GetDayStyle(day)}")">
+                            @if (day.HasValue)
+                            {
+                                <MudStack Spacing="1">
+                                    <!-- Numéro du jour -->
+                                    <MudText Typo="Typo.body2"
+                                             Style="@GetDayNumberStyle(day.Value)"
+                                             Class="mb-1">
+                                        @day.Value.Day
+                                    </MudText>
+
+                                    <!-- Réservations du jour -->
+                                    @foreach (var reservation in GetReservationsForDay(day.Value))
+                                    {
+                                        <MudChip T="string"
+                                                 Size="Size.Small"
+                                                 Color="@GetReservationColor(reservation)"
+                                                 OnClick="@(() => OpenReservationDetails(reservation))"
+                                                 Style="cursor: pointer; font-size: 0.7rem; height: 20px;">
+                                            @GetReservationLabel(reservation)
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+<style>
+    .calendar-table table {
+        table-layout: fixed;
+    }
+
+    .calendar-table td {
+        width: 14.28%; /* 100% / 7 jours */
+    }
+</style>
+
+@code {
+    private int _currentMonth;
+    private int _currentYear;
+    private List<ReservationDto>? _reservations;
+    private List<AlveoleDto>? _alveoles;
+    private bool _loading = true;
+    private string? _currentUserId;
+    private bool _isMoniteur = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateTime.Now;
+        _currentMonth = today.Month;
+        _currentYear = today.Year;
+
+        // Récupérer l'utilisateur connecté
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _isMoniteur = authState.User.IsInRole("Moniteur");
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            var reservationsTask = ReservationService.GetReservationsForMonthAsync(_currentYear, _currentMonth);
+            var alveolesTask = AlveoleService.GetAllAlveolesAsync();
+
+            await Task.WhenAll(reservationsTask, alveolesTask);
+
+            _reservations = await reservationsTask;
+            _alveoles = await alveolesTask;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erreur lors du chargement des données : {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task PreviousMonth()
+    {
+        _currentMonth--;
+        if (_currentMonth < 1)
+        {
+            _currentMonth = 12;
+            _currentYear--;
+        }
+        await LoadData();
+    }
+
+    private async Task NextMonth()
+    {
+        _currentMonth++;
+        if (_currentMonth > 12)
+        {
+            _currentMonth = 1;
+            _currentYear++;
+        }
+        await LoadData();
+    }
+
+    private async Task GoToToday()
+    {
+        var today = DateTime.Now;
+        _currentMonth = today.Month;
+        _currentYear = today.Year;
+        await LoadData();
+    }
+
+    private string GetMonthYearLabel(int month, int year)
+    {
+        var date = new DateTime(year, month, 1);
+        return date.ToString("MMMM yyyy");
+    }
+
+    /// <summary>
+    /// Génère les semaines du mois avec les jours (null pour les jours hors mois)
+    /// </summary>
+    private List<List<DateTime?>> GetWeeksInMonth()
+    {
+        var weeks = new List<List<DateTime?>>();
+        var firstDayOfMonth = new DateTime(_currentYear, _currentMonth, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+        // Trouver le lundi de la première semaine
+        var currentDay = firstDayOfMonth;
+        while (currentDay.DayOfWeek != DayOfWeek.Monday)
+        {
+            currentDay = currentDay.AddDays(-1);
+        }
+
+        // Générer les semaines
+        while (currentDay <= lastDayOfMonth || currentDay.DayOfWeek != DayOfWeek.Monday)
+        {
+            var week = new List<DateTime?>();
+            for (int i = 0; i < 7; i++)
+            {
+                if (currentDay.Month == _currentMonth)
+                {
+                    week.Add(currentDay);
+                }
+                else
+                {
+                    week.Add(null); // Jour hors du mois courant
+                }
+                currentDay = currentDay.AddDays(1);
+            }
+            weeks.Add(week);
+
+            if (currentDay > lastDayOfMonth && currentDay.DayOfWeek == DayOfWeek.Monday)
+                break;
+        }
+
+        return weeks;
+    }
+
+    private string GetDayStyle(DateTime? day)
+    {
+        if (!day.HasValue)
+            return "background-color: #f5f5f5;";
+
+        var today = DateTime.Now.Date;
+        if (day.Value.Date == today)
+            return "background-color: #e3f2fd; border: 2px solid #1976d2;";
+
+        return "";
+    }
+
+    private string GetDayNumberStyle(DateTime day)
+    {
+        var today = DateTime.Now.Date;
+        if (day.Date == today)
+            return "font-weight: bold; color: #1976d2;";
+
+        return "";
+    }
+
+    private List<ReservationDto> GetReservationsForDay(DateTime day)
+    {
+        if (_reservations == null)
+            return new List<ReservationDto>();
+
+        return _reservations
+            .Where(r => r.DateDebut.Date == day.Date)
+            .OrderBy(r => r.DateDebut.TimeOfDay)
+            .ToList();
+    }
+
+    private Color GetReservationColor(ReservationDto reservation)
+    {
+        return reservation.StatutReservation == StatutReservation.Confirmee
+            ? Color.Success
+            : Color.Warning;
+    }
+
+    private string GetReservationLabel(ReservationDto reservation)
+    {
+        var time = reservation.DateDebut.ToLocalTime().ToString("HH:mm");
+        var alveoles = string.Join(",", reservation.Alveoles.Select(a => a.Nom));
+        return $"{time} {alveoles}";
+    }
+
+    private async Task OpenCreateReservationDialog()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateReservationDialog>(Loc["NewReservation"], options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+            Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
+        }
+    }
+
+    private async Task OpenReservationDetails(ReservationDto reservation)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ReservationId", reservation.Id }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ReservationDetailsDialog>(Loc["ReservationDetails"], parameters, options);
+        var result = await dialog.Result;
+
+        // Si l'utilisateur a modifié la réservation, recharger les données
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+}

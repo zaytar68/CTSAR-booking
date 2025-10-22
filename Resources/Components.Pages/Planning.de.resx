@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve">
+    <value>Buchungsplan</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Heute</value>
+  </data>
+  <data name="NewReservation" xml:space="preserve">
+    <value>Neue Anmeldung</value>
+  </data>
+  <data name="StatusConfirmed" xml:space="preserve">
+    <value>Bestätigt (Ausbilder anwesend)</value>
+  </data>
+  <data name="StatusPending" xml:space="preserve">
+    <value>Ausstehend (kein Ausbilder)</value>
+  </data>
+  <data name="Monday" xml:space="preserve">
+    <value>Montag</value>
+  </data>
+  <data name="Tuesday" xml:space="preserve">
+    <value>Dienstag</value>
+  </data>
+  <data name="Wednesday" xml:space="preserve">
+    <value>Mittwoch</value>
+  </data>
+  <data name="Thursday" xml:space="preserve">
+    <value>Donnerstag</value>
+  </data>
+  <data name="Friday" xml:space="preserve">
+    <value>Freitag</value>
+  </data>
+  <data name="Saturday" xml:space="preserve">
+    <value>Samstag</value>
+  </data>
+  <data name="Sunday" xml:space="preserve">
+    <value>Sonntag</value>
+  </data>
+  <data name="Alveoles" xml:space="preserve">
+    <value>Schießbahnen</value>
+  </data>
+  <data name="AlveolesRequired" xml:space="preserve">
+    <value>Sie müssen mindestens eine Schießbahn auswählen</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="StartDateRequired" xml:space="preserve">
+    <value>Das Datum ist erforderlich</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Startzeit</value>
+  </data>
+  <data name="StartTimeRequired" xml:space="preserve">
+    <value>Die Startzeit ist erforderlich</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>Endzeit</value>
+  </data>
+  <data name="EndTimeRequired" xml:space="preserve">
+    <value>Die Endzeit ist erforderlich</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Kommentar (optional)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Erstellen</value>
+  </data>
+  <data name="Creating" xml:space="preserve">
+    <value>Wird erstellt...</value>
+  </data>
+  <data name="AllFieldsRequired" xml:space="preserve">
+    <value>Alle Pflichtfelder müssen ausgefüllt werden</value>
+  </data>
+  <data name="EndTimeAfterStartTime" xml:space="preserve">
+    <value>Die Endzeit muss nach der Startzeit liegen</value>
+  </data>
+  <data name="ReservationCreatedSuccess" xml:space="preserve">
+    <value>Anmeldung erfolgreich erstellt</value>
+  </data>
+  <data name="ReservationDetails" xml:space="preserve">
+    <value>Anmeldungsdetails</value>
+  </data>
+  <data name="ReservationNotFound" xml:space="preserve">
+    <value>Anmeldung nicht gefunden</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="TimeSlot" xml:space="preserve">
+    <value>Zeitfenster</value>
+  </data>
+  <data name="Participants" xml:space="preserve">
+    <value>Teilnehmer</value>
+  </data>
+  <data name="InstructorsRegistered" xml:space="preserve">
+    <value>Ausbilder angemeldet</value>
+  </data>
+  <data name="NoInstructorYet" xml:space="preserve">
+    <value>Kein Ausbilder angemeldet - Sitzung wartet auf Bestätigung</value>
+  </data>
+  <data name="Instructor" xml:space="preserve">
+    <value>Ausbilder</value>
+  </data>
+  <data name="RegisteredOn" xml:space="preserve">
+    <value>Angemeldet am</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="Unregister" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Verarbeitung...</value>
+  </data>
+</root>

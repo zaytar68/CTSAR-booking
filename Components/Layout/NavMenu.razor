@@ -30,6 +30,14 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
         @Loc["Home"]
     </MudNavLink>
 
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="planning" Icon="@Icons.Material.Filled.CalendarMonth">
+                @Loc["Planning"]
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+
     @* ======================================================== *@
     @* SECTION ADMINISTRATION (visible pour les Administrateurs uniquement) *@
     @* ======================================================== *@
@@ -40,6 +48,10 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 
             <MudNavLink Href="admin/utilisateurs" Icon="@Icons.Material.Filled.People">
                 @Loc["Users"]
+            </MudNavLink>
+
+            <MudNavLink Href="admin/alveoles" Icon="@Icons.Material.Filled.GridView">
+                @Loc["Lanes"]
             </MudNavLink>
         </Authorized>
     </AuthorizeView>

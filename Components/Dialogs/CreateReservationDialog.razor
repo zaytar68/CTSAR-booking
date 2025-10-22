@@ -1,0 +1,193 @@
+@using CTSAR.Booking.DTOs
+@using CTSAR.Booking.Services
+@using CTSAR.Booking.Components.Pages
+@using Microsoft.Extensions.Localization
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using MudBlazor
+@inject ReservationService ReservationService
+@inject AlveoleService AlveoleService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStringLocalizer<Planning> Loc
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="@_model">
+            <MudStack Spacing="3">
+                <!-- Sélection des alvéoles -->
+                <MudSelect T="int"
+                           Label="@Loc["Alveoles"]"
+                           MultiSelection="true"
+                           @bind-SelectedValues="_selectedAlveoleIds"
+                           Required="true"
+                           RequiredError="@Loc["AlveolesRequired"]">
+                    @if (_alveoles != null)
+                    {
+                        @foreach (var alveole in _alveoles.Where(a => a.EstActive).OrderBy(a => a.Ordre))
+                        {
+                            <MudSelectItem T="int" Value="@alveole.Id">@alveole.Nom</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+
+                <!-- Date de début -->
+                <MudDatePicker Label="@Loc["StartDate"]"
+                               @bind-Date="_dateDebut"
+                               Required="true"
+                               RequiredError="@Loc["StartDateRequired"]"
+                               MinDate="@DateTime.Now.Date"
+                               DateFormat="dd/MM/yyyy" />
+
+                <!-- Heure de début -->
+                <MudTimePicker Label="@Loc["StartTime"]"
+                               @bind-Time="_heureDebut"
+                               Required="true"
+                               RequiredError="@Loc["StartTimeRequired"]"
+                               AmPm="false" />
+
+                <!-- Heure de fin -->
+                <MudTimePicker Label="@Loc["EndTime"]"
+                               @bind-Time="_heureFin"
+                               Required="true"
+                               RequiredError="@Loc["EndTimeRequired"]"
+                               AmPm="false" />
+
+                <!-- Commentaire optionnel -->
+                <MudTextField T="string"
+                              Label="@Loc["Comment"]"
+                              @bind-Value="_model.Commentaire"
+                              Lines="3"
+                              MaxLength="500"
+                              Counter="500"
+                              Variant="Variant.Outlined" />
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+                }
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Loc["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="_isSubmitting">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">@Loc["Creating"]</MudText>
+            }
+            else
+            {
+                @Loc["Create"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    private MudForm _form = null!;
+    private CreateReservationDto _model = new();
+    private List<AlveoleDto>? _alveoles;
+    private IEnumerable<int> _selectedAlveoleIds = new List<int>();
+    private DateTime? _dateDebut = DateTime.Now.Date;
+    private TimeSpan? _heureDebut = new TimeSpan(8, 0, 0);
+    private TimeSpan? _heureFin = new TimeSpan(10, 0, 0);
+    private bool _isSubmitting = false;
+    private string? _errorMessage;
+    private string? _currentUserId;
+    private bool _isMoniteur = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Charger les alvéoles disponibles
+        _alveoles = await AlveoleService.GetAllAlveolesAsync();
+
+        // Récupérer l'utilisateur connecté
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _isMoniteur = authState.User.IsInRole("Moniteur");
+    }
+
+    private void Cancel()
+    {
+        DialogRef?.Close(DialogResult.Cancel());
+    }
+
+    private async Task Submit()
+    {
+        _errorMessage = null;
+        _isSubmitting = true;
+
+        try
+        {
+            // Valider le formulaire
+            await _form.Validate();
+            if (!_form.IsValid)
+            {
+                _isSubmitting = false;
+                return;
+            }
+
+            // Vérifier qu'au moins une alvéole est sélectionnée
+            if (!_selectedAlveoleIds.Any())
+            {
+                _errorMessage = Loc["AlveolesRequired"];
+                _isSubmitting = false;
+                return;
+            }
+
+            // Construire les dates complètes
+            if (!_dateDebut.HasValue || !_heureDebut.HasValue || !_heureFin.HasValue)
+            {
+                _errorMessage = Loc["AllFieldsRequired"];
+                _isSubmitting = false;
+                return;
+            }
+
+            var dateDebut = _dateDebut.Value.Date + _heureDebut.Value;
+            var dateFin = _dateDebut.Value.Date + _heureFin.Value;
+
+            // Vérifier que la fin est après le début
+            if (dateFin <= dateDebut)
+            {
+                _errorMessage = Loc["EndTimeAfterStartTime"];
+                _isSubmitting = false;
+                return;
+            }
+
+            // Préparer le DTO
+            _model.AlveoleIds = _selectedAlveoleIds.ToList();
+            _model.DateDebut = DateTime.SpecifyKind(dateDebut, DateTimeKind.Utc);
+            _model.DateFin = DateTime.SpecifyKind(dateFin, DateTimeKind.Utc);
+
+            // Créer la réservation
+            var result = await ReservationService.CreateReservationAsync(
+                _model,
+                _currentUserId!,
+                _isMoniteur);
+
+            if (result.Success)
+            {
+                DialogRef?.Close(DialogResult.Ok(result.Reservation));
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}
