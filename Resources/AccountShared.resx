@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" use="preserve" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Labels communs -->
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Confirmer le mot de passe</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Se souvenir de moi</value>
+  </data>
+
+  <!-- Boutons communs -->
+  <data name="Submit" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Retour à la connexion</value>
+  </data>
+
+  <!-- Login -->
+  <data name="LoginTitle" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="LoginSubtitle" xml:space="preserve">
+    <value>Connectez-vous à votre compte</value>
+  </data>
+  <data name="LoginButton" xml:space="preserve">
+    <value>Se connecter</value>
+  </data>
+  <data name="ForgotPassword" xml:space="preserve">
+    <value>Mot de passe oublié ?</value>
+  </data>
+  <data name="RegisterNewUser" xml:space="preserve">
+    <value>Créer un nouveau compte</value>
+  </data>
+  <data name="ResendEmailConfirmation" xml:space="preserve">
+    <value>Renvoyer l'email de confirmation</value>
+  </data>
+  <data name="LoginError" xml:space="preserve">
+    <value>Erreur : Tentative de connexion invalide.</value>
+  </data>
+
+  <!-- Register -->
+  <data name="RegisterTitle" xml:space="preserve">
+    <value>Inscription</value>
+  </data>
+  <data name="RegisterSubtitle" xml:space="preserve">
+    <value>Créez votre compte</value>
+  </data>
+  <data name="RegisterButton" xml:space="preserve">
+    <value>S'inscrire</value>
+  </data>
+  <data name="AlreadyHaveAccount" xml:space="preserve">
+    <value>Vous avez déjà un compte ?</value>
+  </data>
+  <data name="LoginHere" xml:space="preserve">
+    <value>Connectez-vous ici</value>
+  </data>
+
+  <!-- Forgot Password -->
+  <data name="ForgotPasswordTitle" xml:space="preserve">
+    <value>Mot de passe oublié</value>
+  </data>
+  <data name="ForgotPasswordSubtitle" xml:space="preserve">
+    <value>Entrez votre email pour réinitialiser votre mot de passe</value>
+  </data>
+  <data name="ResetPasswordButton" xml:space="preserve">
+    <value>Réinitialiser le mot de passe</value>
+  </data>
+
+  <!-- Reset Password -->
+  <data name="ResetPasswordTitle" xml:space="preserve">
+    <value>Réinitialiser le mot de passe</value>
+  </data>
+  <data name="ResetPasswordSubtitle" xml:space="preserve">
+    <value>Choisissez un nouveau mot de passe</value>
+  </data>
+  <data name="ResetButton" xml:space="preserve">
+    <value>Réinitialiser</value>
+  </data>
+
+  <!-- Confirmations -->
+  <data name="ForgotPasswordConfirmationTitle" xml:space="preserve">
+    <value>Email envoyé</value>
+  </data>
+  <data name="ForgotPasswordConfirmationText" xml:space="preserve">
+    <value>Veuillez vérifier votre email pour réinitialiser votre mot de passe.</value>
+  </data>
+  <data name="ResetPasswordConfirmationTitle" xml:space="preserve">
+    <value>Mot de passe réinitialisé</value>
+  </data>
+  <data name="ResetPasswordConfirmationText" xml:space="preserve">
+    <value>Votre mot de passe a été réinitialisé. Veuillez cliquer ici pour vous connecter.</value>
+  </data>
+  <data name="ClickHereToLogin" xml:space="preserve">
+    <value>cliquer ici pour vous connecter</value>
+  </data>
+  <data name="RegisterConfirmationTitle" xml:space="preserve">
+    <value>Confirmation d'inscription</value>
+  </data>
+  <data name="RegisterConfirmationText" xml:space="preserve">
+    <value>Veuillez vérifier votre email pour confirmer votre compte.</value>
+  </data>
+
+  <!-- Errors -->
+  <data name="AccessDeniedTitle" xml:space="preserve">
+    <value>Accès refusé</value>
+  </data>
+  <data name="AccessDeniedText" xml:space="preserve">
+    <value>Vous n'avez pas accès à cette ressource.</value>
+  </data>
+  <data name="LockoutTitle" xml:space="preserve">
+    <value>Compte verrouillé</value>
+  </data>
+  <data name="LockoutText" xml:space="preserve">
+    <value>Ce compte a été verrouillé, veuillez réessayer plus tard.</value>
+  </data>
+  <data name="InvalidPasswordResetTitle" xml:space="preserve">
+    <value>Lien invalide</value>
+  </data>
+  <data name="InvalidPasswordResetText" xml:space="preserve">
+    <value>Le lien de réinitialisation du mot de passe est invalide.</value>
+  </data>
+  <data name="InvalidUserTitle" xml:space="preserve">
+    <value>Utilisateur invalide</value>
+  </data>
+
+  <!-- 2FA -->
+  <data name="TwoFactorTitle" xml:space="preserve">
+    <value>Authentification à deux facteurs</value>
+  </data>
+  <data name="TwoFactorSubtitle" xml:space="preserve">
+    <value>Entrez votre code d'authentification</value>
+  </data>
+  <data name="AuthenticatorCode" xml:space="preserve">
+    <value>Code d'authentification</value>
+  </data>
+  <data name="RememberMachine" xml:space="preserve">
+    <value>Se souvenir de cet appareil</value>
+  </data>
+  <data name="UseRecoveryCode" xml:space="preserve">
+    <value>Vous n'avez pas accès à votre appareil d'authentification ? Vous pouvez vous connecter avec un code de récupération.</value>
+  </data>
+  <data name="LoginWithRecoveryCode" xml:space="preserve">
+    <value>vous connecter avec un code de récupération</value>
+  </data>
+  <data name="RecoveryCodeTitle" xml:space="preserve">
+    <value>Vérification du code de récupération</value>
+  </data>
+  <data name="RecoveryCodeSubtitle" xml:space="preserve">
+    <value>Entrez votre code de récupération</value>
+  </data>
+  <data name="RecoveryCodeInfo" xml:space="preserve">
+    <value>Vous avez demandé à vous connecter avec un code de récupération. Cette connexion ne sera pas mémorisée jusqu'à ce que vous fournissiez un code d'application d'authentification lors de la connexion ou désactiviez 2FA et vous reconnectiez.</value>
+  </data>
+  <data name="RecoveryCode" xml:space="preserve">
+    <value>Code de récupération</value>
+  </data>
+
+  <!-- Resend Email -->
+  <data name="ResendEmailTitle" xml:space="preserve">
+    <value>Renvoyer l'email de confirmation</value>
+  </data>
+  <data name="ResendEmailSubtitle" xml:space="preserve">
+    <value>Entrez votre email</value>
+  </data>
+  <data name="ResendButton" xml:space="preserve">
+    <value>Renvoyer</value>
+  </data>
+
+  <!-- Confirm Email -->
+  <data name="ConfirmEmailTitle" xml:space="preserve">
+    <value>Confirmation de l'email</value>
+  </data>
+  <data name="EmailConfirmedSuccess" xml:space="preserve">
+    <value>Merci d'avoir confirmé votre email.</value>
+  </data>
+  <data name="EmailConfirmedError" xml:space="preserve">
+    <value>Erreur lors de la confirmation de votre email.</value>
+  </data>
+
+  <!-- External Login -->
+  <data name="ExternalLoginTitle" xml:space="preserve">
+    <value>Connexion externe</value>
+  </data>
+  <data name="AssociateAccount" xml:space="preserve">
+    <value>Associer votre compte {0}</value>
+  </data>
+  <data name="ExternalLoginInfo" xml:space="preserve">
+    <value>Vous vous êtes authentifié avec succès avec {0}. Veuillez entrer une adresse email pour ce site ci-dessous et cliquer sur le bouton S'inscrire pour terminer la connexion.</value>
+  </data>
+</root>
