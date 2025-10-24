@@ -156,8 +156,42 @@
     <value>Hier anmelden</value>
   </data>
 
-  <!-- Common -->
+  <!-- Logout Page -->
+  <data name="LogoutTitle" xml:space="preserve">
+    <value>Abmeldung</value>
+  </data>
+  <data name="LoggingOut" xml:space="preserve">
+    <value>Abmeldung läuft...</value>
+  </data>
+
+  <!-- Forgot Password Page -->
+  <data name="ForgotPasswordTitle" xml:space="preserve">
+    <value>Passwort vergessen</value>
+  </data>
+  <data name="ForgotPasswordSubtitle" xml:space="preserve">
+    <value>Passwort zurücksetzen</value>
+  </data>
+  <data name="ForgotPasswordNotImplemented" xml:space="preserve">
+    <value>Die Funktion zum Zurücksetzen des Passworts ist noch nicht verfügbar.</value>
+  </data>
+  <data name="ContactAdminMessage" xml:space="preserve">
+    <value>Um Ihr Passwort zurückzusetzen, wenden Sie sich bitte an einen Administrator des Clubs.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Zurück zur Anmeldung</value>
+  </data>
+
+  <!-- Common Errors -->
   <data name="UnexpectedError" xml:space="preserve">
     <value>Ein unerwarteter Fehler ist aufgetreten</value>
+  </data>
+  <data name="EmailAlreadyExists" xml:space="preserve">
+    <value>Diese E-Mail-Adresse wird bereits verwendet</value>
+  </data>
+  <data name="PasswordTooWeak" xml:space="preserve">
+    <value>Das Passwort ist zu schwach. Es muss mindestens 6 Zeichen enthalten.</value>
+  </data>
+  <data name="Registering" xml:space="preserve">
+    <value>Registrierung läuft...</value>
   </data>
 </root>

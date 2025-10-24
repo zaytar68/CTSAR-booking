@@ -1,19 +1,10 @@
 @page "/register"
-@rendermode InteractiveServer
 
-@using CTSAR.Booking.Services
-@using CTSAR.Booking.Data
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
 @using Microsoft.Extensions.Localization
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
+@using CTSAR.Booking.Data
 
-@inject AuthService AuthService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 @inject IStringLocalizer<CTSAR.Booking.Resources.Auth> Loc
-@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
 
 <PageTitle>@Loc["RegisterTitle"]</PageTitle>
 
@@ -33,21 +24,21 @@
             </MudAlert>
         }
 
-        <MudForm @ref="form" @bind-IsValid="@isFormValid">
+        <form method="post" action="/api/auth/register-page" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTextField @bind-Value="prenom"
                                   Label="@Loc["FirstName"]"
                                   Variant="Variant.Outlined"
                                   Required="true"
-                                  RequiredError="@Loc["FirstNameRequired"]" />
+                                  name="prenom" />
                 </MudItem>
                 <MudItem xs="12" md="6">
                     <MudTextField @bind-Value="nom"
                                   Label="@Loc["LastName"]"
                                   Variant="Variant.Outlined"
                                   Required="true"
-                                  RequiredError="@Loc["LastNameRequired"]" />
+                                  name="nom" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="email"
@@ -55,8 +46,7 @@
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Email"
                                   Required="true"
-                                  RequiredError="@Loc["EmailRequired"]"
-                                  Validation="@(new Func<string, string>(ValidateEmail))" />
+                                  name="email" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="password"
@@ -64,8 +54,7 @@
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Password"
                                   Required="true"
-                                  RequiredError="@Loc["PasswordRequired"]"
-                                  Validation="@(new Func<string, string>(ValidatePassword))" />
+                                  name="password" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="confirmPassword"
@@ -73,26 +62,28 @@
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Password"
                                   Required="true"
-                                  RequiredError="@Loc["ConfirmPasswordRequired"]"
-                                  Validation="@(new Func<string, string>(ValidateConfirmPassword))" />
+                                  name="confirmPassword" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudSelect @bind-Value="selectedRole"
                                Label="@Loc["Role"]"
                                Variant="Variant.Outlined"
-                               Required="true">
+                               Required="true"
+                               name="role">
                         <MudSelectItem Value="@RoleNames.Membre">@Loc["RoleMembre"]</MudSelectItem>
                         <MudSelectItem Value="@RoleNames.Moniteur">@Loc["RoleMoniteur"]</MudSelectItem>
                     </MudSelect>
                 </MudItem>
             </MudGrid>
 
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Large"
                        FullWidth="true"
                        Class="mt-6"
-                       OnClick="HandleRegister"
+                       ButtonType="ButtonType.Submit"
                        Disabled="isLoading">
                 @if (isLoading)
                 {
@@ -104,7 +95,7 @@
                     @Loc["RegisterButton"]
                 }
             </MudButton>
-        </MudForm>
+        </form>
 
         <MudDivider Class="my-6" />
 
@@ -116,8 +107,6 @@
 </MudContainer>
 
 @code {
-    private MudForm? form;
-    private bool isFormValid;
     private bool isLoading;
     private string email = "";
     private string password = "";
@@ -130,117 +119,25 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string ValidateEmail(string email)
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? Error { get; set; }
+
+    protected override void OnInitialized()
     {
-        if (string.IsNullOrWhiteSpace(email))
-            return Loc["EmailRequired"];
-
-        if (!email.Contains("@"))
-            return Loc["EmailInvalid"];
-
-        return string.Empty;
-    }
-
-    private string ValidatePassword(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password))
-            return Loc["PasswordRequired"];
-
-        if (password.Length < 6)
-            return Loc["PasswordTooShort"];
-
-        return string.Empty;
-    }
-
-    private string ValidateConfirmPassword(string confirmPassword)
-    {
-        if (string.IsNullOrWhiteSpace(confirmPassword))
-            return Loc["ConfirmPasswordRequired"];
-
-        if (confirmPassword != password)
-            return Loc["PasswordMismatch"];
-
-        return string.Empty;
-    }
-
-    private async Task HandleRegister()
-    {
-        errorMessage = null;
-        isLoading = true;
-
-        try
+        if (!string.IsNullOrEmpty(Error))
         {
-            // Valider le formulaire
-            await form!.Validate();
-
-            if (!isFormValid)
+            errorMessage = Error switch
             {
-                isLoading = false;
-                return;
-            }
-
-            // Créer l'utilisateur
-            var (success, error, user) = await AuthService.RegisterAsync(
-                email, password, nom, prenom, selectedRole);
-
-            if (!success || user == null)
-            {
-                errorMessage = error ?? Loc["RegisterError"];
-                isLoading = false;
-                return;
-            }
-
-            // Récupérer les rôles de l'utilisateur
-            var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
-
-            // Créer les claims
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                "exists" => Loc["EmailAlreadyExists"],
+                "passwordmismatch" => Loc["PasswordMismatch"],
+                "weak" => Loc["PasswordTooWeak"],
+                _ => Loc["UnexpectedError"]
             };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            // Créer l'identité et le principal
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            // Se connecter automatiquement après l'inscription
-            var httpContext = HttpContextAccessor.HttpContext;
-            if (httpContext != null)
-            {
-                await httpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal,
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = false,
-                        ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
-                    });
-            }
-
-            // Mettre à jour l'état d'authentification
-            if (AuthStateProvider is CustomAuthenticationStateProvider customProvider)
-            {
-                customProvider.MarkUserAsAuthenticated(user.Email, user.Id, roles);
-            }
-
-            // Rediriger vers la page d'accueil
-            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
         }
-        catch (Exception ex)
-        {
-            errorMessage = Loc["UnexpectedError"];
-            Console.WriteLine($"Erreur lors de l'inscription : {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
+    }
+
+    private void HandleSubmit()
+    {
+        isLoading = true;
     }
 }

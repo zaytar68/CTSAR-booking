@@ -69,15 +69,11 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
                 @Loc["MyProfile"]
             </MudNavLink>
 
-            <MudNavLink OnClick="@(() => { })" Icon="@Icons.Material.Filled.Logout">
-                <form action="Account/Logout" method="post" style="display: inline;">
-                    <AntiforgeryToken />
-                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                    <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: inherit; text-align: left; width: 100%;">
-                        @SharedLoc["Logout"]
-                    </button>
-                </form>
-            </MudNavLink>
+            @* Utiliser un <a> HTML pur pour forcer une navigation complète *@
+            <a href="/api/auth/logout-page" class="mud-nav-link" style="display: flex; align-items: center; padding: 6px 16px; text-decoration: none; color: inherit;">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Style="margin-right: 16px;" />
+                @SharedLoc["Logout"]
+            </a>
         </Authorized>
 
         <NotAuthorized>
@@ -85,11 +81,11 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
             <MudDivider Class="my-2" />
             <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">@Loc["Connection"]</MudText>
 
-            <MudNavLink Href="Account/Register" Icon="@Icons.Material.Filled.PersonAdd">
+            <MudNavLink Href="register" Icon="@Icons.Material.Filled.PersonAdd">
                 @SharedLoc["Register"]
             </MudNavLink>
 
-            <MudNavLink Href="Account/Login" Icon="@Icons.Material.Filled.Login">
+            <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">
                 @SharedLoc["Login"]
             </MudNavLink>
         </NotAuthorized>

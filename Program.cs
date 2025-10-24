@@ -27,6 +27,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // --------------------------------------------------------------------
+// HTTP CONTEXT : Nécessaire pour accéder au HttpContext dans les composants
+// --------------------------------------------------------------------
+builder.Services.AddHttpContextAccessor();
+
+// --------------------------------------------------------------------
 // CONTROLLERS : Support des contrôleurs MVC (pour CultureController)
 // --------------------------------------------------------------------
 builder.Services.AddControllers();

@@ -1,18 +1,10 @@
 @page "/login"
-@rendermode InteractiveServer
 
-@using CTSAR.Booking.Services
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
 @using Microsoft.Extensions.Localization
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
+@using CTSAR.Booking.Services
 
-@inject AuthService AuthService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 @inject IStringLocalizer<CTSAR.Booking.Resources.Auth> Loc
-@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
 
 <PageTitle>@Loc["LoginTitle"]</PageTitle>
 
@@ -32,34 +24,36 @@
             </MudAlert>
         }
 
-        <MudForm @ref="form" @bind-IsValid="@isFormValid">
+        <form method="post" action="/api/auth/login-page" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
             <MudTextField @bind-Value="email"
                           Label="@Loc["Email"]"
                           Variant="Variant.Outlined"
                           InputType="InputType.Email"
                           Required="true"
-                          RequiredError="@Loc["EmailRequired"]"
-                          Validation="@(new Func<string, string>(ValidateEmail))"
-                          Class="mb-4" />
+                          Class="mb-4"
+                          name="email" />
 
             <MudTextField @bind-Value="password"
                           Label="@Loc["Password"]"
                           Variant="Variant.Outlined"
                           InputType="InputType.Password"
                           Required="true"
-                          RequiredError="@Loc["PasswordRequired"]"
-                          Class="mb-4" />
+                          Class="mb-4"
+                          name="password" />
 
             <MudCheckBox T="bool" @bind-Checked="rememberMe"
                          Label="@Loc["RememberMe"]"
                          Color="Color.Primary"
-                         Class="mb-4" />
+                         Class="mb-4"
+                         name="rememberMe" />
+
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Large"
                        FullWidth="true"
-                       OnClick="HandleLogin"
+                       ButtonType="ButtonType.Submit"
                        Disabled="isLoading">
                 @if (isLoading)
                 {
@@ -71,7 +65,7 @@
                     @Loc["LoginButton"]
                 }
             </MudButton>
-        </MudForm>
+        </form>
 
         <MudDivider Class="my-6" />
 
@@ -83,8 +77,6 @@
 </MudContainer>
 
 @code {
-    private MudForm? form;
-    private bool isFormValid;
     private bool isLoading;
     private string email = "";
     private string password = "";
@@ -94,94 +86,19 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string ValidateEmail(string email)
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? Error { get; set; }
+
+    protected override void OnInitialized()
     {
-        if (string.IsNullOrWhiteSpace(email))
-            return Loc["EmailRequired"];
-
-        if (!email.Contains("@"))
-            return Loc["EmailInvalid"];
-
-        return string.Empty;
+        if (!string.IsNullOrEmpty(Error))
+        {
+            errorMessage = Error == "invalid" ? Loc["LoginError"] : Loc["UnexpectedError"];
+        }
     }
 
-    private async Task HandleLogin()
+    private void HandleSubmit()
     {
-        errorMessage = null;
         isLoading = true;
-
-        try
-        {
-            // Valider le formulaire
-            await form!.Validate();
-
-            if (!isFormValid)
-            {
-                isLoading = false;
-                return;
-            }
-
-            // Authentifier l'utilisateur
-            var user = await AuthService.LoginAsync(email, password);
-
-            if (user == null)
-            {
-                errorMessage = Loc["LoginError"];
-                isLoading = false;
-                return;
-            }
-
-            // Récupérer les rôles de l'utilisateur
-            var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
-
-            // Créer les claims
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            // Créer l'identité et le principal
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            // Se connecter avec le cookie
-            var httpContext = HttpContextAccessor.HttpContext;
-            if (httpContext != null)
-            {
-                await httpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal,
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = rememberMe,
-                        ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : DateTimeOffset.UtcNow.AddHours(8)
-                    });
-            }
-
-            // Mettre à jour l'état d'authentification
-            if (AuthStateProvider is CustomAuthenticationStateProvider customProvider)
-            {
-                customProvider.MarkUserAsAuthenticated(user.Email, user.Id, roles);
-            }
-
-            // Rediriger vers la page demandée ou la page d'accueil
-            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = Loc["UnexpectedError"];
-            Console.WriteLine($"Erreur lors de la connexion : {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-        }
     }
 }

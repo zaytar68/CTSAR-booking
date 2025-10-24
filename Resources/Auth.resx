@@ -156,8 +156,42 @@
     <value>Connectez-vous ici</value>
   </data>
 
-  <!-- Common -->
+  <!-- Logout Page -->
+  <data name="LogoutTitle" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="LoggingOut" xml:space="preserve">
+    <value>Déconnexion en cours...</value>
+  </data>
+
+  <!-- Forgot Password Page -->
+  <data name="ForgotPasswordTitle" xml:space="preserve">
+    <value>Mot de passe oublié</value>
+  </data>
+  <data name="ForgotPasswordSubtitle" xml:space="preserve">
+    <value>Réinitialisation du mot de passe</value>
+  </data>
+  <data name="ForgotPasswordNotImplemented" xml:space="preserve">
+    <value>La fonction de réinitialisation du mot de passe n'est pas encore disponible.</value>
+  </data>
+  <data name="ContactAdminMessage" xml:space="preserve">
+    <value>Pour réinitialiser votre mot de passe, veuillez contacter un administrateur du club.</value>
+  </data>
+  <data name="BackToLogin" xml:space="preserve">
+    <value>Retour à la connexion</value>
+  </data>
+
+  <!-- Common Errors -->
   <data name="UnexpectedError" xml:space="preserve">
     <value>Une erreur inattendue s'est produite</value>
+  </data>
+  <data name="EmailAlreadyExists" xml:space="preserve">
+    <value>Cette adresse email est déjà utilisée</value>
+  </data>
+  <data name="PasswordTooWeak" xml:space="preserve">
+    <value>Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.</value>
+  </data>
+  <data name="Registering" xml:space="preserve">
+    <value>Inscription en cours...</value>
   </data>
 </root>
