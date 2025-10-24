@@ -210,6 +210,7 @@
         if (!result.Canceled)
         {
             await LoadAlveoles();
+            StateHasChanged();
             Snackbar.Add(Loc["AlveoleCreatedSuccess"], Severity.Success);
         }
     }
@@ -228,6 +229,7 @@
         if (!result.Canceled)
         {
             await LoadAlveoles();
+            StateHasChanged();
             Snackbar.Add(Loc["AlveoleUpdatedSuccess"], Severity.Success);
         }
     }
@@ -247,6 +249,7 @@
         if (!result.Canceled)
         {
             await LoadFermetures();
+            StateHasChanged();
             Snackbar.Add(Loc["ClosureCreatedSuccess"], Severity.Success);
         }
     }
@@ -266,6 +269,7 @@
             {
                 Snackbar.Add(result.Message, Severity.Success);
                 await LoadAlveoles();
+                StateHasChanged();
             }
             else
             {
@@ -289,6 +293,7 @@
             {
                 Snackbar.Add(result.Message, Severity.Success);
                 await LoadFermetures();
+                StateHasChanged();
             }
             else
             {

@@ -141,6 +141,7 @@
             if (result.Success)
             {
                 DialogRef?.Close(DialogResult.Ok(result.Fermeture));
+                StateHasChanged();
             }
             else
             {
@@ -150,6 +151,7 @@
         finally
         {
             _submitting = false;
+            StateHasChanged();
         }
     }
 

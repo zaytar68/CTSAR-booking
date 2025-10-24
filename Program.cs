@@ -2,11 +2,11 @@
 // IMPORTS : Tous les namespaces nécessaires à l'application
 // ====================================================================
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using CTSAR.Booking.Components;
-using CTSAR.Booking.Components.Account;
 using CTSAR.Booking.Data;
+using CTSAR.Booking.Services;
 using MudBlazor.Services;  // Pour MudBlazor (interface utilisateur moderne)
 using Blazored.LocalStorage;  // Pour le stockage local (thème, langue, etc.)
 using System.Globalization;  // Pour la gestion des cultures (langues)
@@ -59,24 +59,26 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // --------------------------------------------------------------------
-// AUTHENTIFICATION : Configuration de ASP.NET Core Identity
+// AUTHENTIFICATION : Configuration du système custom (sans Identity)
 // --------------------------------------------------------------------
 // CascadingAuthenticationState : Permet de partager l'état d'authentification
 //   dans toute l'application (savoir si l'utilisateur est connecté)
 builder.Services.AddCascadingAuthenticationState();
 
-// Services d'Identity pour gérer l'authentification
-builder.Services.AddScoped<IdentityUserAccessor>();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+// Notre AuthenticationStateProvider custom
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<CustomAuthenticationStateProvider>();
 
-// Configuration du système d'authentification
-builder.Services.AddAuthentication(options =>
+// Configuration de l'authentification par cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();  // Utilise les cookies pour stocker la session
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.AccessDeniedPath = "/login";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);  // Session de 8 heures par défaut
+        options.SlidingExpiration = true;  // Renouveler la session automatiquement
+    });
 
 // --------------------------------------------------------------------
 // BASE DE DONNÉES : Configuration d'Entity Framework Core avec SQLite
@@ -93,50 +95,27 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // --------------------------------------------------------------------
-// IDENTITY : Configuration du système d'utilisateurs et de rôles
-// --------------------------------------------------------------------
-// AddIdentityCore : Configure Identity avec notre modèle ApplicationUser
-// RequireConfirmedAccount = false : Pas besoin de confirmer l'email (simplifié pour dev)
-builder.Services.AddIdentityCore<ApplicationUser>(options =>
-    {
-        options.SignIn.RequireConfirmedAccount = false;  // Changé à false pour simplifier
-
-        // Configuration des mots de passe (simplifié pour développement)
-        options.Password.RequireDigit = false;
-        options.Password.RequireLowercase = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;  // Minimum 6 caractères
-    })
-    .AddRoles<IdentityRole>()  // IMPORTANT : Active le système de rôles
-    .AddEntityFrameworkStores<ApplicationDbContext>()  // Utilise EF Core pour stocker les données
-    .AddSignInManager()  // Service pour gérer la connexion/déconnexion
-    .AddDefaultTokenProviders();  // Tokens pour reset password, etc.
-
-// --------------------------------------------------------------------
-// EMAIL : Désactivé pour le moment (pas d'envoi réel d'emails)
-// --------------------------------------------------------------------
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
-// --------------------------------------------------------------------
 // NOS SERVICES MÉTIER : Services personnalisés de l'application
 // --------------------------------------------------------------------
+// Service d'authentification custom (remplace UserManager/SignInManager)
+builder.Services.AddScoped<AuthService>();
+
 // Ajoute notre UserService pour gérer les utilisateurs
 // Scoped : Une nouvelle instance par requête HTTP
-builder.Services.AddScoped<CTSAR.Booking.Services.UserService>();
+builder.Services.AddScoped<UserService>();
 
 // Ajoute notre ThemeService pour gérer le thème et la langue
 // Scoped : Une nouvelle instance par requête HTTP
-builder.Services.AddScoped<CTSAR.Booking.Services.ThemeService>();
+builder.Services.AddScoped<ThemeService>();
 
 // Ajoute AlveoleService pour gérer les alvéoles (postes de tir)
-builder.Services.AddScoped<CTSAR.Booking.Services.AlveoleService>();
+builder.Services.AddScoped<AlveoleService>();
 
 // Ajoute ReservationService pour gérer les inscriptions de tir
-builder.Services.AddScoped<CTSAR.Booking.Services.ReservationService>();
+builder.Services.AddScoped<ReservationService>();
 
 // Ajoute FermetureAlveoleService pour gérer les fermetures planifiées
-builder.Services.AddScoped<CTSAR.Booking.Services.FermetureAlveoleService>();
+builder.Services.AddScoped<FermetureAlveoleService>();
 
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)
@@ -168,16 +147,14 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        // Récupère les services nécessaires
+        // Récupère le contexte de base de données
         var context = services.GetRequiredService<ApplicationDbContext>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         // Applique les migrations automatiquement (crée/met à jour la base)
         context.Database.Migrate();
 
-        // Initialise les rôles et les utilisateurs de test
-        await DbInitializer.InitializeAsync(userManager, roleManager);
+        // Initialise les rôles et l'utilisateur admin
+        await DbSeeder.SeedAsync(context);
     }
     catch (Exception ex)
     {
@@ -205,11 +182,15 @@ else  // En production : gestion d'erreur simple
 // Redirige automatiquement HTTP vers HTTPS
 app.UseHttpsRedirection();
 
+// Sert les fichiers statiques (CSS, JS, images)
+app.UseStaticFiles();
+
+// AUTHENTICATION ET AUTHORIZATION (requis pour antiforgery)
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Protection contre les attaques CSRF (Cross-Site Request Forgery)
 app.UseAntiforgery();
-
-// Sert les fichiers statiques (CSS, JS, images)
-app.MapStaticAssets();
 
 // Active le middleware de localisation
 app.UseRequestLocalization();
@@ -220,9 +201,6 @@ app.MapControllers();
 // Configure les composants Razor en mode Interactive Server
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-// Endpoints supplémentaires pour Identity (login, register, etc.)
-app.MapAdditionalIdentityEndpoints();
 
 // ====================================================================
 // DÉMARRAGE DE L'APPLICATION

@@ -147,12 +147,18 @@ public class ReservationService
             }
 
             // 5. Créer l'inscription
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogError("userId invalide : {userId}", userId);
+                return (false, "Identifiant utilisateur invalide", null);
+            }
+
             var reservation = new Reservation
             {
                 DateDebut = dto.DateDebut,
                 DateFin = dto.DateFin,
                 Commentaire = dto.Commentaire,
-                CreatedByUserId = userId,
+                CreatedByUserId = userIdInt,
                 DateCreation = DateTime.UtcNow,
                 StatutReservation = isMoniteur ? StatutReservation.Confirmee : StatutReservation.EnAttente
             };
@@ -174,7 +180,7 @@ public class ReservationService
             _context.ReservationParticipants.Add(new ReservationParticipant
             {
                 ReservationId = reservation.Id,
-                UserId = userId,
+                UserId = userIdInt,
                 EstMoniteur = isMoniteur,
                 DateInscription = DateTime.UtcNow
             });
@@ -210,6 +216,12 @@ public class ReservationService
         {
             _logger.LogInformation($"Ajout du participant {userId} à l'inscription {reservationId}");
 
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogError("userId invalide : {userId}", userId);
+                return (false, "Identifiant utilisateur invalide");
+            }
+
             var reservation = await _context.Reservations
                 .Include(r => r.Participants)
                 .FirstOrDefaultAsync(r => r.Id == reservationId);
@@ -221,7 +233,7 @@ public class ReservationService
             }
 
             // Vérifier si déjà inscrit
-            if (reservation.Participants.Any(p => p.UserId == userId))
+            if (reservation.Participants.Any(p => p.UserId == userIdInt))
             {
                 _logger.LogWarning($"Utilisateur {userId} déjà inscrit");
                 return (false, "Vous êtes déjà inscrit à cette séance");
@@ -231,7 +243,7 @@ public class ReservationService
             _context.ReservationParticipants.Add(new ReservationParticipant
             {
                 ReservationId = reservationId,
-                UserId = userId,
+                UserId = userIdInt,
                 EstMoniteur = isMoniteur,
                 DateInscription = DateTime.UtcNow
             });
@@ -265,6 +277,12 @@ public class ReservationService
         {
             _logger.LogInformation($"Retrait du participant {userId} de l'inscription {reservationId}");
 
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogError("userId invalide : {userId}", userId);
+                return (false, "Identifiant utilisateur invalide");
+            }
+
             var reservation = await _context.Reservations
                 .Include(r => r.Participants)
                 .FirstOrDefaultAsync(r => r.Id == reservationId);
@@ -275,7 +293,7 @@ public class ReservationService
                 return (false, "Inscription non trouvée");
             }
 
-            var participant = reservation.Participants.FirstOrDefault(p => p.UserId == userId);
+            var participant = reservation.Participants.FirstOrDefault(p => p.UserId == userIdInt);
             if (participant == null)
             {
                 _logger.LogWarning($"Utilisateur {userId} non inscrit");
@@ -355,6 +373,12 @@ public class ReservationService
         {
             _logger.LogInformation($"Mise à jour du commentaire de l'inscription {reservationId}");
 
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogError("userId invalide : {userId}", userId);
+                return (false, "Identifiant utilisateur invalide");
+            }
+
             var reservation = await _context.Reservations
                 .Include(r => r.Participants)
                 .FirstOrDefaultAsync(r => r.Id == reservationId);
@@ -366,7 +390,7 @@ public class ReservationService
             }
 
             // Vérifier que l'utilisateur est inscrit
-            if (!reservation.Participants.Any(p => p.UserId == userId))
+            if (!reservation.Participants.Any(p => p.UserId == userIdInt))
             {
                 _logger.LogWarning($"Utilisateur {userId} non autorisé à modifier le commentaire");
                 return (false, "Seuls les participants peuvent modifier le commentaire");
@@ -514,7 +538,7 @@ public class ReservationService
         var participants = reservation.Participants
             .Select(rp => new ReservationParticipantDto
             {
-                UserId = rp.UserId,
+                UserId = rp.UserId.ToString(),
                 NomComplet = rp.User.NomComplet,
                 Email = rp.User.Email ?? "",
                 Initiales = rp.User.Initiales,
@@ -531,7 +555,7 @@ public class ReservationService
             DateFin = reservation.DateFin,
             StatutReservation = reservation.StatutReservation,
             Commentaire = reservation.Commentaire,
-            CreatedByUserId = reservation.CreatedByUserId,
+            CreatedByUserId = reservation.CreatedByUserId.ToString(),
             CreatedByNom = reservation.CreatedBy?.NomComplet ?? "",
             DateCreation = reservation.DateCreation,
             Alveoles = alveoles,

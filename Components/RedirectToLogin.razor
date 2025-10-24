@@ -1,0 +1,19 @@
+@*
+====================================================================
+RedirectToLogin.razor : Redirige vers la page de connexion
+====================================================================
+Utilisé par Routes.razor quand l'utilisateur n'est pas autorisé
+*@
+
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Récupère l'URL actuelle pour revenir après connexion
+        var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+
+        // Redirige vers /login avec returnUrl en paramètre
+        Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString("/" + returnUrl)}", forceLoad: true);
+    }
+}

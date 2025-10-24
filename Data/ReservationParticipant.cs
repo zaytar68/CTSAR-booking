@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace CTSAR.Booking.Data;
 
 /// <summary>
-/// Table de liaison entre Reservation et ApplicationUser.
+/// Table de liaison entre Reservation et User.
 /// Représente l'inscription d'un membre ou moniteur à une session de tir.
 /// </summary>
 public class ReservationParticipant
@@ -24,7 +24,7 @@ public class ReservationParticipant
     /// ID de l'utilisateur participant
     /// </summary>
     [Required]
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
 
     /// <summary>
     /// Date d'inscription à la réservation
@@ -50,5 +50,5 @@ public class ReservationParticipant
     /// <summary>
     /// Utilisateur participant
     /// </summary>
-    public ApplicationUser User { get; set; } = null!;
+    public User User { get; set; } = null!;
 }

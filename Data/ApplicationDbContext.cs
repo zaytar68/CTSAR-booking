@@ -1,13 +1,27 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CTSAR.Booking.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     // ================================================================
     // DBSETS : Tables de la base de données
     // ================================================================
+
+    /// <summary>
+    /// Table des utilisateurs (authentification custom)
+    /// </summary>
+    public DbSet<User> Users { get; set; }
+
+    /// <summary>
+    /// Table des rôles
+    /// </summary>
+    public DbSet<Role> Roles { get; set; }
+
+    /// <summary>
+    /// Table de liaison User-Role (many-to-many)
+    /// </summary>
+    public DbSet<UserRole> UserRoles { get; set; }
 
     /// <summary>
     /// Table des alvéoles (postes de tir)
@@ -41,6 +55,40 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // ================================================================
+        // CONFIGURATION DES RELATIONS D'AUTHENTIFICATION
+        // ================================================================
+
+        // Configuration de la clé primaire composite pour UserRole
+        builder.Entity<UserRole>()
+            .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+        builder.Entity<UserRole>()
+            .HasOne(ur => ur.User)
+            .WithMany(u => u.UserRoles)
+            .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<UserRole>()
+            .HasOne(ur => ur.Role)
+            .WithMany(r => r.UserRoles)
+            .HasForeignKey(ur => ur.RoleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Index unique sur User.Email
+        builder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        // Index unique sur Role.Name
+        builder.Entity<Role>()
+            .HasIndex(r => r.Name)
+            .IsUnique();
+
+        // ================================================================
+        // CONFIGURATION DES RELATIONS MÉTIER
+        // ================================================================
 
         // Configuration de la relation many-to-many Reservation-Alveole
         builder.Entity<ReservationAlveole>()

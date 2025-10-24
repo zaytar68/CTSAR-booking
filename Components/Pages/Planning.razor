@@ -313,6 +313,7 @@
         if (!result.Canceled)
         {
             await LoadData();
+            StateHasChanged();
             Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
         }
     }
@@ -338,6 +339,7 @@
         if (!result.Canceled)
         {
             await LoadData();
+            StateHasChanged();
         }
     }
 }

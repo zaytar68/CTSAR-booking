@@ -78,6 +78,7 @@
             if (result.Success)
             {
                 DialogRef?.Close(DialogResult.Ok(true));
+                StateHasChanged();
             }
             else
             {
@@ -88,6 +89,7 @@
         finally
         {
             _submitting = false;
+            StateHasChanged();
         }
     }
 

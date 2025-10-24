@@ -1,16 +1,9 @@
 // ====================================================================
-// UserService.cs : Service de gestion des utilisateurs
+// UserService.cs : Service de gestion des utilisateurs (VERSION CUSTOM)
 // ====================================================================
-// Ce fichier contient toute la LOGIQUE MÉTIER pour gérer les utilisateurs.
-// Il fait le lien entre l'interface (pages Blazor) et la base de données.
-//
-// POURQUOI UN SERVICE ?
-// - Séparer la logique métier de l'interface
-// - Centraliser toutes les opérations sur les utilisateurs
-// - Faciliter les tests unitaires
-// - Réutiliser le code dans plusieurs pages
+// Réécrit pour utiliser notre système d'authentification custom
+// au lieu d'ASP.NET Core Identity.
 
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CTSAR.Booking.Data;
 using CTSAR.Booking.DTOs;
@@ -21,46 +14,21 @@ namespace CTSAR.Booking.Services;
 /// <summary>
 /// Service pour gérer les utilisateurs de l'application.
 /// Gère toutes les opérations CRUD (Create, Read, Update, Delete).
-/// Utilise UserManager et RoleManager d'ASP.NET Core Identity.
+/// Version custom sans ASP.NET Core Identity.
 /// </summary>
 public class UserService
 {
-    // ================================================================
-    // DÉPENDANCES INJECTÉES
-    // ================================================================
-    // Ces objets sont fournis automatiquement par le système
-    // d'injection de dépendances configuré dans Program.cs
-
-    /// <summary>
-    /// UserManager : Service Identity pour gérer les utilisateurs.
-    /// Permet de créer, modifier, supprimer des utilisateurs.
-    /// Gère aussi les mots de passe, les rôles, etc.
-    /// </summary>
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    /// <summary>
-    /// RoleManager : Service Identity pour gérer les rôles.
-    /// Permet de vérifier, créer, modifier des rôles.
-    /// </summary>
-    private readonly RoleManager<IdentityRole> _roleManager;
-
-    /// <summary>
-    /// Logger : Pour enregistrer les messages d'information et d'erreur.
-    /// Utile pour déboguer et surveiller l'application.
-    /// </summary>
+    private readonly ApplicationDbContext _context;
+    private readonly AuthService _authService;
     private readonly ILogger<UserService> _logger;
 
-    /// <summary>
-    /// Constructeur : Reçoit toutes les dépendances nécessaires.
-    /// Appelé automatiquement par le système d'injection de dépendances.
-    /// </summary>
     public UserService(
-        UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context,
+        AuthService authService,
         ILogger<UserService> logger)
     {
-        _userManager = userManager;
-        _roleManager = roleManager;
+        _context = context;
+        _authService = authService;
         _logger = logger;
     }
 
@@ -70,147 +38,90 @@ public class UserService
 
     /// <summary>
     /// Récupère TOUS les utilisateurs avec leurs rôles.
-    /// Retourne une liste de UserDto (sans les mots de passe).
-    /// Utilisé pour afficher la liste des utilisateurs dans l'interface admin.
     /// </summary>
-    /// <returns>Liste de tous les utilisateurs</returns>
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
         try
         {
-            _logger.LogInformation("Récupération de tous les utilisateurs");
+            var users = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.Nom)
+                .ThenBy(u => u.Prenom)
+                .ToListAsync();
 
-            // Récupère tous les utilisateurs de la base de données
-            var users = await _userManager.Users.ToListAsync();
-
-            // Convertit chaque ApplicationUser en UserDto
-            var userDtos = new List<UserDto>();
-
-            foreach (var user in users)
+            return users.Select(u => new UserDto
             {
-                // Récupère les rôles de cet utilisateur
-                var roles = await _userManager.GetRolesAsync(user);
-
-                // Crée un UserDto avec toutes les infos
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Nom = user.Nom,
-                    Prenom = user.Prenom,
-                    Email = user.Email ?? string.Empty,
-                    PhoneNumber = user.PhoneNumber,
-                    PreferenceLangue = user.PreferenceLangue,
-                    Roles = roles.ToList(),
-                    LockoutEnabled = user.LockoutEnabled,
-                    LockoutEnd = user.LockoutEnd
-                };
-
-                userDtos.Add(userDto);
-            }
-
-            _logger.LogInformation($"{userDtos.Count} utilisateurs récupérés");
-            return userDtos;
+                Id = u.Id.ToString(),
+                Email = u.Email,
+                Nom = u.Nom,
+                Prenom = u.Prenom,
+                // NomComplet est calculé automatiquement par la propriété
+                Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
+            }).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la récupération des utilisateurs");
-            throw;
+            _logger.LogError(ex, "Erreur lors de la récupération de tous les utilisateurs");
+            return new List<UserDto>();
         }
     }
 
     /// <summary>
-    /// Récupère UN utilisateur par son ID.
-    /// Retourne null si l'utilisateur n'existe pas.
+    /// Récupère un utilisateur par son ID.
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur à récupérer</param>
-    /// <returns>UserDto ou null si non trouvé</returns>
     public async Task<UserDto?> GetUserByIdAsync(string userId)
     {
         try
         {
-            _logger.LogInformation($"Récupération de l'utilisateur {userId}");
-
-            // Cherche l'utilisateur dans la base
-            var user = await _userManager.FindByIdAsync(userId);
-
-            // Si pas trouvé, retourne null
-            if (user == null)
+            if (!int.TryParse(userId, out int id))
             {
-                _logger.LogWarning($"Utilisateur {userId} non trouvé");
                 return null;
             }
 
-            // Récupère ses rôles
-            var roles = await _userManager.GetRolesAsync(user);
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
-            // Crée et retourne le DTO
-            var userDto = new UserDto
+            if (user == null)
             {
-                Id = user.Id,
+                return null;
+            }
+
+            return new UserDto
+            {
+                Id = user.Id.ToString(),
+                Email = user.Email,
                 Nom = user.Nom,
                 Prenom = user.Prenom,
-                Email = user.Email ?? string.Empty,
-                PhoneNumber = user.PhoneNumber,
-                PreferenceLangue = user.PreferenceLangue,
-                Roles = roles.ToList(),
-                LockoutEnabled = user.LockoutEnabled,
-                LockoutEnd = user.LockoutEnd
+                // NomComplet est calculé automatiquement par la propriété
+                Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
             };
-
-            return userDto;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Erreur lors de la récupération de l'utilisateur {userId}");
-            throw;
+            _logger.LogError(ex, "Erreur lors de la récupération de l'utilisateur {UserId}", userId);
+            return null;
         }
     }
 
     /// <summary>
-    /// Récupère tous les utilisateurs ayant un rôle spécifique.
-    /// Exemple : GetUsersByRoleAsync("Moniteur") retourne tous les moniteurs.
+    /// Récupère tous les rôles disponibles.
     /// </summary>
-    /// <param name="roleName">Nom du rôle (Administrateur, Moniteur, Membre)</param>
-    /// <returns>Liste des utilisateurs ayant ce rôle</returns>
-    public async Task<List<UserDto>> GetUsersByRoleAsync(string roleName)
+    public async Task<List<string>> GetAllRolesAsync()
     {
         try
         {
-            _logger.LogInformation($"Récupération des utilisateurs avec le rôle {roleName}");
-
-            // Récupère tous les utilisateurs ayant ce rôle
-            var users = await _userManager.GetUsersInRoleAsync(roleName);
-
-            // Convertit en UserDto
-            var userDtos = new List<UserDto>();
-
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Nom = user.Nom,
-                    Prenom = user.Prenom,
-                    Email = user.Email ?? string.Empty,
-                    PhoneNumber = user.PhoneNumber,
-                    PreferenceLangue = user.PreferenceLangue,
-                    Roles = roles.ToList(),
-                    LockoutEnabled = user.LockoutEnabled,
-                    LockoutEnd = user.LockoutEnd
-                };
-
-                userDtos.Add(userDto);
-            }
-
-            _logger.LogInformation($"{userDtos.Count} utilisateurs avec le rôle {roleName} récupérés");
-            return userDtos;
+            return await _context.Roles
+                .Select(r => r.Name)
+                .ToListAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Erreur lors de la récupération des utilisateurs avec le rôle {roleName}");
-            throw;
+            _logger.LogError(ex, "Erreur lors de la récupération des rôles");
+            return new List<string>();
         }
     }
 
@@ -220,234 +131,114 @@ public class UserService
 
     /// <summary>
     /// Crée un nouvel utilisateur.
-    /// Valide les données, crée l'utilisateur, assigne les rôles.
-    /// Retourne (succès: true/false, message: description du résultat).
     /// </summary>
-    /// <param name="createUserDto">Données du nouvel utilisateur</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> CreateUserAsync(CreateUserDto createUserDto)
+    public async Task<(bool Success, string? ErrorMessage, string? UserId)> CreateUserAsync(
+        string email,
+        string password,
+        string nom,
+        string prenom,
+        string role)
     {
         try
         {
-            _logger.LogInformation($"Création de l'utilisateur {createUserDto.Email}");
-
-            // 1. VÉRIFICATIONS PRÉALABLES
-            // ----------------------------
-
-            // Vérifie que l'email n'existe pas déjà
-            var existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
-            if (existingUser != null)
+            // Vérifier que le rôle existe
+            if (!RoleNames.All.Contains(role))
             {
-                _logger.LogWarning($"L'email {createUserDto.Email} existe déjà");
-                return (false, "Cet email est déjà utilisé par un autre compte");
+                return (false, $"Le rôle '{role}' n'est pas valide", null);
             }
 
-            // Vérifie que tous les rôles existent
-            foreach (var roleName in createUserDto.Roles)
+            // Utiliser AuthService pour créer l'utilisateur
+            var (success, errorMessage, user) = await _authService.RegisterAsync(
+                email, password, nom, prenom, role);
+
+            if (!success || user == null)
             {
-                var roleExists = await _roleManager.RoleExistsAsync(roleName);
-                if (!roleExists)
-                {
-                    _logger.LogWarning($"Le rôle {roleName} n'existe pas");
-                    return (false, $"Le rôle '{roleName}' n'existe pas");
-                }
+                return (false, errorMessage ?? "Erreur lors de la création de l'utilisateur", null);
             }
 
-            // 2. CRÉATION DE L'UTILISATEUR
-            // -----------------------------
+            _logger.LogInformation("Utilisateur créé : {Email} avec le rôle {Role}", email, role);
+            return (true, null, user.Id.ToString());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la création de l'utilisateur {Email}", email);
+            return (false, "Une erreur est survenue lors de la création de l'utilisateur", null);
+        }
+    }
 
-            // Crée un nouvel ApplicationUser avec les données
-            var user = new ApplicationUser
+    // ================================================================
+    // MÉTHODES DE MISE À JOUR (UPDATE)
+    // ================================================================
+
+    /// <summary>
+    /// Met à jour les informations d'un utilisateur.
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> UpdateUserAsync(
+        string userId,
+        string email,
+        string nom,
+        string prenom,
+        string role,
+        string? newPassword = null)
+    {
+        try
+        {
+            if (!int.TryParse(userId, out int id))
             {
-                UserName = createUserDto.Email,  // On utilise l'email comme username
-                Email = createUserDto.Email,
-                Nom = createUserDto.Nom,
-                Prenom = createUserDto.Prenom,
-                PhoneNumber = createUserDto.PhoneNumber,
-                PreferenceLangue = createUserDto.PreferenceLangue,
-                EmailConfirmed = true  // Pas besoin de confirmer l'email pour le moment
+                return (false, "ID utilisateur invalide");
+            }
+
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null)
+            {
+                return (false, "Utilisateur introuvable");
+            }
+
+            // Mettre à jour les informations de base
+            user.Email = email;
+            user.Nom = nom;
+            user.Prenom = prenom;
+
+            // Mettre à jour le mot de passe si fourni
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            }
+
+            // Mettre à jour le rôle
+            var newRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == role);
+            if (newRole == null)
+            {
+                return (false, $"Le rôle '{role}' n'existe pas");
+            }
+
+            // Supprimer l'ancien rôle
+            var oldUserRole = user.UserRoles.FirstOrDefault();
+            if (oldUserRole != null)
+            {
+                _context.UserRoles.Remove(oldUserRole);
+            }
+
+            // Ajouter le nouveau rôle
+            var newUserRole = new UserRole
+            {
+                UserId = user.Id,
+                RoleId = newRole.Id
             };
+            _context.UserRoles.Add(newUserRole);
 
-            // Crée l'utilisateur avec son mot de passe
-            var result = await _userManager.CreateAsync(user, createUserDto.Password);
+            await _context.SaveChangesAsync();
 
-            // Si la création a échoué, retourne les erreurs
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError($"Échec de création de l'utilisateur : {errors}");
-                return (false, $"Échec de création : {errors}");
-            }
-
-            // 3. ASSIGNATION DES RÔLES
-            // -------------------------
-
-            // Assigne chaque rôle à l'utilisateur
-            foreach (var roleName in createUserDto.Roles)
-            {
-                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
-                if (!roleResult.Succeeded)
-                {
-                    var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                    _logger.LogError($"Échec d'ajout du rôle {roleName} : {errors}");
-                    // Continue quand même avec les autres rôles
-                }
-            }
-
-            _logger.LogInformation($"Utilisateur {user.Email} créé avec succès");
-            return (true, "Utilisateur créé avec succès");
+            _logger.LogInformation("Utilisateur mis à jour : {Email}", email);
+            return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la création de l'utilisateur");
-            return (false, $"Erreur inattendue : {ex.Message}");
-        }
-    }
-
-    // ================================================================
-    // MÉTHODES DE MODIFICATION (UPDATE)
-    // ================================================================
-
-    /// <summary>
-    /// Met à jour un utilisateur existant.
-    /// Modifie les infos personnelles et les rôles.
-    /// NE MODIFIE PAS le mot de passe (utiliser ChangePasswordAsync pour ça).
-    /// </summary>
-    /// <param name="updateUserDto">Nouvelles données de l'utilisateur</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> UpdateUserAsync(UpdateUserDto updateUserDto)
-    {
-        try
-        {
-            _logger.LogInformation($"Mise à jour de l'utilisateur {updateUserDto.Id}");
-
-            // 1. RÉCUPÉRATION DE L'UTILISATEUR
-            // ---------------------------------
-
-            var user = await _userManager.FindByIdAsync(updateUserDto.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"Utilisateur {updateUserDto.Id} non trouvé");
-                return (false, "Utilisateur non trouvé");
-            }
-
-            // 2. VÉRIFICATION DE L'EMAIL
-            // ---------------------------
-
-            // Si l'email a changé, vérifie qu'il n'est pas déjà utilisé
-            if (user.Email != updateUserDto.Email)
-            {
-                var existingUser = await _userManager.FindByEmailAsync(updateUserDto.Email);
-                if (existingUser != null && existingUser.Id != user.Id)
-                {
-                    _logger.LogWarning($"L'email {updateUserDto.Email} est déjà utilisé");
-                    return (false, "Cet email est déjà utilisé par un autre compte");
-                }
-            }
-
-            // 3. MISE À JOUR DES INFORMATIONS
-            // --------------------------------
-
-            user.Nom = updateUserDto.Nom;
-            user.Prenom = updateUserDto.Prenom;
-            user.Email = updateUserDto.Email;
-            user.UserName = updateUserDto.Email;  // Le username suit l'email
-            user.PhoneNumber = updateUserDto.PhoneNumber;
-            user.PreferenceLangue = updateUserDto.PreferenceLangue;
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError($"Échec de mise à jour : {errors}");
-                return (false, $"Échec de mise à jour : {errors}");
-            }
-
-            // 4. MISE À JOUR DES RÔLES
-            // ------------------------
-
-            // Récupère les rôles actuels
-            var currentRoles = await _userManager.GetRolesAsync(user);
-
-            // Trouve les rôles à ajouter (dans updateUserDto mais pas dans currentRoles)
-            var rolesToAdd = updateUserDto.Roles.Except(currentRoles).ToList();
-
-            // Trouve les rôles à supprimer (dans currentRoles mais pas dans updateUserDto)
-            var rolesToRemove = currentRoles.Except(updateUserDto.Roles).ToList();
-
-            // Ajoute les nouveaux rôles
-            if (rolesToAdd.Any())
-            {
-                var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
-                if (!addResult.Succeeded)
-                {
-                    var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));
-                    _logger.LogError($"Échec d'ajout des rôles : {errors}");
-                }
-            }
-
-            // Supprime les anciens rôles
-            if (rolesToRemove.Any())
-            {
-                var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
-                if (!removeResult.Succeeded)
-                {
-                    var errors = string.Join(", ", removeResult.Errors.Select(e => e.Description));
-                    _logger.LogError($"Échec de suppression des rôles : {errors}");
-                }
-            }
-
-            _logger.LogInformation($"Utilisateur {user.Email} mis à jour avec succès");
-            return (true, "Utilisateur mis à jour avec succès");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de la mise à jour de l'utilisateur");
-            return (false, $"Erreur inattendue : {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Change le mot de passe d'un utilisateur.
-    /// Nécessite l'ancien mot de passe pour des raisons de sécurité.
-    /// </summary>
-    /// <param name="changePasswordDto">Données pour le changement de mot de passe</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
-    {
-        try
-        {
-            _logger.LogInformation($"Changement de mot de passe pour l'utilisateur {changePasswordDto.UserId}");
-
-            // Récupère l'utilisateur
-            var user = await _userManager.FindByIdAsync(changePasswordDto.UserId);
-            if (user == null)
-            {
-                _logger.LogWarning($"Utilisateur {changePasswordDto.UserId} non trouvé");
-                return (false, "Utilisateur non trouvé");
-            }
-
-            // Change le mot de passe (vérifie l'ancien automatiquement)
-            var result = await _userManager.ChangePasswordAsync(
-                user,
-                changePasswordDto.CurrentPassword,
-                changePasswordDto.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError($"Échec du changement de mot de passe : {errors}");
-                return (false, $"Échec : {errors}");
-            }
-
-            _logger.LogInformation($"Mot de passe changé avec succès pour {user.Email}");
-            return (true, "Mot de passe changé avec succès");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors du changement de mot de passe");
-            return (false, $"Erreur inattendue : {ex.Message}");
+            _logger.LogError(ex, "Erreur lors de la mise à jour de l'utilisateur {UserId}", userId);
+            return (false, "Une erreur est survenue lors de la mise à jour");
         }
     }
 
@@ -456,125 +247,206 @@ public class UserService
     // ================================================================
 
     /// <summary>
-    /// Supprime un utilisateur de la base de données.
-    /// ATTENTION : Cette action est irréversible !
-    /// Supprime aussi toutes les données liées (rôles, etc.).
+    /// Désactive un utilisateur (soft delete).
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur à supprimer</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> DeleteUserAsync(string userId)
+    public async Task<(bool Success, string? ErrorMessage)> DeactivateUserAsync(string userId)
     {
         try
         {
-            _logger.LogInformation($"Suppression de l'utilisateur {userId}");
+            if (!int.TryParse(userId, out int id))
+            {
+                return (false, "ID utilisateur invalide");
+            }
 
-            // Récupère l'utilisateur
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                _logger.LogWarning($"Utilisateur {userId} non trouvé");
-                return (false, "Utilisateur non trouvé");
+                return (false, "Utilisateur introuvable");
             }
 
-            // Supprime l'utilisateur (et toutes ses données liées automatiquement)
-            var result = await _userManager.DeleteAsync(user);
+            user.IsActive = false;
+            await _context.SaveChangesAsync();
 
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError($"Échec de suppression : {errors}");
-                return (false, $"Échec de suppression : {errors}");
-            }
-
-            _logger.LogInformation($"Utilisateur {user.Email} supprimé avec succès");
-            return (true, "Utilisateur supprimé avec succès");
+            _logger.LogInformation("Utilisateur désactivé : {Email}", user.Email);
+            return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la suppression de l'utilisateur");
-            return (false, $"Erreur inattendue : {ex.Message}");
+            _logger.LogError(ex, "Erreur lors de la désactivation de l'utilisateur {UserId}", userId);
+            return (false, "Une erreur est survenue lors de la désactivation");
         }
     }
 
     // ================================================================
-    // MÉTHODES DE VERROUILLAGE (LOCKOUT)
+    // SURCHARGES POUR COMPATIBILITÉ AVEC LES DTOs
     // ================================================================
+
+    /// <summary>
+    /// Crée un utilisateur à partir d'un CreateUserDto (surcharge pour compatibilité).
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> CreateUserAsync(CTSAR.Booking.DTOs.CreateUserDto dto)
+    {
+        // Valider qu'au moins un rôle est sélectionné
+        if (dto.Roles == null || dto.Roles.Count == 0)
+        {
+            return (false, "Au moins un rôle doit être sélectionné");
+        }
+
+        // Prendre le premier rôle pour la création (simplification)
+        string role = dto.Roles.First();
+
+        var (success, errorMessage, userId) = await CreateUserAsync(
+            dto.Email,
+            dto.Password,
+            dto.Nom,
+            dto.Prenom,
+            role);
+
+        return (success, errorMessage);
+    }
+
+    /// <summary>
+    /// Met à jour un utilisateur à partir d'un UpdateUserDto (surcharge pour compatibilité).
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> UpdateUserAsync(CTSAR.Booking.DTOs.UpdateUserDto dto)
+    {
+        // Valider qu'au moins un rôle est sélectionné
+        if (dto.Roles == null || dto.Roles.Count == 0)
+        {
+            return (false, "Au moins un rôle doit être sélectionné");
+        }
+
+        // Prendre le premier rôle pour la mise à jour (simplification)
+        string role = dto.Roles.First();
+
+        return await UpdateUserAsync(
+            dto.Id,
+            dto.Email,
+            dto.Nom,
+            dto.Prenom,
+            role,
+            dto.PreferenceLangue);
+    }
+
+    /// <summary>
+    /// Change le mot de passe à partir d'un ChangePasswordDto (surcharge pour compatibilité).
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> ChangePasswordAsync(CTSAR.Booking.DTOs.ChangePasswordDto dto)
+    {
+        return await ChangePasswordAsync(dto.UserId, dto.CurrentPassword, dto.NewPassword);
+    }
+
+    // ================================================================
+    // MÉTHODES UTILITAIRES
+    // ================================================================
+
+    /// <summary>
+    /// Vérifie si un utilisateur a un rôle spécifique.
+    /// </summary>
+    public async Task<bool> IsInRoleAsync(string userId, string roleName)
+    {
+        if (!int.TryParse(userId, out int id))
+        {
+            return false;
+        }
+
+        return await _authService.IsInRoleAsync(id, roleName);
+    }
 
     /// <summary>
     /// Verrouille un utilisateur (empêche la connexion).
-    /// Peut être utilisé pour suspendre temporairement un compte.
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur à verrouiller</param>
-    /// <param name="lockoutEnd">Date de fin du verrouillage (null = permanent)</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> LockUserAsync(string userId, DateTimeOffset? lockoutEnd = null)
+    public async Task<(bool Success, string? ErrorMessage)> LockUserAsync(string userId)
     {
         try
         {
-            _logger.LogInformation($"Verrouillage de l'utilisateur {userId}");
+            if (!int.TryParse(userId, out int id))
+            {
+                return (false, "Identifiant utilisateur invalide");
+            }
 
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return (false, "Utilisateur non trouvé");
+                return (false, "Utilisateur introuvable");
             }
 
-            // Si pas de date spécifiée, verrouille pour 100 ans (= permanent)
-            lockoutEnd ??= DateTimeOffset.Now.AddYears(100);
-
-            // Active le verrouillage
-            user.LockoutEnabled = true;
-            var result = await _userManager.SetLockoutEndDateAsync(user, lockoutEnd);
-
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return (false, $"Échec : {errors}");
-            }
-
-            _logger.LogInformation($"Utilisateur {user.Email} verrouillé jusqu'au {lockoutEnd}");
-            return (true, "Utilisateur verrouillé avec succès");
+            user.IsActive = false;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Utilisateur {Email} verrouillé", user.Email);
+            return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors du verrouillage de l'utilisateur");
-            return (false, $"Erreur inattendue : {ex.Message}");
+            _logger.LogError(ex, "Erreur lors du verrouillage de l'utilisateur {UserId}", userId);
+            return (false, "Une erreur est survenue lors du verrouillage");
         }
     }
 
     /// <summary>
-    /// Déverrouille un utilisateur (permet à nouveau la connexion).
+    /// Déverrouille un utilisateur (réactive le compte).
     /// </summary>
-    /// <param name="userId">ID de l'utilisateur à déverrouiller</param>
-    /// <returns>Tuple (succès, message)</returns>
-    public async Task<(bool Success, string Message)> UnlockUserAsync(string userId)
+    public async Task<(bool Success, string? ErrorMessage)> UnlockUserAsync(string userId)
     {
         try
         {
-            _logger.LogInformation($"Déverrouillage de l'utilisateur {userId}");
+            if (!int.TryParse(userId, out int id))
+            {
+                return (false, "Identifiant utilisateur invalide");
+            }
 
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return (false, "Utilisateur non trouvé");
+                return (false, "Utilisateur introuvable");
             }
 
-            // Supprime la date de verrouillage
-            var result = await _userManager.SetLockoutEndDateAsync(user, null);
-
-            if (!result.Succeeded)
-            {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return (false, $"Échec : {errors}");
-            }
-
-            _logger.LogInformation($"Utilisateur {user.Email} déverrouillé avec succès");
-            return (true, "Utilisateur déverrouillé avec succès");
+            user.IsActive = true;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Utilisateur {Email} déverrouillé", user.Email);
+            return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors du déverrouillage de l'utilisateur");
-            return (false, $"Erreur inattendue : {ex.Message}");
+            _logger.LogError(ex, "Erreur lors du déverrouillage de l'utilisateur {UserId}", userId);
+            return (false, "Une erreur est survenue lors du déverrouillage");
+        }
+    }
+
+    /// <summary>
+    /// Supprime définitivement un utilisateur (soft delete en fait).
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> DeleteUserAsync(string userId)
+    {
+        // Pour l'instant, on utilise DeactivateUserAsync (soft delete)
+        return await DeactivateUserAsync(userId);
+    }
+
+    /// <summary>
+    /// Change le mot de passe d'un utilisateur.
+    /// </summary>
+    public async Task<(bool Success, string? ErrorMessage)> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        try
+        {
+            if (!int.TryParse(userId, out int id))
+            {
+                return (false, "Identifiant utilisateur invalide");
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return (false, "Utilisateur introuvable");
+            }
+
+            // Utilise AuthService.ChangePasswordAsync
+            return await _authService.ChangePasswordAsync(id, currentPassword, newPassword);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du changement de mot de passe pour {UserId}", userId);
+            return (false, "Une erreur est survenue lors du changement de mot de passe");
         }
     }
 }

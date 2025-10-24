@@ -70,6 +70,7 @@
             if (result.Success)
             {
                 DialogRef?.Close(DialogResult.Ok(result.Alveole));
+                StateHasChanged();
             }
             else
             {
@@ -80,6 +81,7 @@
         finally
         {
             _submitting = false;
+            StateHasChanged();
         }
     }
 

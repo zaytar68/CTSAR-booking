@@ -47,7 +47,7 @@ public class Reservation
     /// ID de l'utilisateur qui a créé la réservation
     /// </summary>
     [Required]
-    public string CreatedByUserId { get; set; } = string.Empty;
+    public int CreatedByUserId { get; set; }
 
     /// <summary>
     /// Date de création de la réservation
@@ -61,7 +61,7 @@ public class Reservation
     /// <summary>
     /// Utilisateur qui a créé la réservation
     /// </summary>
-    public ApplicationUser? CreatedBy { get; set; }
+    public User? CreatedBy { get; set; }
 
     /// <summary>
     /// Liste des alvéoles réservées

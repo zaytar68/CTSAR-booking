@@ -175,6 +175,7 @@
             if (result.Success)
             {
                 DialogRef?.Close(DialogResult.Ok(result.Reservation));
+                StateHasChanged();
             }
             else
             {
@@ -188,6 +189,7 @@
         finally
         {
             _isSubmitting = false;
+            StateHasChanged();
         }
     }
 }
