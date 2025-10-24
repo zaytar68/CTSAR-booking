@@ -29,11 +29,11 @@ Ce fichier définit la structure HTML de base et charge tous les CSS/JS.
     <link rel="stylesheet" href="CTSAR.Booking.styles.css" />
 
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes />
+    <Routes @rendermode="InteractiveServer" />
 
     @* ============================================================ *@
     @* JAVASCRIPT : Scripts nécessaires                             *@

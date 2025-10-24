@@ -3,7 +3,7 @@
 @using Microsoft.Extensions.Localization
 @using CTSAR.Booking.Services
 
-@inject IStringLocalizer<CTSAR.Booking.Resources.Auth> Loc
+@inject IStringLocalizerFactory LocalizerFactory
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["LoginTitle"]</PageTitle>
@@ -24,7 +24,7 @@
             </MudAlert>
         }
 
-        <form method="post" action="/api/auth/login-page" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+        <form method="post" action="/api/auth/login-page">
             <MudTextField @bind-Value="email"
                           Label="@Loc["Email"]"
                           Variant="Variant.Outlined"
@@ -53,17 +53,8 @@
                        Color="Color.Primary"
                        Size="Size.Large"
                        FullWidth="true"
-                       ButtonType="ButtonType.Submit"
-                       Disabled="isLoading">
-                @if (isLoading)
-                {
-                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                    @Loc["LoggingIn"]
-                }
-                else
-                {
-                    @Loc["LoginButton"]
-                }
+                       ButtonType="ButtonType.Submit">
+                @Loc["LoginButton"]
             </MudButton>
         </form>
 
@@ -77,11 +68,13 @@
 </MudContainer>
 
 @code {
-    private bool isLoading;
     private string email = "";
     private string password = "";
     private bool rememberMe;
     private string? errorMessage;
+
+    private IStringLocalizer? _loc;
+    private IStringLocalizer Loc => _loc ??= LocalizerFactory.Create("Auth", "CTSAR.Booking");
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
@@ -95,10 +88,5 @@
         {
             errorMessage = Error == "invalid" ? Loc["LoginError"] : Loc["UnexpectedError"];
         }
-    }
-
-    private void HandleSubmit()
-    {
-        isLoading = true;
     }
 }

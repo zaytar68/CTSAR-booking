@@ -3,7 +3,7 @@
 @using Microsoft.Extensions.Localization
 @using CTSAR.Booking.Data
 
-@inject IStringLocalizer<CTSAR.Booking.Resources.Auth> Loc
+@inject IStringLocalizerFactory LocalizerFactory
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["RegisterTitle"]</PageTitle>
@@ -24,7 +24,7 @@
             </MudAlert>
         }
 
-        <form method="post" action="/api/auth/register-page" @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+        <form method="post" action="/api/auth/register-page">
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTextField @bind-Value="prenom"
@@ -83,17 +83,8 @@
                        Size="Size.Large"
                        FullWidth="true"
                        Class="mt-6"
-                       ButtonType="ButtonType.Submit"
-                       Disabled="isLoading">
-                @if (isLoading)
-                {
-                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                    @Loc["CreatingAccount"]
-                }
-                else
-                {
-                    @Loc["RegisterButton"]
-                }
+                       ButtonType="ButtonType.Submit">
+                @Loc["RegisterButton"]
             </MudButton>
         </form>
 
@@ -107,7 +98,6 @@
 </MudContainer>
 
 @code {
-    private bool isLoading;
     private string email = "";
     private string password = "";
     private string confirmPassword = "";
@@ -115,6 +105,9 @@
     private string prenom = "";
     private string selectedRole = RoleNames.Membre;
     private string? errorMessage;
+
+    private IStringLocalizer? _loc;
+    private IStringLocalizer Loc => _loc ??= LocalizerFactory.Create("Auth", "CTSAR.Booking");
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
@@ -134,10 +127,5 @@
                 _ => Loc["UnexpectedError"]
             };
         }
-    }
-
-    private void HandleSubmit()
-    {
-        isLoading = true;
     }
 }
