@@ -51,9 +51,4 @@ public class Alveole
     /// Relation many-to-many via ReservationAlveole
     /// </summary>
     public ICollection<ReservationAlveole> ReservationAlveoles { get; set; } = new List<ReservationAlveole>();
-
-    /// <summary>
-    /// Liste des fermetures planifiées pour cette alvéole
-    /// </summary>
-    public ICollection<FermetureAlveole> Fermetures { get; set; } = new List<FermetureAlveole>();
 }

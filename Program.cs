@@ -119,8 +119,8 @@ builder.Services.AddScoped<AlveoleService>();
 // Ajoute ReservationService pour gérer les inscriptions de tir
 builder.Services.AddScoped<ReservationService>();
 
-// Ajoute FermetureAlveoleService pour gérer les fermetures planifiées
-builder.Services.AddScoped<FermetureAlveoleService>();
+// Ajoute FermetureClubService pour gérer les fermetures planifiées du club
+builder.Services.AddScoped<FermetureClubService>();
 
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)

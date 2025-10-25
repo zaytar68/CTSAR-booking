@@ -3,16 +3,13 @@
 @using CTSAR.Booking.Data
 @using Microsoft.Extensions.Localization
 @using CTSAR.Booking.Components.Pages.Admin
-@inject FermetureAlveoleService FermetureAlveoleService
+@inject FermetureClubService FermetureClubService
 @inject IStringLocalizer<Alveoles> Loc
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="@_isValid">
             <MudStack Spacing="3">
-                <MudAlert Severity="Severity.Info" Dense="true">
-                    @Loc["ClosureFor"]: <strong>@AlveoleNom</strong>
-                </MudAlert>
 
                 <MudDatePicker @bind-Date="_dateDebut"
                                Label="@Loc["StartDate"]"
@@ -87,12 +84,6 @@
     [CascadingParameter]
     public MudBlazor.IDialogReference? DialogRef { get; set; }
 
-    [Parameter]
-    public int AlveoleId { get; set; }
-
-    [Parameter]
-    public string AlveoleNom { get; set; } = string.Empty;
-
     private MudForm _form = null!;
     private bool _isValid;
     private bool _submitting;
@@ -131,8 +122,7 @@
         _submitting = true;
         try
         {
-            var result = await FermetureAlveoleService.CreateFermetureAsync(
-                AlveoleId,
+            var result = await FermetureClubService.CreateFermetureAsync(
                 DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
                 DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc),
                 _typeFermeture,

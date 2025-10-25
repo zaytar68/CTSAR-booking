@@ -130,13 +130,11 @@ public class ReservationService
                 return (false, "La date de fin doit être après la date de début", null);
             }
 
-            // 3. Vérifier les fermetures d'alvéoles
-            var alveolesFermees = await GetFermeturesAsync(dto.AlveoleIds, dto.DateDebut, dto.DateFin);
-            if (alveolesFermees.Any())
+            // 3. Vérifier si le club est fermé
+            if (await IsClubFermeAsync(dto.DateDebut, dto.DateFin))
             {
-                var message = $"Les alvéoles suivantes sont fermées pendant cette période : {string.Join(", ", alveolesFermees)}";
-                _logger.LogWarning(message);
-                return (false, message, null);
+                _logger.LogWarning("Le club est fermé pendant cette période");
+                return (false, "Le club de tir est fermé pendant cette période", null);
             }
 
             // 4. Vérifier les chevauchements
@@ -485,20 +483,14 @@ public class ReservationService
     }
 
     /// <summary>
-    /// Récupère les noms des alvéoles fermées pendant une période
+    /// Vérifie si le club est fermé pendant une période donnée
     /// </summary>
-    private async Task<List<string>> GetFermeturesAsync(
-        List<int> alveoleIds,
+    private async Task<bool> IsClubFermeAsync(
         DateTime dateDebut,
         DateTime dateFin)
     {
-        var fermetures = await _context.FermetureAlveoles
-            .Include(f => f.Alveole)
-            .Where(f => alveoleIds.Contains(f.AlveoleId))
-            .Where(f => f.DateDebut < dateFin && f.DateFin > dateDebut)
-            .ToListAsync();
-
-        return fermetures.Select(f => f.Alveole.Nom).Distinct().ToList();
+        return await _context.FermeturesClub
+            .AnyAsync(f => f.DateDebut < dateFin && f.DateFin > dateDebut);
     }
 
     /// <summary>

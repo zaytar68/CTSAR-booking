@@ -58,6 +58,9 @@
   <data name="PlanClosure" xml:space="preserve">
     <value>Planifier une fermeture</value>
   </data>
+  <data name="PlanClubClosure" xml:space="preserve">
+    <value>Planifier une fermeture du club</value>
+  </data>
   <data name="Deactivate" xml:space="preserve">
     <value>Désactiver</value>
   </data>

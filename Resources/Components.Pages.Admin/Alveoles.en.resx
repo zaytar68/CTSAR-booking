@@ -55,6 +55,9 @@
   <data name="PlanClosure" xml:space="preserve">
     <value>Plan Closure</value>
   </data>
+  <data name="PlanClubClosure" xml:space="preserve">
+    <value>Plan Club Closure</value>
+  </data>
   <data name="Deactivate" xml:space="preserve">
     <value>Deactivate</value>
   </data>

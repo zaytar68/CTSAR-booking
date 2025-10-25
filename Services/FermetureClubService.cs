@@ -1,5 +1,5 @@
 // ====================================================================
-// FermetureAlveoleService.cs : Service de gestion des fermetures d'alvéoles
+// FermetureClubService.cs : Service de gestion des fermetures du club
 // ====================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +9,15 @@ using CTSAR.Booking.DTOs;
 namespace CTSAR.Booking.Services;
 
 /// <summary>
-/// Service pour gérer les fermetures planifiées des alvéoles
+/// Service pour gérer les fermetures planifiées du club de tir
 /// (travaux, jours fériés, réservations extérieures, etc.)
 /// </summary>
-public class FermetureAlveoleService
+public class FermetureClubService
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILogger<FermetureAlveoleService> _logger;
+    private readonly ILogger<FermetureClubService> _logger;
 
-    public FermetureAlveoleService(ApplicationDbContext context, ILogger<FermetureAlveoleService> logger)
+    public FermetureClubService(ApplicationDbContext context, ILogger<FermetureClubService> logger)
     {
         _context = context;
         _logger = logger;
@@ -29,25 +29,21 @@ public class FermetureAlveoleService
     /// <param name="debut">Date de début de la période</param>
     /// <param name="fin">Date de fin de la période</param>
     /// <returns>Liste des fermetures dans la période</returns>
-    public async Task<List<FermetureDto>> GetFermeturesForPeriodAsync(DateTime debut, DateTime fin)
+    public async Task<List<FermetureClubDto>> GetFermeturesForPeriodAsync(DateTime debut, DateTime fin)
     {
         try
         {
             _logger.LogInformation($"Récupération des fermetures entre {debut:yyyy-MM-dd} et {fin:yyyy-MM-dd}");
 
-            var fermetures = await _context.FermetureAlveoles
-                .Include(f => f.Alveole)
+            var fermetures = await _context.FermeturesClub
                 .Where(f => f.DateDebut < fin && f.DateFin > debut)
                 .OrderBy(f => f.DateDebut)
-                .ThenBy(f => f.Alveole.Ordre)
                 .AsNoTracking()
                 .ToListAsync();
 
-            var dtos = fermetures.Select(f => new FermetureDto
+            var dtos = fermetures.Select(f => new FermetureClubDto
             {
                 Id = f.Id,
-                AlveoleId = f.AlveoleId,
-                AlveoleNom = f.Alveole.Nom,
                 DateDebut = f.DateDebut,
                 DateFin = f.DateFin,
                 TypeFermeture = f.TypeFermeture,
@@ -70,7 +66,7 @@ public class FermetureAlveoleService
     /// <param name="year">Année</param>
     /// <param name="month">Mois (1-12)</param>
     /// <returns>Liste des fermetures du mois</returns>
-    public async Task<List<FermetureDto>> GetFermeturesForMonthAsync(int year, int month)
+    public async Task<List<FermetureClubDto>> GetFermeturesForMonthAsync(int year, int month)
     {
         var debut = new DateTime(year, month, 1);
         var fin = debut.AddMonths(1);
@@ -80,23 +76,20 @@ public class FermetureAlveoleService
     /// <summary>
     /// Récupère une fermeture par son ID
     /// </summary>
-    public async Task<FermetureDto?> GetFermetureByIdAsync(int id)
+    public async Task<FermetureClubDto?> GetFermetureByIdAsync(int id)
     {
         try
         {
-            var fermeture = await _context.FermetureAlveoles
-                .Include(f => f.Alveole)
+            var fermeture = await _context.FermeturesClub
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (fermeture == null)
                 return null;
 
-            return new FermetureDto
+            return new FermetureClubDto
             {
                 Id = fermeture.Id,
-                AlveoleId = fermeture.AlveoleId,
-                AlveoleNom = fermeture.Alveole.Nom,
                 DateDebut = fermeture.DateDebut,
                 DateFin = fermeture.DateFin,
                 TypeFermeture = fermeture.TypeFermeture,
@@ -111,44 +104,9 @@ public class FermetureAlveoleService
     }
 
     /// <summary>
-    /// Récupère toutes les fermetures pour une alvéole donnée
+    /// Crée une nouvelle fermeture planifiée du club
     /// </summary>
-    public async Task<List<FermetureDto>> GetFermeturesByAlveoleAsync(int alveoleId)
-    {
-        try
-        {
-            _logger.LogInformation($"Récupération des fermetures pour l'alvéole {alveoleId}");
-
-            var fermetures = await _context.FermetureAlveoles
-                .Include(f => f.Alveole)
-                .Where(f => f.AlveoleId == alveoleId)
-                .OrderBy(f => f.DateDebut)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return fermetures.Select(f => new FermetureDto
-            {
-                Id = f.Id,
-                AlveoleId = f.AlveoleId,
-                AlveoleNom = f.Alveole.Nom,
-                DateDebut = f.DateDebut,
-                DateFin = f.DateFin,
-                TypeFermeture = f.TypeFermeture,
-                Raison = f.Raison ?? string.Empty
-            }).ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Erreur lors de la récupération des fermetures pour l'alvéole {alveoleId}");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Crée une nouvelle fermeture planifiée
-    /// </summary>
-    public async Task<(bool Success, string Message, FermetureDto? Fermeture)> CreateFermetureAsync(
-        int alveoleId,
+    public async Task<(bool Success, string Message, FermetureClubDto? Fermeture)> CreateFermetureAsync(
         DateTime dateDebut,
         DateTime dateFin,
         TypeFermeture typeFermeture,
@@ -156,15 +114,7 @@ public class FermetureAlveoleService
     {
         try
         {
-            _logger.LogInformation($"Création d'une fermeture pour l'alvéole {alveoleId}");
-
-            // Vérifier que l'alvéole existe et est active
-            var alveole = await _context.Alveoles.FindAsync(alveoleId);
-            if (alveole == null || !alveole.EstActive)
-            {
-                _logger.LogWarning($"Alvéole {alveoleId} non trouvée ou inactive");
-                return (false, "Alvéole non trouvée ou inactive", null);
-            }
+            _logger.LogInformation("Création d'une fermeture du club");
 
             // Valider les dates
             if (dateFin <= dateDebut)
@@ -174,21 +124,18 @@ public class FermetureAlveoleService
             }
 
             // Vérifier les chevauchements avec d'autres fermetures
-            var hasOverlap = await _context.FermetureAlveoles
-                .AnyAsync(f => f.AlveoleId == alveoleId
-                    && f.DateDebut < dateFin
-                    && f.DateFin > dateDebut);
+            var hasOverlap = await _context.FermeturesClub
+                .AnyAsync(f => f.DateDebut < dateFin && f.DateFin > dateDebut);
 
             if (hasOverlap)
             {
-                _logger.LogWarning($"Fermeture chevauche une fermeture existante pour l'alvéole {alveoleId}");
-                return (false, "Cette période chevauche une fermeture existante pour cette alvéole", null);
+                _logger.LogWarning("Fermeture chevauche une fermeture existante");
+                return (false, "Cette période chevauche une fermeture existante", null);
             }
 
             // Créer la fermeture
-            var fermeture = new FermetureAlveole
+            var fermeture = new FermetureClub
             {
-                AlveoleId = alveoleId,
                 DateDebut = dateDebut,
                 DateFin = dateFin,
                 TypeFermeture = typeFermeture,
@@ -196,26 +143,19 @@ public class FermetureAlveoleService
                 DateCreation = DateTime.UtcNow
             };
 
-            _context.FermetureAlveoles.Add(fermeture);
+            _context.FermeturesClub.Add(fermeture);
             await _context.SaveChangesAsync();
 
-            // Recharger avec l'alvéole pour le DTO
-            await _context.Entry(fermeture)
-                .Reference(f => f.Alveole)
-                .LoadAsync();
-
-            var dto = new FermetureDto
+            var dto = new FermetureClubDto
             {
                 Id = fermeture.Id,
-                AlveoleId = fermeture.AlveoleId,
-                AlveoleNom = fermeture.Alveole.Nom,
                 DateDebut = fermeture.DateDebut,
                 DateFin = fermeture.DateFin,
                 TypeFermeture = fermeture.TypeFermeture,
                 Raison = fermeture.Raison ?? string.Empty
             };
 
-            _logger.LogInformation($"Fermeture créée avec succès (ID: {fermeture.Id})");
+            _logger.LogInformation($"Fermeture du club créée avec succès (ID: {fermeture.Id})");
             return (true, "Fermeture créée avec succès", dto);
         }
         catch (Exception ex)
@@ -239,7 +179,7 @@ public class FermetureAlveoleService
         {
             _logger.LogInformation($"Mise à jour de la fermeture {id}");
 
-            var fermeture = await _context.FermetureAlveoles.FindAsync(id);
+            var fermeture = await _context.FermeturesClub.FindAsync(id);
             if (fermeture == null)
             {
                 _logger.LogWarning($"Fermeture {id} non trouvée");
@@ -254,16 +194,15 @@ public class FermetureAlveoleService
             }
 
             // Vérifier les chevauchements avec d'autres fermetures (en excluant celle-ci)
-            var hasOverlap = await _context.FermetureAlveoles
-                .AnyAsync(f => f.AlveoleId == fermeture.AlveoleId
-                    && f.Id != id
+            var hasOverlap = await _context.FermeturesClub
+                .AnyAsync(f => f.Id != id
                     && f.DateDebut < dateFin
                     && f.DateFin > dateDebut);
 
             if (hasOverlap)
             {
-                _logger.LogWarning($"Fermeture chevauche une fermeture existante pour l'alvéole {fermeture.AlveoleId}");
-                return (false, "Cette période chevauche une fermeture existante pour cette alvéole");
+                _logger.LogWarning("Fermeture chevauche une fermeture existante");
+                return (false, "Cette période chevauche une fermeture existante");
             }
 
             // Mettre à jour
@@ -293,14 +232,14 @@ public class FermetureAlveoleService
         {
             _logger.LogInformation($"Suppression de la fermeture {id}");
 
-            var fermeture = await _context.FermetureAlveoles.FindAsync(id);
+            var fermeture = await _context.FermeturesClub.FindAsync(id);
             if (fermeture == null)
             {
                 _logger.LogWarning($"Fermeture {id} non trouvée");
                 return (false, "Fermeture non trouvée");
             }
 
-            _context.FermetureAlveoles.Remove(fermeture);
+            _context.FermeturesClub.Remove(fermeture);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Fermeture {id} supprimée avec succès");
@@ -314,46 +253,20 @@ public class FermetureAlveoleService
     }
 
     /// <summary>
-    /// Vérifie si une alvéole est fermée pendant une période donnée
+    /// Vérifie si le club est fermé pendant une période donnée
     /// </summary>
-    public async Task<bool> IsAlveoleFermeePendantPeriodeAsync(
-        int alveoleId,
+    public async Task<bool> IsClubFermePendantPeriodeAsync(
         DateTime dateDebut,
         DateTime dateFin)
     {
         try
         {
-            return await _context.FermetureAlveoles
-                .AnyAsync(f => f.AlveoleId == alveoleId
-                    && f.DateDebut < dateFin
-                    && f.DateFin > dateDebut);
+            return await _context.FermeturesClub
+                .AnyAsync(f => f.DateDebut < dateFin && f.DateFin > dateDebut);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Erreur lors de la vérification de fermeture pour l'alvéole {alveoleId}");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Récupère les alvéoles fermées pendant une période donnée
-    /// </summary>
-    /// <returns>Liste des IDs d'alvéoles fermées</returns>
-    public async Task<List<int>> GetAlveolesFermeesAsync(DateTime dateDebut, DateTime dateFin)
-    {
-        try
-        {
-            var fermetures = await _context.FermetureAlveoles
-                .Where(f => f.DateDebut < dateFin && f.DateFin > dateDebut)
-                .Select(f => f.AlveoleId)
-                .Distinct()
-                .ToListAsync();
-
-            return fermetures;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de la récupération des alvéoles fermées");
+            _logger.LogError(ex, "Erreur lors de la vérification de fermeture du club");
             throw;
         }
     }

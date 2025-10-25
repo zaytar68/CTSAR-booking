@@ -1,5 +1,5 @@
 // ====================================================================
-// FermetureDto.cs : DTO pour une fermeture d'alvéole
+// FermetureClubDto.cs : DTO pour une fermeture du club
 // ====================================================================
 
 using CTSAR.Booking.Data;
@@ -7,24 +7,14 @@ using CTSAR.Booking.Data;
 namespace CTSAR.Booking.DTOs;
 
 /// <summary>
-/// DTO représentant une fermeture planifiée d'une alvéole
+/// DTO représentant une fermeture planifiée du club de tir
 /// </summary>
-public class FermetureDto
+public class FermetureClubDto
 {
     /// <summary>
     /// ID de la fermeture
     /// </summary>
     public int Id { get; set; }
-
-    /// <summary>
-    /// ID de l'alvéole concernée
-    /// </summary>
-    public int AlveoleId { get; set; }
-
-    /// <summary>
-    /// Nom de l'alvéole concernée
-    /// </summary>
-    public string AlveoleNom { get; set; } = string.Empty;
 
     /// <summary>
     /// Date et heure de début de la fermeture

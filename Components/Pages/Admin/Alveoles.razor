@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
 @inject AlveoleService AlveoleService
-@inject FermetureAlveoleService FermetureAlveoleService
+@inject FermetureClubService FermetureClubService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Alveoles> Loc
@@ -74,11 +74,6 @@
                                            Size="Size.Small"
                                            OnClick="@(() => OpenEditAlveoleDialog(context))"
                                            Title="@Loc["Edit"]" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Block"
-                                           Color="Color.Error"
-                                           Size="Size.Small"
-                                           OnClick="@(() => OpenCreateFermetureDialog(context))"
-                                           Title="@Loc["PlanClosure"]" />
                             @if (context.EstActive)
                             {
                                 <MudIconButton Icon="@Icons.Material.Filled.RemoveCircleOutline"
@@ -104,7 +99,15 @@
 
     <!-- Section : Fermetures planifiées -->
     <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h6" Class="mb-4">@Loc["PlannedClosuresTitle"]</MudText>
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudText Typo="Typo.h6">@Loc["PlannedClosuresTitle"]</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Block"
+                       OnClick="@OpenCreateFermetureDialog">
+                @Loc["PlanClubClosure"]
+            </MudButton>
+        </MudStack>
 
         @if (_loadingFermetures)
         {
@@ -122,7 +125,6 @@
                       Striped="true"
                       Bordered="true">
                 <HeaderContent>
-                    <MudTh>@Loc["Alveole"]</MudTh>
                     <MudTh>@Loc["StartDate"]</MudTh>
                     <MudTh>@Loc["EndDate"]</MudTh>
                     <MudTh>@Loc["Type"]</MudTh>
@@ -130,9 +132,6 @@
                     <MudTh Style="text-align: center;">@Loc["Actions"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="@Loc["Alveole"]">
-                        <MudChip T="string" Color="Color.Primary" Size="Size.Small">@context.AlveoleNom</MudChip>
-                    </MudTd>
                     <MudTd DataLabel="@Loc["StartDate"]">@context.DateDebut.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudTd>
                     <MudTd DataLabel="@Loc["EndDate"]">@context.DateFin.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudTd>
                     <MudTd DataLabel="@Loc["Type"]">
@@ -156,7 +155,7 @@
 
 @code {
     private List<AlveoleDto>? _alveoles;
-    private List<FermetureDto>? _fermetures;
+    private List<FermetureClubDto>? _fermetures;
     private bool _loading = true;
     private bool _loadingFermetures = true;
 
@@ -195,7 +194,7 @@
             // Charger les fermetures pour les 3 prochains mois
             var debut = DateTime.UtcNow;
             var fin = debut.AddMonths(3);
-            _fermetures = await FermetureAlveoleService.GetFermeturesForPeriodAsync(debut, fin);
+            _fermetures = await FermetureClubService.GetFermeturesForPeriodAsync(debut, fin);
         }
         catch (Exception ex)
         {
@@ -242,16 +241,11 @@
         }
     }
 
-    private async Task OpenCreateFermetureDialog(AlveoleDto alveole)
+    private async Task OpenCreateFermetureDialog()
     {
-        var parameters = new DialogParameters
-        {
-            { "AlveoleId", alveole.Id },
-            { "AlveoleNom", alveole.Nom }
-        };
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
 
-        var dialog = await DialogService.ShowAsync<CreateFermetureDialog>(Loc["PlanClosure"], parameters, options);
+        var dialog = await DialogService.ShowAsync<CreateFermetureDialog>(Loc["PlanClubClosure"], options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -312,7 +306,7 @@
 
 
 
-    private async Task DeleteFermeture(FermetureDto fermeture)
+    private async Task DeleteFermeture(FermetureClubDto fermeture)
     {
         var confirmed = await DialogService.ShowMessageBox(
             Loc["ConfirmDeletion"],
@@ -322,7 +316,7 @@
 
         if (confirmed == true)
         {
-            var result = await FermetureAlveoleService.DeleteFermetureAsync(fermeture.Id);
+            var result = await FermetureClubService.DeleteFermetureAsync(fermeture.Id);
             if (result.Success)
             {
                 Snackbar.Add(Loc["ClosureDeletedSuccess"], Severity.Success);

@@ -1,5 +1,5 @@
 // ====================================================================
-// FermetureAlveole.cs : Modèle représentant une fermeture planifiée
+// FermetureClub.cs : Modèle représentant une fermeture planifiée du club
 // ====================================================================
 
 using System.ComponentModel.DataAnnotations;
@@ -7,21 +7,15 @@ using System.ComponentModel.DataAnnotations;
 namespace CTSAR.Booking.Data;
 
 /// <summary>
-/// Représente une période de fermeture d'une alvéole.
-/// Empêche les réservations sur cette alvéole pendant la période.
+/// Représente une période de fermeture du club de tir.
+/// Empêche toutes les réservations pendant la période (toutes alvéoles confondues).
 /// </summary>
-public class FermetureAlveole
+public class FermetureClub
 {
     /// <summary>
     /// Identifiant unique de la fermeture
     /// </summary>
     public int Id { get; set; }
-
-    /// <summary>
-    /// ID de l'alvéole concernée
-    /// </summary>
-    [Required]
-    public int AlveoleId { get; set; }
 
     /// <summary>
     /// Date et heure de début de la fermeture
@@ -37,11 +31,10 @@ public class FermetureAlveole
     public DateTime DateFin { get; set; }
 
     /// <summary>
-    /// Raison de la fermeture
+    /// Raison de la fermeture (optionnel)
     /// </summary>
-    [Required]
     [MaxLength(200)]
-    public string Raison { get; set; } = string.Empty;
+    public string? Raison { get; set; }
 
     /// <summary>
     /// Type de fermeture (Travaux, JourFerie, etc.)
@@ -52,13 +45,4 @@ public class FermetureAlveole
     /// Date de création de cette fermeture
     /// </summary>
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
-
-    // ================================================================
-    // RELATIONS NAVIGATION (Entity Framework)
-    // ================================================================
-
-    /// <summary>
-    /// Alvéole concernée par cette fermeture
-    /// </summary>
-    public Alveole Alveole { get; set; } = null!;
 }

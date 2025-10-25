@@ -44,9 +44,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ReservationParticipant> ReservationParticipants { get; set; }
 
     /// <summary>
-    /// Table des fermetures d'alvéoles
+    /// Table des fermetures du club
     /// </summary>
-    public DbSet<FermetureAlveole> FermetureAlveoles { get; set; }
+    public DbSet<FermetureClub> FermeturesClub { get; set; }
 
     // ================================================================
     // CONFIGURATION DES MODÈLES
@@ -129,12 +129,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(r => r.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict); // Ne pas supprimer les réservations si on supprime l'utilisateur
 
-        // Configuration de la relation FermetureAlveole-Alveole
-        builder.Entity<FermetureAlveole>()
-            .HasOne(f => f.Alveole)
-            .WithMany(a => a.Fermetures)
-            .HasForeignKey(f => f.AlveoleId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Index pour optimiser les recherches fréquentes de fermetures
+        builder.Entity<FermetureClub>()
+            .HasIndex(f => f.DateDebut);
+
+        builder.Entity<FermetureClub>()
+            .HasIndex(f => f.DateFin);
 
         // Index pour optimiser les recherches fréquentes
         builder.Entity<Reservation>()
