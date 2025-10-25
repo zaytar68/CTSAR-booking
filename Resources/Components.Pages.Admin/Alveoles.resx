@@ -61,6 +61,9 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Désactiver</value>
   </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activer</value>
+  </data>
 
   <!-- Fermetures planifiées -->
   <data name="PlannedClosuresTitle" xml:space="preserve">
@@ -173,6 +176,12 @@
   <data name="ConfirmDeactivationMessage" xml:space="preserve">
     <value>Êtes-vous sûr de vouloir désactiver l'alvéole "{0}" ?</value>
   </data>
+  <data name="ConfirmActivation" xml:space="preserve">
+    <value>Confirmer l'activation</value>
+  </data>
+  <data name="ConfirmActivationMessage" xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir activer l'alvéole "{0}" ?</value>
+  </data>
   <data name="ConfirmDeletion" xml:space="preserve">
     <value>Confirmer la suppression</value>
   </data>
@@ -190,7 +199,16 @@
   <data name="AlveoleUpdatedSuccess" xml:space="preserve">
     <value>Alvéole mise à jour avec succès</value>
   </data>
+  <data name="AlveoleActivatedSuccess" xml:space="preserve">
+    <value>Alvéole activée avec succès</value>
+  </data>
+  <data name="AlveoleDeactivatedSuccess" xml:space="preserve">
+    <value>Alvéole désactivée avec succès</value>
+  </data>
   <data name="ClosureCreatedSuccess" xml:space="preserve">
     <value>Fermeture créée avec succès</value>
+  </data>
+  <data name="ClosureDeletedSuccess" xml:space="preserve">
+    <value>Fermeture supprimée avec succès</value>
   </data>
 </root>

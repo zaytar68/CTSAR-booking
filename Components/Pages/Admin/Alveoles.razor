@@ -81,11 +81,19 @@
                                            Title="@Loc["PlanClosure"]" />
                             @if (context.EstActive)
                             {
-                                <MudIconButton Icon="@Icons.Material.Filled.Archive"
+                                <MudIconButton Icon="@Icons.Material.Filled.RemoveCircleOutline"
                                                Color="Color.Warning"
                                                Size="Size.Small"
                                                OnClick="@(() => DeleteAlveole(context))"
                                                Title="@Loc["Deactivate"]" />
+                            }
+                            else
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.AddCircleOutline"
+                                               Color="Color.Success"
+                                               Size="Size.Small"
+                                               OnClick="@(() => ActivateAlveole(context))"
+                                               Title="@Loc["Activate"]" />
                             }
                         </MudStack>
                     </MudTd>
@@ -267,7 +275,7 @@
             var result = await AlveoleService.DeleteAlveoleAsync(alveole.Id);
             if (result.Success)
             {
-                Snackbar.Add(result.Message, Severity.Success);
+                Snackbar.Add(Loc["AlveoleDeactivatedSuccess"], Severity.Success);
                 await LoadAlveoles();
                 StateHasChanged();
             }
@@ -277,6 +285,32 @@
             }
         }
     }
+
+    private async Task ActivateAlveole(AlveoleDto alveole)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            Loc["ConfirmActivation"],
+            string.Format(Loc["ConfirmActivationMessage"], alveole.Nom),
+            yesText: Loc["Yes"],
+            cancelText: Loc["Cancel"]);
+
+        if (confirmed == true)
+        {
+            var result = await AlveoleService.ActivateAlveoleAsync(alveole.Id);
+            if (result.Success)
+            {
+                Snackbar.Add(Loc["AlveoleActivatedSuccess"], Severity.Success);
+                await LoadAlveoles();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add(result.Message, Severity.Error);
+            }
+        }
+    }
+
+
 
     private async Task DeleteFermeture(FermetureDto fermeture)
     {
@@ -291,7 +325,7 @@
             var result = await FermetureAlveoleService.DeleteFermetureAsync(fermeture.Id);
             if (result.Success)
             {
-                Snackbar.Add(result.Message, Severity.Success);
+                Snackbar.Add(Loc["ClosureDeletedSuccess"], Severity.Success);
                 await LoadFermetures();
                 StateHasChanged();
             }

@@ -106,7 +106,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Charger les alvéoles disponibles
-        _alveoles = await AlveoleService.GetAllAlveolesAsync();
+        _alveoles = await AlveoleService.GetAllActiveAlveolesAsync();
 
         // Récupérer l'utilisateur connecté
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();

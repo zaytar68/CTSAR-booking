@@ -24,16 +24,15 @@ public class AlveoleService
     }
 
     /// <summary>
-    /// Récupère toutes les alvéoles actives, triées par ordre d'affichage
+    /// Récupère toutes les alvéoles, triées par ordre d'affichage
     /// </summary>
     public async Task<List<AlveoleDto>> GetAllAlveolesAsync()
     {
         try
         {
-            _logger.LogInformation("Récupération de toutes les alvéoles actives");
+            _logger.LogInformation("Récupération de toutes les alvéoles");
 
             var alveoles = await _context.Alveoles
-                .Where(a => a.EstActive)
                 .OrderBy(a => a.Ordre)
                 .AsNoTracking()
                 .ToListAsync();
@@ -55,6 +54,41 @@ public class AlveoleService
             throw;
         }
     }
+
+    /// <summary>
+    /// Récupère toutes les alvéoles actives, triées par ordre d'affichage
+    /// </summary>
+
+    public async Task<List<AlveoleDto>> GetAllActiveAlveolesAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Récupération de toutes les alvéoles actives");
+
+            var alveoles = await _context.Alveoles
+                .Where(a => a.EstActive)
+                .OrderBy(a => a.Ordre)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var dtos = alveoles.Select(a => new AlveoleDto
+            {
+                Id = a.Id,
+                Nom = a.Nom,
+                Ordre = a.Ordre,
+                EstActive = a.EstActive
+            }).ToList();
+
+            _logger.LogInformation($"{dtos.Count} alvéoles actives récupérées");
+            return dtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des alvéoles actives");
+            throw;
+        }
+    }
+
 
     /// <summary>
     /// Récupère une alvéole par son ID
@@ -85,6 +119,8 @@ public class AlveoleService
         }
     }
 
+
+    
     /// <summary>
     /// Crée une nouvelle alvéole
     /// </summary>
@@ -189,7 +225,7 @@ public class AlveoleService
                 return (false, "Alvéole non trouvée");
             }
 
-            // Soft delete : on marque comme inactive au lieu de supprimer
+            // Désactivation de l'alvéole (soft delete)
             alveole.EstActive = false;
             await _context.SaveChangesAsync();
 
@@ -199,6 +235,36 @@ public class AlveoleService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Erreur lors de la désactivation de l'alvéole {id}");
+            return (false, $"Erreur : {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Active une alvéole
+    /// </summary>
+    public async Task<(bool Success, string Message)> ActivateAlveoleAsync(int id)
+    {
+        try
+        {
+            _logger.LogInformation($"Activation de l'alvéole {id}");
+
+            var alveole = await _context.Alveoles.FindAsync(id);
+            if (alveole == null)
+            {
+                _logger.LogWarning($"Alvéole {id} non trouvée");
+                return (false, "Alvéole non trouvée");
+            }
+
+            // Activation de l'alvéole
+            alveole.EstActive = true;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"Alvéole {id} activée avec succès");
+            return (true, "Alvéole activée avec succès");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de l'activation de l'alvéole {id}");
             return (false, $"Erreur : {ex.Message}");
         }
     }

@@ -58,6 +58,9 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Deaktivieren</value>
   </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Aktivieren</value>
+  </data>
   <data name="PlannedClosuresTitle" xml:space="preserve">
     <value>Geplante Schließungen (nächste 3 Monate)</value>
   </data>
@@ -160,6 +163,12 @@
   <data name="ConfirmDeactivationMessage" xml:space="preserve">
     <value>Sind Sie sicher, dass Sie den Schießstand "{0}" deaktivieren möchten?</value>
   </data>
+  <data name="ConfirmActivation" xml:space="preserve">
+    <value>Aktivierung bestätigen</value>
+  </data>
+  <data name="ConfirmActivationMessage" xml:space="preserve">
+    <value>Sind Sie sicher, dass Sie den Schießstand "{0}" aktivieren möchten?</value>
+  </data>
   <data name="ConfirmDeletion" xml:space="preserve">
     <value>Löschen bestätigen</value>
   </data>
@@ -175,7 +184,16 @@
   <data name="AlveoleUpdatedSuccess" xml:space="preserve">
     <value>Schießstand erfolgreich aktualisiert</value>
   </data>
+  <data name="AlveoleActivatedSuccess" xml:space="preserve">
+    <value>Schießstand erfolgreich aktiviert</value>
+  </data>
+  <data name="AlveoleDeactivatedSuccess" xml:space="preserve">
+    <value>Schießstand erfolgreich deaktiviert</value>
+  </data>
   <data name="ClosureCreatedSuccess" xml:space="preserve">
     <value>Schließung erfolgreich erstellt</value>
+  </data>
+  <data name="ClosureDeletedSuccess" xml:space="preserve">
+    <value>Schließung erfolgreich gelöscht</value>
   </data>
 </root>

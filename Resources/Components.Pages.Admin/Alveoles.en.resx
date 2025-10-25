@@ -58,6 +58,9 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Deactivate</value>
   </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activate</value>
+  </data>
   <data name="PlannedClosuresTitle" xml:space="preserve">
     <value>Planned Closures (next 3 months)</value>
   </data>
@@ -160,6 +163,12 @@
   <data name="ConfirmDeactivationMessage" xml:space="preserve">
     <value>Are you sure you want to deactivate lane "{0}"?</value>
   </data>
+  <data name="ConfirmActivation" xml:space="preserve">
+    <value>Confirm Activation</value>
+  </data>
+  <data name="ConfirmActivationMessage" xml:space="preserve">
+    <value>Are you sure you want to activate lane "{0}"?</value>
+  </data>
   <data name="ConfirmDeletion" xml:space="preserve">
     <value>Confirm Deletion</value>
   </data>
@@ -175,7 +184,16 @@
   <data name="AlveoleUpdatedSuccess" xml:space="preserve">
     <value>Lane updated successfully</value>
   </data>
+  <data name="AlveoleActivatedSuccess" xml:space="preserve">
+    <value>Lane activated successfully</value>
+  </data>
+  <data name="AlveoleDeactivatedSuccess" xml:space="preserve">
+    <value>Lane deactivated successfully</value>
+  </data>
   <data name="ClosureCreatedSuccess" xml:space="preserve">
     <value>Closure created successfully</value>
+  </data>
+  <data name="ClosureDeletedSuccess" xml:space="preserve">
+    <value>Closure deleted successfully</value>
   </data>
 </root>
