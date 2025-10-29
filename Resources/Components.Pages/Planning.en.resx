@@ -73,6 +73,9 @@
   <data name="StatusPending" xml:space="preserve">
     <value>Pending (no instructor)</value>
   </data>
+  <data name="StatusClosed" xml:space="preserve">
+    <value>Range closed</value>
+  </data>
   <data name="Monday" xml:space="preserve">
     <value>Monday</value>
   </data>
@@ -177,5 +180,17 @@
   </data>
   <data name="Processing" xml:space="preserve">
     <value>Processing...</value>
+  </data>
+  <data name="TypeTravaux" xml:space="preserve">
+    <value>Maintenance</value>
+  </data>
+  <data name="TypeJourFerie" xml:space="preserve">
+    <value>Holiday</value>
+  </data>
+  <data name="TypeReservationExterne" xml:space="preserve">
+    <value>External booking</value>
+  </data>
+  <data name="TypeAutre" xml:space="preserve">
+    <value>Other</value>
   </data>
 </root>

@@ -8,6 +8,7 @@
 @using System.Security.Claims
 @inject ReservationService ReservationService
 @inject AlveoleService AlveoleService
+@inject FermetureClubService FermetureClubService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -57,6 +58,10 @@
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                 <MudIcon Icon="@Icons.Material.Filled.Circle" Color="Color.Warning" Size="Size.Small" />
                 <MudText Typo="Typo.body2">@Loc["StatusPending"]</MudText>
+            </MudStack>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudIcon Icon="@Icons.Material.Filled.Circle" Color="Color.Error" Size="Size.Small" />
+                <MudText Typo="Typo.body2">@Loc["StatusClosed"]</MudText>
             </MudStack>
         </MudStack>
     </MudPaper>
@@ -109,6 +114,19 @@
                                             @GetReservationLabel(reservation)
                                         </MudChip>
                                     }
+
+                                    <!-- Fermetures du jour -->
+                                    @foreach (var fermeture in GetFermeturesForDay(day.Value))
+                                    {
+                                        <MudAlert Severity="Severity.Error"
+                                                  Dense="true"
+                                                  NoIcon="false"
+                                                  Icon="@Icons.Material.Filled.Block"
+                                                  Class="my-1"
+                                                  Style="font-size: 0.7rem; padding: 4px 8px;">
+                                            @GetFermetureLabel(fermeture)
+                                        </MudAlert>
+                                    }
                                 </MudStack>
                             }
                         </MudTd>
@@ -134,6 +152,7 @@
     private int _currentYear;
     private List<ReservationDto>? _reservations;
     private List<AlveoleDto>? _alveoles;
+    private List<FermetureClubDto>? _fermetures;
     private bool _loading = true;
     private string? _currentUserId;
     private bool _isMoniteur = false;
@@ -159,11 +178,13 @@
         {
             var reservationsTask = ReservationService.GetReservationsForMonthAsync(_currentYear, _currentMonth);
             var alveolesTask = AlveoleService.GetAllAlveolesAsync();
+            var fermeturesTask = FermetureClubService.GetFermeturesForMonthAsync(_currentYear, _currentMonth);
 
-            await Task.WhenAll(reservationsTask, alveolesTask);
+            await Task.WhenAll(reservationsTask, alveolesTask, fermeturesTask);
 
             _reservations = await reservationsTask;
             _alveoles = await alveolesTask;
+            _fermetures = await fermeturesTask;
         }
         catch (Exception ex)
         {
@@ -296,6 +317,41 @@
         var time = reservation.DateDebut.ToLocalTime().ToString("HH:mm");
         var alveoles = string.Join(",", reservation.Alveoles.Select(a => a.Nom));
         return $"{time} {alveoles}";
+    }
+
+    private List<FermetureClubDto> GetFermeturesForDay(DateTime day)
+    {
+        if (_fermetures == null)
+            return new List<FermetureClubDto>();
+
+        return _fermetures
+            .Where(f => f.DateDebut.Date <= day.Date && f.DateFin.Date >= day.Date)
+            .OrderBy(f => f.DateDebut)
+            .ToList();
+    }
+
+    private string GetFermetureLabel(FermetureClubDto fermeture)
+    {
+        var typeLabel = GetFermetureTypeLabel(fermeture.TypeFermeture);
+
+        if (!string.IsNullOrWhiteSpace(fermeture.Raison))
+        {
+            return $"{typeLabel}: {fermeture.Raison}";
+        }
+
+        return typeLabel;
+    }
+
+    private string GetFermetureTypeLabel(TypeFermeture type)
+    {
+        return type switch
+        {
+            TypeFermeture.Travaux => Loc["TypeTravaux"],
+            TypeFermeture.JourFerie => Loc["TypeJourFerie"],
+            TypeFermeture.ReservationExterne => Loc["TypeReservationExterne"],
+            TypeFermeture.Autre => Loc["TypeAutre"],
+            _ => type.ToString()
+        };
     }
 
     private async Task OpenCreateReservationDialog()

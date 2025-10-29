@@ -73,6 +73,9 @@
   <data name="StatusPending" xml:space="preserve">
     <value>En attente (aucun moniteur)</value>
   </data>
+  <data name="StatusClosed" xml:space="preserve">
+    <value>Stand fermé</value>
+  </data>
   <data name="Monday" xml:space="preserve">
     <value>Lundi</value>
   </data>
@@ -177,5 +180,17 @@
   </data>
   <data name="Processing" xml:space="preserve">
     <value>Traitement...</value>
+  </data>
+  <data name="TypeTravaux" xml:space="preserve">
+    <value>Travaux</value>
+  </data>
+  <data name="TypeJourFerie" xml:space="preserve">
+    <value>Jour férié</value>
+  </data>
+  <data name="TypeReservationExterne" xml:space="preserve">
+    <value>Réservation externe</value>
+  </data>
+  <data name="TypeAutre" xml:space="preserve">
+    <value>Autre</value>
   </data>
 </root>
