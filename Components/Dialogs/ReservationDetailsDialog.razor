@@ -4,8 +4,10 @@
 @using CTSAR.Booking.Components.Pages
 @using Microsoft.Extensions.Localization
 @using System.Security.Claims
+@using System.Text.RegularExpressions
 @using MudBlazor
 @inject ReservationService ReservationService
+@inject AlveoleService AlveoleService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Planning> Loc
@@ -33,7 +35,8 @@
                     @GetStatusLabel(_reservation.StatutReservation)
                 </MudAlert>
 
-                <!-- Informations de base -->
+                <!-- Informations générales -->
+                <MudText Typo="Typo.h6">@Loc["GeneralInfo"]</MudText>
                 <MudPaper Class="pa-3" Outlined="true">
                     <MudStack Spacing="2">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -49,66 +52,213 @@
                                 @_reservation.DateDebut.ToLocalTime().ToString("HH:mm") - @_reservation.DateFin.ToLocalTime().ToString("HH:mm")
                             </MudText>
                         </MudStack>
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                            <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" />
-                            <MudText Typo="Typo.body2">
-                                <strong>@Loc["Alveoles"]:</strong> @_reservation.NomsAlveoles
-                            </MudText>
-                        </MudStack>
-                        @if (!string.IsNullOrWhiteSpace(_reservation.Commentaire))
+                        @if (_reservation.MoniteurPrincipal != null)
                         {
-                            <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
-                                <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
+                            <MudDivider />
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" Color="Color.Primary" />
                                 <MudText Typo="Typo.body2">
-                                    <strong>@Loc["Comment"]:</strong> @_reservation.Commentaire
+                                    <strong>@Loc["InstructorInCharge"]:</strong> @_reservation.MoniteurPrincipal.NomComplet
                                 </MudText>
                             </MudStack>
                         }
                     </MudStack>
                 </MudPaper>
 
-                <!-- Liste des participants -->
-                <MudText Typo="Typo.h6">@Loc["Participants"] (@_reservation.NombreParticipants)</MudText>
+                <!-- Alvéoles de tir -->
+                <MudText Typo="Typo.h6">@Loc["ShootingLanes"]</MudText>
+                <MudPaper Class="pa-3" Outlined="true">
+                    @if (_reservation.Alveoles.Any())
+                    {
+                        <MudChipSet>
+                            @foreach (var alveole in _reservation.Alveoles.OrderBy(a => a.Nom))
+                            {
+                                <MudChip T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.Place">
+                                    @alveole.Nom
+                                </MudChip>
+                            }
+                        </MudChipSet>
 
+                        @if (_isCurrentUserMoniteurInscrit && !_isEditingAlveoles)
+                        {
+                            <MudButton StartIcon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Variant="Variant.Text"
+                                       Size="Size.Small"
+                                       Class="mt-2"
+                                       OnClick="StartEditAlveoles">
+                                @Loc["SelectLanes"]
+                            </MudButton>
+                        }
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            @Loc["LanesNotYetDefined"]
+                        </MudAlert>
+
+                        @if (_isCurrentUserMoniteurInscrit)
+                        {
+                            <MudButton StartIcon="@Icons.Material.Filled.Add"
+                                       Color="Color.Primary"
+                                       Variant="Variant.Filled"
+                                       Size="Size.Small"
+                                       Class="mt-2"
+                                       OnClick="StartEditAlveoles">
+                                @Loc["SelectLanes"]
+                            </MudButton>
+                        }
+                    }
+
+                    @if (_isEditingAlveoles)
+                    {
+                        <MudDivider Class="my-3" />
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@Loc["InstructorCanSelectLanes"]</MudText>
+                        <MudStack Spacing="2">
+                            @foreach (var alveole in _availableAlveoles)
+                            {
+                                <MudCheckBox T="bool"
+                                             Checked="_selectedAlveoleIds.Contains(alveole.Id)"
+                                             CheckedChanged="@((bool isChecked) => ToggleAlveoleSelection(alveole.Id, isChecked))"
+                                             Label="@alveole.Nom"
+                                             Color="Color.Primary" />
+                            }
+                            <MudStack Row="true" Spacing="2" Class="mt-2">
+                                <MudButton StartIcon="@Icons.Material.Filled.Check"
+                                           Color="Color.Success"
+                                           Variant="Variant.Filled"
+                                           Size="Size.Small"
+                                           OnClick="ConfirmAlveoles"
+                                           Disabled="_isProcessing || !_selectedAlveoleIds.Any()">
+                                    @Loc["ConfirmLanes"]
+                                </MudButton>
+                                <MudButton StartIcon="@Icons.Material.Filled.Cancel"
+                                           Color="Color.Default"
+                                           Variant="Variant.Text"
+                                           Size="Size.Small"
+                                           OnClick="CancelEditAlveoles"
+                                           Disabled="_isProcessing">
+                                    @Loc["Cancel"]
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    }
+                </MudPaper>
+
+                <!-- Moniteurs -->
+                <MudText Typo="Typo.h6">
+                    @Loc["Instructors"] (@_reservation.NombreMoniteurs)
+                </MudText>
                 @if (_reservation.NombreMoniteurs > 0)
                 {
-                    <MudText Typo="Typo.subtitle2" Color="Color.Success">
-                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
-                        @_reservation.NombreMoniteurs @Loc["InstructorsRegistered"]
-                    </MudText>
+                    <MudList T="string" Dense="true">
+                        @foreach (var moniteur in _reservation.Participants.Where(p => p.EstMoniteur).OrderBy(p => p.DateInscription))
+                        {
+                            <MudListItem T="string">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                        @moniteur.Initiales
+                                    </MudAvatar>
+                                    <MudStack Spacing="0" Class="flex-grow-1">
+                                        <MudText Typo="Typo.body2">
+                                            <strong>@moniteur.NomComplet</strong>
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @Loc["RegisteredOn"] @moniteur.DateInscription.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </MudText>
+                                    </MudStack>
+                                </MudStack>
+                            </MudListItem>
+                        }
+                    </MudList>
                 }
                 else
                 {
-                    <MudText Typo="Typo.subtitle2" Color="Color.Warning">
-                        <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Color="Color.Warning" />
+                    <MudAlert Severity="Severity.Warning" Dense="true">
                         @Loc["NoInstructorYet"]
-                    </MudText>
+                    </MudAlert>
                 }
 
-                <MudList T="string" Dense="true">
-                    @foreach (var participant in _reservation.Participants.OrderByDescending(p => p.EstMoniteur).ThenBy(p => p.DateInscription))
-                    {
-                        <MudListItem T="string">
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <MudAvatar Color="@(participant.EstMoniteur ? Color.Primary : Color.Secondary)" Size="Size.Small">
-                                    @participant.Initiales
-                                </MudAvatar>
-                                <MudStack Spacing="0" Class="flex-grow-1">
-                                    <MudText Typo="Typo.body2">
-                                        <strong>@participant.NomComplet</strong>
-                                        @if (participant.EstMoniteur)
-                                        {
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ml-2">@Loc["Instructor"]</MudChip>
-                                        }
-                                    </MudText>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                        @Loc["RegisteredOn"] @participant.DateInscription.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                                    </MudText>
+                <!-- Membres -->
+                <MudText Typo="Typo.h6" Class="mt-3">
+                    @Loc["Members"] (@(_reservation.NombreParticipants - _reservation.NombreMoniteurs))
+                </MudText>
+                @if (_reservation.Participants.Any(p => !p.EstMoniteur))
+                {
+                    <MudList T="string" Dense="true">
+                        @foreach (var membre in _reservation.Participants.Where(p => !p.EstMoniteur).OrderBy(p => p.DateInscription))
+                        {
+                            <MudListItem T="string">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudAvatar Color="Color.Secondary" Size="Size.Small">
+                                        @membre.Initiales
+                                    </MudAvatar>
+                                    <MudStack Spacing="0" Class="flex-grow-1">
+                                        <MudText Typo="Typo.body2">
+                                            <strong>@membre.NomComplet</strong>
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @Loc["RegisteredOn"] @membre.DateInscription.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </MudText>
+                                    </MudStack>
                                 </MudStack>
-                            </MudStack>
-                        </MudListItem>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        Aucun membre inscrit
+                    </MudAlert>
+                }
+
+                <!-- Notes et commentaires -->
+                <MudText Typo="Typo.h6" Class="mt-3">@Loc["NotesAndComments"]</MudText>
+                <MudPaper Class="pa-3" Outlined="true">
+                    @if (_commentEntries.Any())
+                    {
+                        <MudStack Spacing="2" Class="mb-3">
+                            @foreach (var entry in _commentEntries.OrderBy(e => e.Timestamp))
+                            {
+                                <MudPaper Class="pa-2" Outlined="true" Elevation="0">
+                                    <MudText Typo="Typo.caption" Style="@GetCommentTimestampStyle(entry.IsMoniteur)">
+                                        [@entry.Timestamp - @entry.AuthorName]
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Class="mt-1">
+                                        @entry.Content
+                                    </MudText>
+                                </MudPaper>
+                            }
+                        </MudStack>
                     }
-                </MudList>
+
+                    @if (_isCurrentUserRegistered)
+                    {
+                        <MudTextField T="string"
+                                      @bind-Value="_newComment"
+                                      Label="@Loc["AddNote"]"
+                                      Placeholder="@Loc["AddNotePlaceholder"]"
+                                      Variant="Variant.Outlined"
+                                      Lines="3"
+                                      Immediate="true" />
+                        <MudButton StartIcon="@Icons.Material.Filled.Send"
+                                   Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   Size="Size.Small"
+                                   Class="mt-2"
+                                   OnClick="AddComment"
+                                   Disabled="_isProcessing || string.IsNullOrWhiteSpace(_newComment)">
+                            @Loc["AddNote"]
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            @Loc["MustBeRegisteredToComment"]
+                        </MudAlert>
+                    }
+                </MudPaper>
 
                 @if (!string.IsNullOrEmpty(_errorMessage))
                 {
@@ -178,6 +328,16 @@
     private string? _currentUserId;
     private bool _isMoniteur = false;
     private bool _isCurrentUserRegistered = false;
+    private bool _isCurrentUserMoniteurInscrit = false;
+
+    // Gestion des alvéoles
+    private List<AlveoleDto> _availableAlveoles = new();
+    private List<int> _selectedAlveoleIds = new();
+    private bool _isEditingAlveoles = false;
+
+    // Gestion des commentaires
+    private List<CommentaireEntryDto> _commentEntries = new();
+    private string _newComment = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -185,6 +345,9 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         _isMoniteur = authState.User.IsInRole("Moniteur");
+
+        // Charger les alvéoles disponibles
+        _availableAlveoles = await AlveoleService.GetAllActiveAlveolesAsync();
 
         await LoadReservation();
     }
@@ -202,6 +365,10 @@
             if (_reservation != null && !string.IsNullOrEmpty(_currentUserId))
             {
                 _isCurrentUserRegistered = _reservation.Participants.Any(p => p.UserId == _currentUserId);
+                _isCurrentUserMoniteurInscrit = _reservation.IsMoniteurInscrit(_currentUserId);
+
+                // Parser les commentaires
+                ParseComments();
             }
         }
         catch (Exception ex)
@@ -211,6 +378,41 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    private void ParseComments()
+    {
+        _commentEntries.Clear();
+
+        if (_reservation == null || string.IsNullOrWhiteSpace(_reservation.Commentaire))
+            return;
+
+        // Pattern : [DD/MM HH:mm - Prénom NOM] contenu
+        var pattern = @"\[(\d{2}/\d{2}\s\d{2}:\d{2})\s-\s([^\]]+)\]\s*(.+?)(?=\[|$)";
+        var matches = Regex.Matches(_reservation.Commentaire, pattern, RegexOptions.Singleline);
+
+        foreach (Match match in matches)
+        {
+            if (match.Groups.Count >= 4)
+            {
+                var timestamp = match.Groups[1].Value.Trim();
+                var authorName = match.Groups[2].Value.Trim();
+                var content = match.Groups[3].Value.Trim();
+
+                // Déterminer si c'est un moniteur en cherchant dans les participants
+                var participant = _reservation.Participants.FirstOrDefault(p =>
+                    $"{p.NomComplet}".Equals(authorName, StringComparison.OrdinalIgnoreCase));
+
+                _commentEntries.Add(new CommentaireEntryDto
+                {
+                    Timestamp = timestamp,
+                    AuthorName = authorName,
+                    AuthorId = participant?.UserId ?? string.Empty,
+                    IsMoniteur = participant?.EstMoniteur ?? false,
+                    Content = content
+                });
+            }
         }
     }
 
@@ -306,5 +508,118 @@
         return statut == StatutReservation.Confirmee
             ? Loc["StatusConfirmed"]
             : Loc["StatusPending"];
+    }
+
+    // ===== Gestion des alvéoles =====
+
+    private void StartEditAlveoles()
+    {
+        _isEditingAlveoles = true;
+        _selectedAlveoleIds = _reservation?.Alveoles.Select(a => a.Id).ToList() ?? new List<int>();
+    }
+
+    private void CancelEditAlveoles()
+    {
+        _isEditingAlveoles = false;
+        _selectedAlveoleIds.Clear();
+    }
+
+    private void ToggleAlveoleSelection(int alveoleId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!_selectedAlveoleIds.Contains(alveoleId))
+                _selectedAlveoleIds.Add(alveoleId);
+        }
+        else
+        {
+            _selectedAlveoleIds.Remove(alveoleId);
+        }
+    }
+
+    private async Task ConfirmAlveoles()
+    {
+        if (!_selectedAlveoleIds.Any() || string.IsNullOrEmpty(_currentUserId))
+            return;
+
+        _errorMessage = null;
+        _successMessage = null;
+        _isProcessing = true;
+
+        try
+        {
+            var result = await ReservationService.UpdateSessionAlveolesAsync(
+                ReservationId,
+                _selectedAlveoleIds,
+                _currentUserId);
+
+            if (result.Success)
+            {
+                _successMessage = result.Message;
+                _isEditingAlveoles = false;
+                await LoadReservation();
+                StateHasChanged();
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    // ===== Gestion des commentaires =====
+
+    private async Task AddComment()
+    {
+        if (string.IsNullOrWhiteSpace(_newComment) || string.IsNullOrEmpty(_currentUserId))
+            return;
+
+        _errorMessage = null;
+        _successMessage = null;
+        _isProcessing = true;
+
+        try
+        {
+            var result = await ReservationService.AddCommentaireEntryAsync(
+                ReservationId,
+                _currentUserId,
+                _newComment);
+
+            if (result.Success)
+            {
+                _successMessage = result.Message;
+                _newComment = string.Empty;
+                await LoadReservation();
+                StateHasChanged();
+            }
+            else
+            {
+                _errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Erreur : {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private string GetCommentTimestampStyle(bool isMoniteur)
+    {
+        // Couleur différente pour les moniteurs
+        return isMoniteur
+            ? "color: var(--mud-palette-primary); font-weight: 600;"
+            : "color: var(--mud-palette-secondary); font-weight: 600;";
     }
 }
