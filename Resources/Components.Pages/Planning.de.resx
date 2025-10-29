@@ -238,4 +238,7 @@
   <data name="CreatedBy" xml:space="preserve">
     <value>Erstellt von</value>
   </data>
+  <data name="MemberCannotSelectLanes" xml:space="preserve">
+    <value>Diese Anmeldung zeigt Ihre Verfügbarkeit an. Ihre Teilnahme an der Schießsitzung wird erst nach Bestätigung der Anwesenheit eines Ausbilders wirksam.</value>
+  </data>
 </root>

@@ -14,21 +14,30 @@
     <DialogContent>
         <MudForm @ref="_form" Model="@_model">
             <MudStack Spacing="3">
-                <!-- Sélection des alvéoles -->
-                <MudSelect T="int"
-                           Label="@Loc["Alveoles"]"
-                           MultiSelection="true"
-                           @bind-SelectedValues="_selectedAlveoleIds"
-                           Required="true"
-                           RequiredError="@Loc["AlveolesRequired"]">
-                    @if (_alveoles != null)
-                    {
-                        @foreach (var alveole in _alveoles.Where(a => a.EstActive).OrderBy(a => a.Ordre))
+                <!-- Sélection des alvéoles (uniquement pour les moniteurs) -->
+                @if (_isMoniteur)
+                {
+                    <MudSelect T="int"
+                               Label="@Loc["Alveoles"]"
+                               MultiSelection="true"
+                               @bind-SelectedValues="_selectedAlveoleIds"
+                               Required="true"
+                               RequiredError="@Loc["AlveolesRequired"]">
+                        @if (_alveoles != null)
                         {
-                            <MudSelectItem T="int" Value="@alveole.Id">@alveole.Nom</MudSelectItem>
+                            @foreach (var alveole in _alveoles.Where(a => a.EstActive).OrderBy(a => a.Ordre))
+                            {
+                                <MudSelectItem T="int" Value="@alveole.Id">@alveole.Nom</MudSelectItem>
+                            }
                         }
-                    }
-                </MudSelect>
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        @Loc["MemberCannotSelectLanes"]
+                    </MudAlert>
+                }
 
                 <!-- Date de début -->
                 <MudDatePicker Label="@Loc["StartDate"]"
@@ -134,8 +143,8 @@
                 return;
             }
 
-            // Vérifier qu'au moins une alvéole est sélectionnée
-            if (!_selectedAlveoleIds.Any())
+            // Vérifier qu'au moins une alvéole est sélectionnée (uniquement pour les moniteurs)
+            if (_isMoniteur && !_selectedAlveoleIds.Any())
             {
                 _errorMessage = Loc["AlveolesRequired"];
                 _isSubmitting = false;

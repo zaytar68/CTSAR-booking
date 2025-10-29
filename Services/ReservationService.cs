@@ -117,15 +117,26 @@ public class ReservationService
         {
             _logger.LogInformation($"Création d'inscription par utilisateur {userId}");
 
-            // 1. Valider les alvéoles
-            var alveoles = await _context.Alveoles
-                .Where(a => dto.AlveoleIds.Contains(a.Id) && a.EstActive)
-                .ToListAsync();
-
-            if (alveoles.Count != dto.AlveoleIds.Count)
+            // 1. Valider les alvéoles (si spécifiées)
+            // Les membres peuvent créer une session sans alvéoles (le moniteur les choisira)
+            // Les moniteurs doivent obligatoirement sélectionner des alvéoles
+            if (isMoniteur && !dto.AlveoleIds.Any())
             {
-                _logger.LogWarning("Une ou plusieurs alvéoles invalides ou inactives");
-                return (false, "Une ou plusieurs alvéoles sélectionnées sont invalides ou inactives", null);
+                _logger.LogWarning("Un moniteur doit sélectionner au moins une alvéole");
+                return (false, "Vous devez sélectionner au moins une alvéole", null);
+            }
+
+            if (dto.AlveoleIds.Any())
+            {
+                var alveoles = await _context.Alveoles
+                    .Where(a => dto.AlveoleIds.Contains(a.Id) && a.EstActive)
+                    .ToListAsync();
+
+                if (alveoles.Count != dto.AlveoleIds.Count)
+                {
+                    _logger.LogWarning("Une ou plusieurs alvéoles invalides ou inactives");
+                    return (false, "Une ou plusieurs alvéoles sélectionnées sont invalides ou inactives", null);
+                }
             }
 
             // 2. Valider les dates
@@ -142,11 +153,16 @@ public class ReservationService
                 return (false, "Le club de tir est fermé pendant cette période", null);
             }
 
-            // 4. Vérifier les chevauchements
-            if (await HasOverlapAsync(dto.AlveoleIds, dto.DateDebut, dto.DateFin))
+            // 4. Vérifier les chevauchements (seulement si des alvéoles sont spécifiées et que c'est un membre)
+            // Les moniteurs peuvent créer des sessions concurrentes (plusieurs moniteurs dans le même créneau)
+            // Les membres sans alvéoles ne peuvent pas créer de chevauchement
+            if (!isMoniteur && dto.AlveoleIds.Any())
             {
-                _logger.LogWarning("Chevauchement détecté avec une inscription existante");
-                return (false, "Une ou plusieurs alvéoles sont déjà réservées sur ce créneau", null);
+                if (await HasOverlapAsync(dto.AlveoleIds, dto.DateDebut, dto.DateFin))
+                {
+                    _logger.LogWarning("Chevauchement détecté avec une inscription existante");
+                    return (false, "Une ou plusieurs alvéoles sont déjà réservées sur ce créneau", null);
+                }
             }
 
             // 5. Créer l'inscription
@@ -179,7 +195,49 @@ public class ReservationService
                 });
             }
 
-            // 7. Inscrire le créateur comme premier participant
+            // 7. Si c'est un moniteur, fusionner avec les sessions en attente sur le même créneau
+            List<int> mergedUserIds = new List<int>();
+            if (isMoniteur)
+            {
+                // Rechercher les réservations en attente qui chevauchent ce créneau
+                var overlappingReservations = await _context.Reservations
+                    .Include(r => r.Participants)
+                    .Where(r => r.StatutReservation == StatutReservation.EnAttente
+                           && r.DateDebut < dto.DateFin
+                           && r.DateFin > dto.DateDebut)
+                    .ToListAsync();
+
+                if (overlappingReservations.Any())
+                {
+                    _logger.LogInformation($"Fusion de {overlappingReservations.Count} session(s) en attente");
+
+                    foreach (var oldReservation in overlappingReservations)
+                    {
+                        // Transférer tous les participants (sauf ceux déjà inscrits)
+                        foreach (var participant in oldReservation.Participants)
+                        {
+                            if (!mergedUserIds.Contains(participant.UserId) && participant.UserId != userIdInt)
+                            {
+                                _context.ReservationParticipants.Add(new ReservationParticipant
+                                {
+                                    ReservationId = reservation.Id,
+                                    UserId = participant.UserId,
+                                    EstMoniteur = participant.EstMoniteur,
+                                    DateInscription = participant.DateInscription
+                                });
+                                mergedUserIds.Add(participant.UserId);
+                            }
+                        }
+
+                        // Supprimer l'ancienne réservation
+                        _context.Reservations.Remove(oldReservation);
+                    }
+
+                    _logger.LogInformation($"{mergedUserIds.Count} participant(s) transféré(s) depuis les sessions en attente");
+                }
+            }
+
+            // 8. Inscrire le créateur comme participant
             _context.ReservationParticipants.Add(new ReservationParticipant
             {
                 ReservationId = reservation.Id,
@@ -190,7 +248,7 @@ public class ReservationService
 
             await _context.SaveChangesAsync();
 
-            // 8. Recharger avec toutes les relations pour le DTO
+            // 9. Recharger avec toutes les relations pour le DTO
             var created = await GetReservationByIdAsync(reservation.Id);
 
             _logger.LogInformation($"Inscription {reservation.Id} créée avec succès");

@@ -11,6 +11,9 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Planning> Loc
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true">
     <TitleContent>
@@ -274,7 +277,7 @@
         </div>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Close">@Loc["Close"]</MudButton>
+        <MudButton OnClick="@(() => Close())" Color="Color.Primary" Variant="Variant.Text">@Loc["Close"]</MudButton>
         @if (_reservation != null && !_loading)
         {
             @if (_isCurrentUserRegistered)
@@ -317,7 +320,7 @@
 
 @code {
     [CascadingParameter]
-    private MudBlazor.IDialogReference? DialogRef { get; set; }
+    public MudBlazor.IDialogReference? DialogRef { get; set; }
 
     [Parameter]
     public int ReservationId { get; set; }
@@ -500,16 +503,43 @@
         }
     }
 
-    private void Close()
+    private async Task Close()
     {
-        // Fermer avec ou sans rechargement selon les modifications
-        if (_hasChanges)
+        Console.WriteLine("Close() méthode appelée");
+        Console.WriteLine($"DialogRef is null? {DialogRef == null}");
+        Console.WriteLine($"_hasChanges = {_hasChanges}");
+
+        // Essayer d'abord avec DialogRef
+        if (DialogRef != null)
         {
-            DialogRef?.Close(DialogResult.Ok(true)); // Recharger le planning
+            Console.WriteLine("Fermeture via DialogRef");
+            if (_hasChanges)
+            {
+                DialogRef.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                DialogRef.Close(DialogResult.Cancel());
+            }
         }
         else
         {
-            DialogRef?.Close(DialogResult.Cancel()); // Ne pas recharger
+            // Fallback: Utiliser JavaScript pour fermer le dialogue en simulant un clic sur le backdrop
+            Console.WriteLine("DialogRef is null - using JavaScript to close dialog");
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "document.querySelector('.mud-overlay').click()");
+
+                // Si des changements ont été faits, recharger la page du planning
+                if (_hasChanges)
+                {
+                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la fermeture du dialogue : {ex.Message}");
+            }
         }
     }
 

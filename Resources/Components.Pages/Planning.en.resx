@@ -238,4 +238,7 @@
   <data name="CreatedBy" xml:space="preserve">
     <value>Created by</value>
   </data>
+  <data name="MemberCannotSelectLanes" xml:space="preserve">
+    <value>This registration indicates your availability. Your participation in the shooting session will only be confirmed after an instructor validates their presence.</value>
+  </data>
 </root>
