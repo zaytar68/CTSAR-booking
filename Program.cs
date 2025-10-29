@@ -122,6 +122,9 @@ builder.Services.AddScoped<ReservationService>();
 // Ajoute FermetureClubService pour gérer les fermetures planifiées du club
 builder.Services.AddScoped<FermetureClubService>();
 
+// Ajoute NotificationService pour envoyer des notifications aux utilisateurs
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 // --------------------------------------------------------------------
 // AUTORISATION : Configuration des policies (règles d'accès)
 // --------------------------------------------------------------------

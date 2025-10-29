@@ -75,4 +75,18 @@ public class ReservationDto
     /// Noms des alvéoles concaténés (ex: "A1, A2, A3")
     /// </summary>
     public string NomsAlveoles => string.Join(", ", Alveoles.Select(a => a.Nom));
+
+    /// <summary>
+    /// Moniteur principal (premier moniteur inscrit)
+    /// </summary>
+    public ReservationParticipantDto? MoniteurPrincipal =>
+        Participants.FirstOrDefault(p => p.EstMoniteur);
+
+    /// <summary>
+    /// Vérifie si l'utilisateur spécifié est un moniteur inscrit à cette réservation
+    /// </summary>
+    /// <param name="userId">ID de l'utilisateur à vérifier</param>
+    /// <returns>True si l'utilisateur est un moniteur inscrit, sinon False</returns>
+    public bool IsMoniteurInscrit(string userId) =>
+        Participants.Any(p => p.UserId == userId && p.EstMoniteur);
 }

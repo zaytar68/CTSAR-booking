@@ -193,4 +193,46 @@
   <data name="TypeAutre" xml:space="preserve">
     <value>Other</value>
   </data>
+  <data name="SessionDetails" xml:space="preserve">
+    <value>Session Details</value>
+  </data>
+  <data name="GeneralInfo" xml:space="preserve">
+    <value>General Information</value>
+  </data>
+  <data name="InstructorInCharge" xml:space="preserve">
+    <value>Instructor in Charge</value>
+  </data>
+  <data name="ShootingLanes" xml:space="preserve">
+    <value>Shooting Lanes</value>
+  </data>
+  <data name="InstructorCanSelectLanes" xml:space="preserve">
+    <value>Instructors can define the shooting lanes for this session</value>
+  </data>
+  <data name="SelectLanes" xml:space="preserve">
+    <value>Select Lanes</value>
+  </data>
+  <data name="ConfirmLanes" xml:space="preserve">
+    <value>Confirm Lanes</value>
+  </data>
+  <data name="LanesNotYetDefined" xml:space="preserve">
+    <value>Lanes not yet defined by instructor</value>
+  </data>
+  <data name="Instructors" xml:space="preserve">
+    <value>Instructors</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="NotesAndComments" xml:space="preserve">
+    <value>Notes and Comments</value>
+  </data>
+  <data name="AddNote" xml:space="preserve">
+    <value>Add Note</value>
+  </data>
+  <data name="AddNotePlaceholder" xml:space="preserve">
+    <value>Type your comment here...</value>
+  </data>
+  <data name="MustBeRegisteredToComment" xml:space="preserve">
+    <value>You must be registered for this session to add a comment</value>
+  </data>
 </root>

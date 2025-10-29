@@ -16,11 +16,16 @@ public class ReservationService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<ReservationService> _logger;
+    private readonly INotificationService _notificationService;
 
-    public ReservationService(ApplicationDbContext context, ILogger<ReservationService> logger)
+    public ReservationService(
+        ApplicationDbContext context,
+        ILogger<ReservationService> logger,
+        INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     // ================================================================
@@ -254,6 +259,25 @@ public class ReservationService
 
             await _context.SaveChangesAsync();
 
+            // Notifier les autres participants si un moniteur s'inscrit
+            if (isMoniteur)
+            {
+                var user = await _context.Users.FindAsync(userIdInt);
+                var membresInscrits = reservation.Participants
+                    .Where(p => !p.EstMoniteur && p.UserId != userIdInt)
+                    .Select(p => p.UserId.ToString())
+                    .ToList();
+
+                if (membresInscrits.Any() && user != null)
+                {
+                    await _notificationService.NotifyMultipleAsync(
+                        membresInscrits,
+                        "Moniteur disponible",
+                        $"{user.Prenom} {user.Nom} s'est inscrit comme moniteur pour votre séance",
+                        NotificationType.Success);
+                }
+            }
+
             _logger.LogInformation($"Participant {userId} ajouté avec succès");
             return (true, "Inscription réussie");
         }
@@ -319,6 +343,25 @@ public class ReservationService
             }
 
             await _context.SaveChangesAsync();
+
+            // Notifier les autres participants si un moniteur se désinscrit
+            if (wasMoniteur)
+            {
+                var user = await _context.Users.FindAsync(userIdInt);
+                var participantIds = reservation.Participants
+                    .Where(p => p.UserId != userIdInt)
+                    .Select(p => p.UserId.ToString())
+                    .ToList();
+
+                if (participantIds.Any() && user != null)
+                {
+                    await _notificationService.NotifyMultipleAsync(
+                        participantIds,
+                        "Moniteur absent",
+                        $"Le moniteur {user.Prenom} {user.Nom} s'est désinscrit de la séance",
+                        NotificationType.Warning);
+                }
+            }
 
             _logger.LogInformation($"Participant {userId} retiré avec succès");
             return (true, "Vous vous êtes désinscrit avec succès");
@@ -453,6 +496,179 @@ public class ReservationService
         {
             _logger.LogError(ex, $"Erreur lors de la suppression de l'inscription {reservationId}");
             return (false, $"Erreur : {ex.Message}");
+        }
+    }
+
+    // ================================================================
+    // GESTION DES ALVÉOLES PAR LE MONITEUR
+    // ================================================================
+
+    /// <summary>
+    /// Le moniteur définit les alvéoles utilisées pour la session
+    /// Remplace les alvéoles existantes et notifie tous les participants
+    /// </summary>
+    public async Task<(bool Success, string Message)> UpdateSessionAlveolesAsync(
+        int reservationId,
+        List<int> alveoleIds,
+        string moniteurId)
+    {
+        try
+        {
+            // 1. Vérifier que l'utilisateur est moniteur inscrit
+            var reservation = await _context.Reservations
+                .Include(r => r.Participants)
+                .ThenInclude(rp => rp.User)
+                .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+            if (reservation == null)
+            {
+                return (false, "Réservation non trouvée");
+            }
+
+            var isMoniteurInscrit = reservation.Participants
+                .Any(p => p.UserId.ToString() == moniteurId && p.EstMoniteur);
+
+            if (!isMoniteurInscrit)
+            {
+                _logger.LogWarning(
+                    "L'utilisateur {UserId} a tenté de définir les alvéoles sans être moniteur inscrit",
+                    moniteurId);
+                return (false, "Seul un moniteur inscrit peut définir les alvéoles");
+            }
+
+            // 2. Vérifier que les alvéoles existent et sont actives
+            var alveoles = await _context.Alveoles
+                .Where(a => alveoleIds.Contains(a.Id) && a.EstActive)
+                .ToListAsync();
+
+            if (alveoles.Count != alveoleIds.Count)
+            {
+                return (false, "Certaines alvéoles sont inactives ou n'existent pas");
+            }
+
+            // 3. Mettre à jour les alvéoles (supprimer anciennes + ajouter nouvelles)
+            var existingLinks = await _context.Set<ReservationAlveole>()
+                .Where(ra => ra.ReservationId == reservationId)
+                .ToListAsync();
+
+            _context.RemoveRange(existingLinks);
+
+            foreach (var alveoleId in alveoleIds)
+            {
+                _context.Add(new ReservationAlveole
+                {
+                    ReservationId = reservationId,
+                    AlveoleId = alveoleId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 4. Notifier tous les participants (sauf le moniteur qui fait l'action)
+            var participantIds = reservation.Participants
+                .Where(p => p.UserId.ToString() != moniteurId)
+                .Select(p => p.UserId.ToString())
+                .ToList();
+
+            if (participantIds.Any())
+            {
+                var alveoleNames = alveoles.Select(a => a.Nom).ToList();
+                var alveolesText = string.Join(", ", alveoleNames);
+
+                await _notificationService.NotifyMultipleAsync(
+                    participantIds,
+                    "Alvéoles définies",
+                    $"Le moniteur a défini les alvéoles pour la séance : {alveolesText}",
+                    NotificationType.Info);
+            }
+
+            _logger.LogInformation(
+                "Alvéoles mises à jour pour la réservation {ReservationId} par le moniteur {MoniteurId}",
+                reservationId,
+                moniteurId);
+
+            return (true, "Alvéoles mises à jour avec succès. Les participants ont été notifiés.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Erreur lors de la mise à jour des alvéoles pour la réservation {ReservationId}",
+                reservationId);
+            return (false, "Une erreur est survenue lors de la mise à jour des alvéoles");
+        }
+    }
+
+    // ================================================================
+    // GESTION DES COMMENTAIRES
+    // ================================================================
+
+    /// <summary>
+    /// Ajoute une entrée au commentaire (moniteur ou membre)
+    /// Format : [DD/MM HH:mm - Prénom NOM] Texte
+    /// </summary>
+    public async Task<(bool Success, string Message)> AddCommentaireEntryAsync(
+        int reservationId,
+        string userId,
+        string content)
+    {
+        try
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.Participants)
+                .ThenInclude(rp => rp.User)
+                .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+            if (reservation == null)
+            {
+                return (false, "Réservation non trouvée");
+            }
+
+            // Vérifier que l'utilisateur est inscrit
+            var participant = reservation.Participants
+                .FirstOrDefault(p => p.UserId.ToString() == userId);
+
+            if (participant == null)
+            {
+                _logger.LogWarning(
+                    "L'utilisateur {UserId} a tenté d'ajouter un commentaire sans être inscrit",
+                    userId);
+                return (false, "Vous devez être inscrit pour ajouter un commentaire");
+            }
+
+            // Récupérer les infos utilisateur
+            var user = participant.User;
+            var userName = $"{user.Prenom} {user.Nom}";
+            var timestamp = DateTime.Now.ToString("dd/MM HH:mm");
+
+            // Formater la nouvelle entrée
+            var newEntry = $"[{timestamp} - {userName}] {content}";
+
+            // Ajouter au commentaire existant
+            if (string.IsNullOrWhiteSpace(reservation.Commentaire))
+            {
+                reservation.Commentaire = newEntry;
+            }
+            else
+            {
+                reservation.Commentaire += $"\n\n{newEntry}";
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Commentaire ajouté à la réservation {ReservationId} par {UserId} ({UserName})",
+                reservationId,
+                userId,
+                userName);
+
+            return (true, "Commentaire ajouté avec succès");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Erreur lors de l'ajout du commentaire pour la réservation {ReservationId}",
+                reservationId);
+            return (false, "Une erreur est survenue lors de l'ajout du commentaire");
         }
     }
 

@@ -193,4 +193,46 @@
   <data name="TypeAutre" xml:space="preserve">
     <value>Andere</value>
   </data>
+  <data name="SessionDetails" xml:space="preserve">
+    <value>Sitzungsdetails</value>
+  </data>
+  <data name="GeneralInfo" xml:space="preserve">
+    <value>Allgemeine Informationen</value>
+  </data>
+  <data name="InstructorInCharge" xml:space="preserve">
+    <value>Verantwortlicher Ausbilder</value>
+  </data>
+  <data name="ShootingLanes" xml:space="preserve">
+    <value>Schießbahnen</value>
+  </data>
+  <data name="InstructorCanSelectLanes" xml:space="preserve">
+    <value>Ausbilder können die Schießbahnen für diese Sitzung festlegen</value>
+  </data>
+  <data name="SelectLanes" xml:space="preserve">
+    <value>Schießbahnen auswählen</value>
+  </data>
+  <data name="ConfirmLanes" xml:space="preserve">
+    <value>Schießbahnen bestätigen</value>
+  </data>
+  <data name="LanesNotYetDefined" xml:space="preserve">
+    <value>Schießbahnen noch nicht vom Ausbilder festgelegt</value>
+  </data>
+  <data name="Instructors" xml:space="preserve">
+    <value>Ausbilder</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Mitglieder</value>
+  </data>
+  <data name="NotesAndComments" xml:space="preserve">
+    <value>Notizen und Kommentare</value>
+  </data>
+  <data name="AddNote" xml:space="preserve">
+    <value>Notiz hinzufügen</value>
+  </data>
+  <data name="AddNotePlaceholder" xml:space="preserve">
+    <value>Geben Sie hier Ihren Kommentar ein...</value>
+  </data>
+  <data name="MustBeRegisteredToComment" xml:space="preserve">
+    <value>Sie müssen für diese Sitzung angemeldet sein, um einen Kommentar hinzuzufügen</value>
+  </data>
 </root>

@@ -193,4 +193,46 @@
   <data name="TypeAutre" xml:space="preserve">
     <value>Autre</value>
   </data>
+  <data name="SessionDetails" xml:space="preserve">
+    <value>Détails de la séance</value>
+  </data>
+  <data name="GeneralInfo" xml:space="preserve">
+    <value>Informations générales</value>
+  </data>
+  <data name="InstructorInCharge" xml:space="preserve">
+    <value>Moniteur en charge</value>
+  </data>
+  <data name="ShootingLanes" xml:space="preserve">
+    <value>Alvéoles de tir</value>
+  </data>
+  <data name="InstructorCanSelectLanes" xml:space="preserve">
+    <value>Les moniteurs peuvent définir les alvéoles pour cette séance</value>
+  </data>
+  <data name="SelectLanes" xml:space="preserve">
+    <value>Sélectionner les alvéoles</value>
+  </data>
+  <data name="ConfirmLanes" xml:space="preserve">
+    <value>Confirmer les alvéoles</value>
+  </data>
+  <data name="LanesNotYetDefined" xml:space="preserve">
+    <value>Alvéoles non encore définies par le moniteur</value>
+  </data>
+  <data name="Instructors" xml:space="preserve">
+    <value>Moniteurs</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Membres</value>
+  </data>
+  <data name="NotesAndComments" xml:space="preserve">
+    <value>Notes et commentaires</value>
+  </data>
+  <data name="AddNote" xml:space="preserve">
+    <value>Ajouter une note</value>
+  </data>
+  <data name="AddNotePlaceholder" xml:space="preserve">
+    <value>Tapez votre commentaire ici...</value>
+  </data>
+  <data name="MustBeRegisteredToComment" xml:space="preserve">
+    <value>Vous devez être inscrit à cette séance pour ajouter un commentaire</value>
+  </data>
 </root>
