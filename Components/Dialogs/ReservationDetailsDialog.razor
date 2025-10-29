@@ -12,13 +12,14 @@
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Planning> Loc
 
-<MudDialog>
+<MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true">
     <TitleContent>
         <MudText Typo="Typo.h6">
             @Loc["ReservationDetails"]
         </MudText>
     </TitleContent>
     <DialogContent>
+        <div style="max-height: 70vh; overflow-y: auto;">
         @if (_loading)
         {
             <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
@@ -29,16 +30,16 @@
         }
         else
         {
-            <MudStack Spacing="3">
+            <MudStack Spacing="2">
                 <!-- Statut de la réservation -->
                 <MudAlert Severity="@GetStatusSeverity(_reservation.StatutReservation)" Dense="true">
                     @GetStatusLabel(_reservation.StatutReservation)
                 </MudAlert>
 
                 <!-- Informations générales -->
-                <MudText Typo="Typo.h6">@Loc["GeneralInfo"]</MudText>
-                <MudPaper Class="pa-3" Outlined="true">
-                    <MudStack Spacing="2">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mt-1">@Loc["GeneralInfo"]</MudText>
+                <MudPaper Class="pa-2" Outlined="true">
+                    <MudStack Spacing="1">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" />
                             <MudText Typo="Typo.body2">
@@ -66,11 +67,11 @@
                 </MudPaper>
 
                 <!-- Alvéoles de tir -->
-                <MudText Typo="Typo.h6">@Loc["ShootingLanes"]</MudText>
-                <MudPaper Class="pa-3" Outlined="true">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mt-1">@Loc["ShootingLanes"]</MudText>
+                <MudPaper Class="pa-2" Outlined="true">
                     @if (_reservation.Alveoles.Any())
                     {
-                        <MudChipSet>
+                        <MudChipSet T="string">
                             @foreach (var alveole in _reservation.Alveoles.OrderBy(a => a.Nom))
                             {
                                 <MudChip T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.Place">
@@ -146,7 +147,7 @@
                 </MudPaper>
 
                 <!-- Moniteurs -->
-                <MudText Typo="Typo.h6">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mt-1">
                     @Loc["Instructors"] (@_reservation.NombreMoniteurs)
                 </MudText>
                 @if (_reservation.NombreMoniteurs > 0)
@@ -180,7 +181,7 @@
                 }
 
                 <!-- Membres -->
-                <MudText Typo="Typo.h6" Class="mt-3">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mt-1">
                     @Loc["Members"] (@(_reservation.NombreParticipants - _reservation.NombreMoniteurs))
                 </MudText>
                 @if (_reservation.Participants.Any(p => !p.EstMoniteur))
@@ -214,8 +215,8 @@
                 }
 
                 <!-- Notes et commentaires -->
-                <MudText Typo="Typo.h6" Class="mt-3">@Loc["NotesAndComments"]</MudText>
-                <MudPaper Class="pa-3" Outlined="true">
+                <MudText Typo="Typo.subtitle1" Class="font-weight-bold mt-1">@Loc["NotesAndComments"]</MudText>
+                <MudPaper Class="pa-2" Outlined="true">
                     @if (_commentEntries.Any())
                     {
                         <MudStack Spacing="2" Class="mb-3">
@@ -270,6 +271,7 @@
                 }
             </MudStack>
         }
+        </div>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Close">@Loc["Close"]</MudButton>
@@ -338,6 +340,9 @@
     // Gestion des commentaires
     private List<CommentaireEntryDto> _commentEntries = new();
     private string _newComment = string.Empty;
+
+    // Tracking des modifications pour le rechargement du planning
+    private bool _hasChanges = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -431,6 +436,7 @@
 
             if (result.Success)
             {
+                _hasChanges = true; // Marquer qu'il y a eu des changements
                 _successMessage = result.Message;
                 await LoadReservation();
                 StateHasChanged();
@@ -464,6 +470,7 @@
 
             if (result.Success)
             {
+                _hasChanges = true; // Marquer qu'il y a eu des changements
                 _successMessage = result.Message;
 
                 // Si c'était le dernier participant, fermer le dialogue
@@ -495,7 +502,15 @@
 
     private void Close()
     {
-        DialogRef?.Close(DialogResult.Ok(false));
+        // Fermer avec ou sans rechargement selon les modifications
+        if (_hasChanges)
+        {
+            DialogRef?.Close(DialogResult.Ok(true)); // Recharger le planning
+        }
+        else
+        {
+            DialogRef?.Close(DialogResult.Cancel()); // Ne pas recharger
+        }
     }
 
     private Severity GetStatusSeverity(StatutReservation statut)
@@ -555,6 +570,7 @@
 
             if (result.Success)
             {
+                _hasChanges = true; // Marquer qu'il y a eu des changements
                 _successMessage = result.Message;
                 _isEditingAlveoles = false;
                 await LoadReservation();
@@ -595,6 +611,7 @@
 
             if (result.Success)
             {
+                _hasChanges = true; // Marquer qu'il y a eu des changements
                 _successMessage = result.Message;
                 _newComment = string.Empty;
                 await LoadReservation();

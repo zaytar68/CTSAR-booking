@@ -235,4 +235,7 @@
   <data name="MustBeRegisteredToComment" xml:space="preserve">
     <value>You must be registered for this session to add a comment</value>
   </data>
+  <data name="CreatedBy" xml:space="preserve">
+    <value>Created by</value>
+  </data>
 </root>

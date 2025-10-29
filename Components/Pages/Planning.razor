@@ -106,13 +106,15 @@
                                     <!-- Réservations du jour -->
                                     @foreach (var reservation in GetReservationsForDay(day.Value))
                                     {
-                                        <MudChip T="string"
-                                                 Size="Size.Small"
-                                                 Color="@GetReservationColor(reservation)"
-                                                 OnClick="@(() => OpenReservationDetails(reservation))"
-                                                 Style="cursor: pointer; font-size: 0.7rem; height: 20px;">
-                                            @GetReservationLabel(reservation)
-                                        </MudChip>
+                                        <MudAlert Severity="@GetReservationSeverity(reservation)"
+                                                  Dense="true"
+                                                  NoIcon="false"
+                                                  Icon="@GetReservationIcon(reservation)"
+                                                  Class="my-1"
+                                                  Style="font-size: 0.7rem; padding: 4px 8px; cursor: pointer;"
+                                                  @onclick="@(() => OpenReservationDetails(reservation))">
+                                            @GetReservationLabelWithPerson(reservation)
+                                        </MudAlert>
                                     }
 
                                     <!-- Fermetures du jour -->
@@ -352,6 +354,34 @@
             TypeFermeture.Autre => Loc["TypeAutre"],
             _ => type.ToString()
         };
+    }
+
+    private Severity GetReservationSeverity(ReservationDto reservation)
+    {
+        return reservation.StatutReservation == StatutReservation.Confirmee
+            ? Severity.Success
+            : Severity.Warning;
+    }
+
+    private string GetReservationIcon(ReservationDto reservation)
+    {
+        return reservation.StatutReservation == StatutReservation.Confirmee
+            ? Icons.Material.Filled.CheckCircle
+            : Icons.Material.Filled.HourglassBottom;
+    }
+
+    private string GetReservationLabelWithPerson(ReservationDto reservation)
+    {
+        var timeLabel = $"{reservation.DateDebut.ToLocalTime():HH:mm} {reservation.NomsAlveoles}";
+
+        if (reservation.StatutReservation == StatutReservation.Confirmee && reservation.MoniteurPrincipal != null)
+        {
+            return $"{timeLabel} - {Loc["Instructor"]}: {reservation.MoniteurPrincipal.NomComplet}";
+        }
+        else
+        {
+            return $"{timeLabel} - {Loc["CreatedBy"]}: {reservation.CreatedByNom}";
+        }
     }
 
     private async Task OpenCreateReservationDialog()
