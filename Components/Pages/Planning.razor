@@ -243,7 +243,7 @@
         }
     }
 
-    private void PreviousMonth()
+    private async Task PreviousMonth()
     {
         _currentMonth--;
         if (_currentMonth < 1)
@@ -252,9 +252,10 @@
             _currentYear--;
         }
         NavigateToMonth(_currentYear, _currentMonth);
+        await LoadData();
     }
 
-    private void NextMonth()
+    private async Task NextMonth()
     {
         _currentMonth++;
         if (_currentMonth > 12)
@@ -263,6 +264,7 @@
             _currentYear++;
         }
         NavigateToMonth(_currentYear, _currentMonth);
+        await LoadData();
     }
 
     private void NavigateToMonth(int year, int month)
