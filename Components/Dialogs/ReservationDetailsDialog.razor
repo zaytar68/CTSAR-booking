@@ -528,13 +528,16 @@
             Console.WriteLine("DialogRef is null - using JavaScript to close dialog");
             try
             {
+                // Fermer le dialogue en cliquant sur l'overlay
                 await JS.InvokeVoidAsync("eval", "document.querySelector('.mud-overlay').click()");
 
-                // Si des changements ont été faits, recharger la page du planning
-                if (_hasChanges)
-                {
-                    Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
-                }
+                // Attendre un peu que le dialogue se ferme
+                await Task.Delay(100);
+
+                // Toujours recharger la page pour s'assurer que les données sont à jour
+                // (car on ne peut pas passer le résultat au composant parent sans DialogRef)
+                Console.WriteLine("Rechargement de la page pour mettre à jour les données");
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
             }
             catch (Exception ex)
             {
