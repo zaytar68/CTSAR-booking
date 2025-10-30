@@ -382,11 +382,12 @@ public class ReservationService
 
             var wasMoniteur = participant.EstMoniteur;
 
-            // Retirer le participant
+            // Retirer le participant de la base de données ET de la collection en mémoire
             _context.ReservationParticipants.Remove(participant);
+            reservation.Participants.Remove(participant);
 
             // Si plus aucun participant, supprimer l'inscription complète
-            if (reservation.Participants.Count == 1) // Le seul participant restant est celui qu'on retire
+            if (reservation.Participants.Count == 0)
             {
                 _context.Reservations.Remove(reservation);
                 await _context.SaveChangesAsync();
