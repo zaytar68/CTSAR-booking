@@ -28,7 +28,13 @@ public class NotificationService : INotificationService
     {
         try
         {
-            var user = await _context.Users.FindAsync(userId);
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogWarning("UserId invalide (pas un entier) : {UserId}", userId);
+                return;
+            }
+
+            var user = await _context.Users.FindAsync(userIdInt);
 
             if (user == null)
             {
