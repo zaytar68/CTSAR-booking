@@ -16,11 +16,16 @@ public class AlveoleService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AlveoleService> _logger;
+    private readonly INotificationService _notificationService;
 
-    public AlveoleService(ApplicationDbContext context, ILogger<AlveoleService> logger)
+    public AlveoleService(
+        ApplicationDbContext context,
+        ILogger<AlveoleService> logger,
+        INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -212,7 +217,9 @@ public class AlveoleService
     /// <summary>
     /// Désactive une alvéole (soft delete)
     /// </summary>
-    public async Task<(bool Success, string Message)> DeleteAlveoleAsync(int id)
+    /// <param name="id">ID de l'alvéole</param>
+    /// <param name="shouldNotifyUsers">Indique si les utilisateurs impactés doivent être notifiés</param>
+    public async Task<(bool Success, string Message)> DeleteAlveoleAsync(int id, bool shouldNotifyUsers = false)
     {
         try
         {
@@ -225,9 +232,32 @@ public class AlveoleService
                 return (false, "Alvéole non trouvée");
             }
 
+            // Récupérer les utilisateurs impactés AVANT de désactiver l'alvéole
+            List<AffectedUserInfo> affectedUsers = new();
+            if (shouldNotifyUsers)
+            {
+                affectedUsers = await _notificationService.GetUsersAffectedByAlveoleClosureAsync(id);
+            }
+
             // Désactivation de l'alvéole (soft delete)
             alveole.EstActive = false;
             await _context.SaveChangesAsync();
+
+            // Notifier les utilisateurs impactés
+            if (shouldNotifyUsers && affectedUsers.Any())
+            {
+                var userIds = affectedUsers.Select(u => u.UserId).Distinct().ToList();
+                await _notificationService.NotifyMultipleAsync(
+                    userIds,
+                    "Alvéole fermée",
+                    $"L'alvéole '{alveole.Nom}' a été fermée. Vos réservations futures sur cette alvéole sont annulées.",
+                    NotificationType.Warning);
+
+                _logger.LogInformation(
+                    "Notifications envoyées à {Count} utilisateur(s) pour la fermeture de l'alvéole {AlveoleId}",
+                    userIds.Count,
+                    id);
+            }
 
             _logger.LogInformation($"Alvéole {id} désactivée avec succès");
             return (true, "Alvéole désactivée avec succès");

@@ -16,11 +16,16 @@ public class FermetureClubService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<FermetureClubService> _logger;
+    private readonly INotificationService _notificationService;
 
-    public FermetureClubService(ApplicationDbContext context, ILogger<FermetureClubService> logger)
+    public FermetureClubService(
+        ApplicationDbContext context,
+        ILogger<FermetureClubService> logger,
+        INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -106,11 +111,13 @@ public class FermetureClubService
     /// <summary>
     /// Crée une nouvelle fermeture planifiée du club
     /// </summary>
+    /// <param name="shouldNotifyUsers">Indique si les utilisateurs impactés doivent être notifiés</param>
     public async Task<(bool Success, string Message, FermetureClubDto? Fermeture)> CreateFermetureAsync(
         DateTime dateDebut,
         DateTime dateFin,
         TypeFermeture typeFermeture,
-        string? raison)
+        string? raison,
+        bool shouldNotifyUsers = false)
     {
         try
         {
@@ -133,6 +140,13 @@ public class FermetureClubService
                 return (false, "Cette période chevauche une fermeture existante", null);
             }
 
+            // Récupérer les utilisateurs impactés AVANT de créer la fermeture
+            List<AffectedUserInfo> affectedUsers = new();
+            if (shouldNotifyUsers)
+            {
+                affectedUsers = await _notificationService.GetUsersAffectedByClubClosureAsync(dateDebut, dateFin);
+            }
+
             // Créer la fermeture
             var fermeture = new FermetureClub
             {
@@ -145,6 +159,33 @@ public class FermetureClubService
 
             _context.FermeturesClub.Add(fermeture);
             await _context.SaveChangesAsync();
+
+            // Notifier les utilisateurs impactés
+            if (shouldNotifyUsers && affectedUsers.Any())
+            {
+                var userIds = affectedUsers.Select(u => u.UserId).Distinct().ToList();
+                var typeLabel = typeFermeture switch
+                {
+                    TypeFermeture.Travaux => "travaux",
+                    TypeFermeture.JourFerie => "jour férié",
+                    TypeFermeture.ReservationExterne => "réservation externe",
+                    _ => "fermeture"
+                };
+
+                var message = string.IsNullOrWhiteSpace(raison)
+                    ? $"Le club sera fermé du {dateDebut:dd/MM/yyyy HH:mm} au {dateFin:dd/MM/yyyy HH:mm} ({typeLabel}). Vos réservations pendant cette période sont annulées."
+                    : $"Le club sera fermé du {dateDebut:dd/MM/yyyy HH:mm} au {dateFin:dd/MM/yyyy HH:mm} ({typeLabel} : {raison}). Vos réservations pendant cette période sont annulées.";
+
+                await _notificationService.NotifyMultipleAsync(
+                    userIds,
+                    "Club fermé",
+                    message,
+                    NotificationType.Warning);
+
+                _logger.LogInformation(
+                    "Notifications envoyées à {Count} utilisateur(s) pour la fermeture du club",
+                    userIds.Count);
+            }
 
             var dto = new FermetureClubDto
             {

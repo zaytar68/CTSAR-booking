@@ -4,6 +4,8 @@
 @using Microsoft.Extensions.Localization
 @using CTSAR.Booking.Components.Pages.Admin
 @inject FermetureClubService FermetureClubService
+@inject INotificationService NotificationService
+@inject IDialogService DialogService
 @inject IStringLocalizer<Alveoles> Loc
 
 <MudDialog>
@@ -122,11 +124,57 @@
         _submitting = true;
         try
         {
+            // 1. Récupérer les utilisateurs impactés
+            var affectedUsers = await NotificationService.GetUsersAffectedByClubClosureAsync(
+                DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
+                DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc));
+
+            // 2. Afficher le dialogue de notification si des utilisateurs sont impactés
+            bool shouldNotify = false;
+            if (affectedUsers.Any())
+            {
+                var typeLabel = _typeFermeture switch
+                {
+                    TypeFermeture.Travaux => Loc["TypeTravaux"],
+                    TypeFermeture.JourFerie => Loc["TypeJourFerie"],
+                    TypeFermeture.ReservationExterne => Loc["TypeReservationExterne"],
+                    _ => Loc["TypeAutre"]
+                };
+
+                var notificationDialog = await DialogService.ShowAsync<NotificationConfirmDialog>(
+                    Loc["NotifyAffectedUsers"],
+                    new DialogParameters
+                    {
+                        {
+                            "Message",
+                            string.Format(Loc["ClubClosureNotificationMessage"], dateTimeDebut.ToString("dd/MM/yyyy HH:mm"), dateTimeFin.ToString("dd/MM/yyyy HH:mm"), typeLabel)
+                        },
+                        {
+                            "AffectedUsers",
+                            affectedUsers.Select(u => new NotificationConfirmDialog.AffectedUserDto
+                            {
+                                UserId = u.UserId,
+                                NomComplet = u.NomComplet,
+                                IsMoniteur = u.IsMoniteur
+                            }).ToList()
+                        }
+                    },
+                    new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true });
+
+                var notificationResult = await notificationDialog.Result;
+                if (!notificationResult.Canceled && notificationResult.Data is bool notify)
+                {
+                    shouldNotify = notify;
+                }
+            }
+
+            // 3. Créer la fermeture avec ou sans notification
             var result = await FermetureClubService.CreateFermetureAsync(
                 DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
                 DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc),
                 _typeFermeture,
-                string.IsNullOrWhiteSpace(_raison) ? null : _raison.Trim());
+                string.IsNullOrWhiteSpace(_raison) ? null : _raison.Trim(),
+                shouldNotify);
 
             if (result.Success)
             {

@@ -199,4 +199,15 @@
   <data name="ClosureDeletedSuccess" xml:space="preserve">
     <value>Schließung erfolgreich gelöscht</value>
   </data>
+
+  <!-- Notifications -->
+  <data name="NotifyAffectedUsers" xml:space="preserve">
+    <value>Betroffene Mitglieder benachrichtigen</value>
+  </data>
+  <data name="AlveoleClosureNotificationMessage" xml:space="preserve">
+    <value>Der Schießstand "{0}" wird geschlossen. Möchten Sie die Mitglieder über zukünftige Reservierungen informieren?</value>
+  </data>
+  <data name="ClubClosureNotificationMessage" xml:space="preserve">
+    <value>Der Club wird vom {0} bis {1} geschlossen ({2}). Möchten Sie die Mitglieder benachrichtigen, die während dieses Zeitraums registriert sind?</value>
+  </data>
 </root>

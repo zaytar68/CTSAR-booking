@@ -7,6 +7,7 @@
 @using Microsoft.Extensions.Localization
 @inject AlveoleService AlveoleService
 @inject FermetureClubService FermetureClubService
+@inject INotificationService NotificationService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Alveoles> Loc
@@ -258,25 +259,61 @@
 
     private async Task DeleteAlveole(AlveoleDto alveole)
     {
+        // 1. Confirmer la désactivation
         var confirmed = await DialogService.ShowMessageBox(
             Loc["ConfirmDeactivation"],
             string.Format(Loc["ConfirmDeactivationMessage"], alveole.Nom),
             yesText: Loc["Yes"],
             cancelText: Loc["Cancel"]);
 
-        if (confirmed == true)
+        if (confirmed != true)
+            return;
+
+        // 2. Récupérer les utilisateurs impactés
+        var affectedUsers = await NotificationService.GetUsersAffectedByAlveoleClosureAsync(alveole.Id);
+
+        // 3. Afficher le dialogue de notification si des utilisateurs sont impactés
+        bool shouldNotify = false;
+        if (affectedUsers.Any())
         {
-            var result = await AlveoleService.DeleteAlveoleAsync(alveole.Id);
-            if (result.Success)
+            var notificationDialog = await DialogService.ShowAsync<NotificationConfirmDialog>(
+                Loc["NotifyAffectedUsers"],
+                new DialogParameters
+                {
+                    {
+                        "Message",
+                        string.Format(Loc["AlveoleClosureNotificationMessage"], alveole.Nom)
+                    },
+                    {
+                        "AffectedUsers",
+                        affectedUsers.Select(u => new NotificationConfirmDialog.AffectedUserDto
+                        {
+                            UserId = u.UserId,
+                            NomComplet = u.NomComplet,
+                            IsMoniteur = u.IsMoniteur
+                        }).ToList()
+                    }
+                },
+                new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true });
+
+            var notificationResult = await notificationDialog.Result;
+            if (!notificationResult.Canceled && notificationResult.Data is bool notify)
             {
-                Snackbar.Add(Loc["AlveoleDeactivatedSuccess"], Severity.Success);
-                await LoadAlveoles();
-                StateHasChanged();
+                shouldNotify = notify;
             }
-            else
-            {
-                Snackbar.Add(result.Message, Severity.Error);
-            }
+        }
+
+        // 4. Désactiver l'alvéole avec ou sans notification
+        var result = await AlveoleService.DeleteAlveoleAsync(alveole.Id, shouldNotify);
+        if (result.Success)
+        {
+            Snackbar.Add(Loc["AlveoleDeactivatedSuccess"], Severity.Success);
+            await LoadAlveoles();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(result.Message, Severity.Error);
         }
     }
 

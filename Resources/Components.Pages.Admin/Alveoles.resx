@@ -195,6 +195,17 @@
     <value>Oui</value>
   </data>
 
+  <!-- Notifications -->
+  <data name="NotifyAffectedUsers" xml:space="preserve">
+    <value>Notifier les membres impactés</value>
+  </data>
+  <data name="AlveoleClosureNotificationMessage" xml:space="preserve">
+    <value>L'alvéole "{0}" va être fermée. Souhaitez-vous notifier les membres inscrits sur les réservations futures ?</value>
+  </data>
+  <data name="ClubClosureNotificationMessage" xml:space="preserve">
+    <value>Le club sera fermé du {0} au {1} ({2}). Souhaitez-vous notifier les membres inscrits pendant cette période ?</value>
+  </data>
+
   <!-- Messages de succès -->
   <data name="AlveoleCreatedSuccess" xml:space="preserve">
     <value>Alvéole créée avec succès</value>

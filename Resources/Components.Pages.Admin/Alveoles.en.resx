@@ -199,4 +199,15 @@
   <data name="ClosureDeletedSuccess" xml:space="preserve">
     <value>Closure deleted successfully</value>
   </data>
+
+  <!-- Notifications -->
+  <data name="NotifyAffectedUsers" xml:space="preserve">
+    <value>Notify affected members</value>
+  </data>
+  <data name="AlveoleClosureNotificationMessage" xml:space="preserve">
+    <value>Lane "{0}" will be closed. Would you like to notify members with future bookings?</value>
+  </data>
+  <data name="ClubClosureNotificationMessage" xml:space="preserve">
+    <value>The club will be closed from {0} to {1} ({2}). Would you like to notify members registered during this period?</value>
+  </data>
 </root>
