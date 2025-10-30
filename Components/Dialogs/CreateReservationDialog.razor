@@ -10,6 +10,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<Planning> Loc
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 <MudDialog>
     <DialogContent>
@@ -126,7 +127,17 @@
 
     private void Cancel()
     {
-        DialogRef?.Close(DialogResult.Cancel());
+        Console.WriteLine("Cancel button clicked");
+        if (DialogRef != null)
+        {
+            Console.WriteLine("Closing dialog via DialogRef");
+            DialogRef.Close(DialogResult.Cancel());
+        }
+        else
+        {
+            Console.WriteLine("DialogRef is null, using navigation fallback");
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
     }
 
     private async Task Submit()
