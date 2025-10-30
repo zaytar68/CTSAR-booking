@@ -190,6 +190,28 @@
         await LoadData();
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Détecter si les paramètres Year/Month ont changé
+        var hasChanged = false;
+
+        if (Year.HasValue && Month.HasValue && Month.Value >= 1 && Month.Value <= 12)
+        {
+            if (_currentYear != Year.Value || _currentMonth != Month.Value)
+            {
+                _currentYear = Year.Value;
+                _currentMonth = Month.Value;
+                hasChanged = true;
+            }
+        }
+
+        // Recharger les données uniquement si les paramètres ont changé
+        if (hasChanged)
+        {
+            await LoadData();
+        }
+    }
+
     private async Task LoadData()
     {
         _loading = true;
@@ -425,7 +447,7 @@
         {
             await LoadData();
             StateHasChanged();
-            Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
+            // Le Snackbar est affiché dans CreateReservationDialog pour un feedback immédiat
         }
     }
 

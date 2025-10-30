@@ -9,6 +9,7 @@
 @inject AlveoleService AlveoleService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<Planning> Loc
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
@@ -183,11 +184,14 @@
 
             if (result.Success)
             {
+                Console.WriteLine("Reservation created successfully, closing dialog...");
+                Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
                 DialogRef?.Close(DialogResult.Ok(result.Reservation));
-                StateHasChanged();
+                Console.WriteLine("Dialog closed");
             }
             else
             {
+                Console.WriteLine($"Reservation creation failed: {result.Message}");
                 _errorMessage = result.Message;
             }
         }
