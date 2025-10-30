@@ -13,6 +13,7 @@
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<Planning> Loc
+@inject NavigationManager NavigationManager
 
 @attribute [Authorize]
 
@@ -150,6 +151,12 @@
 </style>
 
 @code {
+    [SupplyParameterFromQuery(Name = "year")]
+    public int? Year { get; set; }
+
+    [SupplyParameterFromQuery(Name = "month")]
+    public int? Month { get; set; }
+
     private int _currentMonth;
     private int _currentYear;
     private List<ReservationDto>? _reservations;
@@ -162,8 +169,18 @@
     protected override async Task OnInitializedAsync()
     {
         var today = DateTime.Now;
-        _currentMonth = today.Month;
-        _currentYear = today.Year;
+
+        // Utiliser les paramètres d'URL s'ils sont présents, sinon utiliser le mois courant
+        if (Year.HasValue && Month.HasValue && Month.Value >= 1 && Month.Value <= 12)
+        {
+            _currentYear = Year.Value;
+            _currentMonth = Month.Value;
+        }
+        else
+        {
+            _currentMonth = today.Month;
+            _currentYear = today.Year;
+        }
 
         // Récupérer l'utilisateur connecté
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -198,7 +215,7 @@
         }
     }
 
-    private async Task PreviousMonth()
+    private void PreviousMonth()
     {
         _currentMonth--;
         if (_currentMonth < 1)
@@ -206,10 +223,10 @@
             _currentMonth = 12;
             _currentYear--;
         }
-        await LoadData();
+        NavigateToMonth(_currentYear, _currentMonth);
     }
 
-    private async Task NextMonth()
+    private void NextMonth()
     {
         _currentMonth++;
         if (_currentMonth > 12)
@@ -217,15 +234,23 @@
             _currentMonth = 1;
             _currentYear++;
         }
-        await LoadData();
+        NavigateToMonth(_currentYear, _currentMonth);
     }
 
-    private async Task GoToToday()
+    private void NavigateToMonth(int year, int month)
     {
-        var today = DateTime.Now;
-        _currentMonth = today.Month;
-        _currentYear = today.Year;
-        await LoadData();
+        var uri = NavigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            ["year"] = year,
+            ["month"] = month
+        });
+        NavigationManager.NavigateTo(uri);
+    }
+
+    private void GoToToday()
+    {
+        // Naviguer vers /planning sans paramètres (revient au mois courant)
+        NavigationManager.NavigateTo("/planning");
     }
 
     private string GetMonthYearLabel(int month, int year)
