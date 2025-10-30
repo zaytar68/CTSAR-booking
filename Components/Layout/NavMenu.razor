@@ -9,18 +9,38 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 @implements IDisposable
 
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @using Microsoft.Extensions.Localization
+@using System.Security.Claims
 @inject IStringLocalizer<NavMenu> Loc
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
 
 @* ================================================================ *@
 @* MUDBLAZOR DRAWER AVEC MUDNAVMENU                                 *@
 @* ================================================================ *@
-<MudNavMenu Style="background: #e8e8e8; min-height: 100vh;">
+<MudNavMenu Class="nav-menu-background" Style="min-height: 100vh;">
     @* ======================================================== *@
     @* EN-TÊTE DU MENU                                          *@
     @* ======================================================== *@
     <MudText Typo="Typo.h6" Class="px-4 py-3">CTSAR Booking</MudText>
+
+    @* Affichage des informations utilisateur *@
+    <AuthorizeView>
+        <Authorized>
+            @if (!string.IsNullOrEmpty(_userDisplayName))
+            {
+                <div class="px-4 py-2" style="background-color: rgba(0,0,0,0.05);">
+                    <MudText Typo="Typo.body2"><strong>@GetWelcomeText()</strong></MudText>
+                    <MudText Typo="Typo.body2">@_userDisplayName</MudText>
+                    @if (!string.IsNullOrEmpty(_userRole))
+                    {
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@_userRole</MudText>
+                    }
+                </div>
+            }
+        </Authorized>
+    </AuthorizeView>
+
     <MudDivider />
 
     @* ======================================================== *@
@@ -94,9 +114,24 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 
 @code {
     private string? currentUrl;
+    private string? _userDisplayName;
+    private string? _userRole;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // Récupérer les informations de l'utilisateur connecté
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var prenom = user.FindFirst(ClaimTypes.GivenName)?.Value;
+            var nom = user.FindFirst(ClaimTypes.Surname)?.Value;
+            _userDisplayName = $"{prenom} {nom}";
+            _userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        // Continuer avec l'initialisation du NavigationManager
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
     }
@@ -105,6 +140,18 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
         StateHasChanged();
+    }
+
+    private string GetWelcomeText()
+    {
+        // Retourne directement la traduction basée sur la culture actuelle
+        var culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+        return culture switch
+        {
+            "de" => "Willkommen",
+            "en" => "Welcome",
+            _ => "Bienvenue"
+        };
     }
 
     public void Dispose()

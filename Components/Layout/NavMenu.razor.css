@@ -1,3 +1,21 @@
+/* ===================================================================
+   STYLES DE FOND POUR LA NAVBAR - MODE CLAIR ET SOMBRE
+   =================================================================== */
+
+/* Mode clair : fond gris clair */
+:global(.nav-menu-background) {
+    background: #e8e8e8 !important;
+}
+
+/* Mode sombre : fond gris foncé harmonieux avec le header */
+:global(.dark-theme) :global(.nav-menu-background) {
+    background: #1e1e1e !important;
+}
+
+:global(.dark-theme) :global(.mud-navmenu) {
+    background: #1e1e1e !important;
+}
+
 .navbar-toggler {
     appearance: none;
     cursor: pointer;

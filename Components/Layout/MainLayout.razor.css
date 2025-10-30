@@ -9,7 +9,12 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-color: #e8e8e8;
+}
+
+/* Mode sombre : Sidebar avec fond foncé harmonieux */
+:global(.dark-theme) .sidebar {
+    background-color: #1e1e1e !important;
 }
 
 .top-row {
@@ -19,6 +24,12 @@ main {
     height: 3.5rem;
     display: flex;
     align-items: center;
+}
+
+/* Mode sombre : Header avec couleur foncée harmonieuse */
+:global(.dark-theme) .top-row {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid #333333 !important;
 }
 
     .top-row ::deep a, .top-row ::deep .btn-link {

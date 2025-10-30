@@ -40,7 +40,9 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.GivenName, user.Prenom),
+                new Claim(ClaimTypes.Surname, user.Nom)
             };
 
             foreach (var role in roles)
@@ -102,7 +104,9 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.GivenName, user.Prenom),
+                new Claim(ClaimTypes.Surname, user.Nom)
             };
 
             foreach (var role in roles)
@@ -177,7 +181,9 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.GivenName, user.Prenom),
+                new Claim(ClaimTypes.Surname, user.Nom)
             };
 
             foreach (var userRole in roles)

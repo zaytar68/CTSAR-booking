@@ -18,7 +18,7 @@ IMPORTANT : Les providers MudBlazor sont définis ICI et UNIQUEMENT ICI.
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<div class="page">
+<div class="page @(_isDarkMode ? "dark-theme" : "")">
     <div class="sidebar">
         <NavMenu />
     </div>
