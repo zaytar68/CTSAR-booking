@@ -1,4 +1,3 @@
-- Pas de choix de type de membre à l'inscription
 
 ____
 # Alvéoles

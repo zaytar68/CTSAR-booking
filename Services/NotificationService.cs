@@ -36,6 +36,20 @@ public class NotificationService : INotificationService
                 return;
             }
 
+            // Log avec format très visible dans la console (utilise LogWarning pour être en jaune/orange)
+            var separator = new string('=', 80);
+            Console.WriteLine();
+            Console.WriteLine(separator);
+            Console.WriteLine("📧 NOTIFICATION ENVOYÉE");
+            Console.WriteLine(separator);
+            Console.WriteLine($"Type         : {type}");
+            Console.WriteLine($"Destinataire : {user.Prenom} {user.Nom} ({user.Email})");
+            Console.WriteLine($"Titre        : {title}");
+            Console.WriteLine($"Message      : {message}");
+            Console.WriteLine(separator);
+            Console.WriteLine();
+
+            // Log normal pour les fichiers de log
             _logger.LogInformation(
                 "[NOTIFICATION] {Type} | To: {UserEmail} ({UserName}) | Title: {Title} | Message: {Message}",
                 type,
