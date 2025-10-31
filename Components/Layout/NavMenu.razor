@@ -59,17 +59,23 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
     </AuthorizeView>
 
     @* ======================================================== *@
-    @* SECTION ADMINISTRATION (visible pour les Administrateurs uniquement) *@
+    @* SECTION ADMINISTRATION (visible pour Administrateurs et Moniteurs) *@
     @* ======================================================== *@
-    <AuthorizeView Policy="AdminOnly">
+    <AuthorizeView Roles="Administrateur,Moniteur">
         <Authorized>
             <MudDivider Class="my-2" />
             <MudText Typo="Typo.caption" Class="px-4 py-2 mud-text-secondary">@Loc["Administration"]</MudText>
 
-            <MudNavLink Href="admin/utilisateurs" Icon="@Icons.Material.Filled.People">
-                @Loc["Users"]
-            </MudNavLink>
+            @* Gestion des utilisateurs : Administrateurs seulement *@
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized Context="adminContext">
+                    <MudNavLink Href="admin/utilisateurs" Icon="@Icons.Material.Filled.People">
+                        @Loc["Users"]
+                    </MudNavLink>
+                </Authorized>
+            </AuthorizeView>
 
+            @* Gestion des alvéoles et fermetures : Administrateurs et Moniteurs *@
             <MudNavLink Href="admin/alveoles" Icon="@Icons.Material.Filled.GridView">
                 @Loc["Lanes"]
             </MudNavLink>

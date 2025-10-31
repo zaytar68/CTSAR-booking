@@ -12,7 +12,7 @@
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Alveoles> Loc
 
-@attribute [Authorize(Policy = "AdminOnly")]
+@attribute [Authorize(Roles = "Administrateur,Moniteur")]
 
 <PageTitle>@Loc["PageTitle"]</PageTitle>
 
