@@ -184,8 +184,8 @@
 
             // Préparer le DTO
             _model.AlveoleIds = _selectedAlveoleIds.ToList();
-            _model.DateDebut = DateTime.SpecifyKind(dateDebut, DateTimeKind.Utc);
-            _model.DateFin = DateTime.SpecifyKind(dateFin, DateTimeKind.Utc);
+            _model.DateDebut = dateDebut.ToUniversalTime();
+            _model.DateFin = dateFin.ToUniversalTime();
 
             // Créer la réservation
             var result = await ReservationService.CreateReservationAsync(

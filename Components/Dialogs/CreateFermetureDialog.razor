@@ -126,8 +126,8 @@
         {
             // 1. Récupérer les utilisateurs impactés
             var affectedUsers = await NotificationService.GetUsersAffectedByClubClosureAsync(
-                DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
-                DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc));
+                dateTimeDebut.ToUniversalTime(),
+                dateTimeFin.ToUniversalTime());
 
             // 2. Afficher le dialogue de notification si des utilisateurs sont impactés
             bool shouldNotify = false;
@@ -170,8 +170,8 @@
 
             // 3. Créer la fermeture avec ou sans notification
             var result = await FermetureClubService.CreateFermetureAsync(
-                DateTime.SpecifyKind(dateTimeDebut, DateTimeKind.Utc),
-                DateTime.SpecifyKind(dateTimeFin, DateTimeKind.Utc),
+                dateTimeDebut.ToUniversalTime(),
+                dateTimeFin.ToUniversalTime(),
                 _typeFermeture,
                 string.IsNullOrWhiteSpace(_raison) ? null : _raison.Trim(),
                 shouldNotify);
