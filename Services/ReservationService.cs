@@ -248,7 +248,24 @@ public class ReservationService
 
             await _context.SaveChangesAsync();
 
-            // 9. Recharger avec toutes les relations pour le DTO
+            // 9. Si un moniteur a créé la session et a fusionné des participants, les notifier
+            _logger.LogInformation($"[NOTIF DEBUG CreateReservationAsync] isMoniteur={isMoniteur}, mergedUserIds.Count={mergedUserIds.Count}");
+            if (isMoniteur && mergedUserIds.Any())
+            {
+                var user = await _context.Users.FindAsync(userIdInt);
+                if (user != null)
+                {
+                    await _notificationService.NotifyMultipleAsync(
+                        mergedUserIds.Select(id => id.ToString()).ToList(),
+                        "Moniteur disponible",
+                        $"{user.Prenom} {user.Nom} a validé votre séance en s'inscrivant comme moniteur",
+                        NotificationType.Success);
+
+                    _logger.LogInformation($"Notifications envoyées à {mergedUserIds.Count} participant(s) pour la validation par moniteur");
+                }
+            }
+
+            // 10. Recharger avec toutes les relations pour le DTO
             var created = await GetReservationByIdAsync(reservation.Id);
 
             _logger.LogInformation($"Inscription {reservation.Id} créée avec succès");
@@ -318,6 +335,7 @@ public class ReservationService
             await _context.SaveChangesAsync();
 
             // Notifier les autres participants si un moniteur s'inscrit
+            _logger.LogInformation($"[NOTIF DEBUG AddParticipantAsync] isMoniteur={isMoniteur}, reservation.Participants.Count={reservation.Participants.Count}");
             if (isMoniteur)
             {
                 var user = await _context.Users.FindAsync(userIdInt);
@@ -326,6 +344,7 @@ public class ReservationService
                     .Select(p => p.UserId.ToString())
                     .ToList();
 
+                _logger.LogInformation($"[NOTIF DEBUG AddParticipantAsync] membresInscrits.Count={membresInscrits.Count}, user={user?.NomComplet ?? "null"}");
                 if (membresInscrits.Any() && user != null)
                 {
                     await _notificationService.NotifyMultipleAsync(
@@ -404,6 +423,7 @@ public class ReservationService
             await _context.SaveChangesAsync();
 
             // Notifier les autres participants si un moniteur se désinscrit
+            _logger.LogInformation($"[NOTIF DEBUG RemoveParticipantAsync] wasMoniteur={wasMoniteur}, reservation.Participants.Count={reservation.Participants.Count}");
             if (wasMoniteur)
             {
                 var user = await _context.Users.FindAsync(userIdInt);
@@ -412,6 +432,7 @@ public class ReservationService
                     .Select(p => p.UserId.ToString())
                     .ToList();
 
+                _logger.LogInformation($"[NOTIF DEBUG RemoveParticipantAsync] participantIds.Count={participantIds.Count}, user={user?.NomComplet ?? "null"}");
                 if (participantIds.Any() && user != null)
                 {
                     await _notificationService.NotifyMultipleAsync(

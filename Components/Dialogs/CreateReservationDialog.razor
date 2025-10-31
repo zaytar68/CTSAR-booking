@@ -100,7 +100,7 @@
 
 @code {
     [CascadingParameter]
-    private MudBlazor.IDialogReference? DialogRef { get; set; }
+    public MudBlazor.IDialogReference? DialogRef { get; set; }
 
     private MudForm _form = null!;
     private CreateReservationDto _model = new();
@@ -127,17 +127,7 @@
 
     private void Cancel()
     {
-        Console.WriteLine("Cancel button clicked");
-        if (DialogRef != null)
-        {
-            Console.WriteLine("Closing dialog via DialogRef");
-            DialogRef.Close(DialogResult.Cancel());
-        }
-        else
-        {
-            Console.WriteLine("DialogRef is null, using navigation fallback");
-            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
-        }
+        DialogRef?.Close(DialogResult.Cancel());
     }
 
     private async Task Submit()
@@ -195,14 +185,14 @@
 
             if (result.Success)
             {
-                Console.WriteLine("Reservation created successfully, closing dialog...");
                 Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
+                StateHasChanged();
+
+                // Fermer le dialogue si DialogRef est disponible
                 DialogRef?.Close(DialogResult.Ok(result.Reservation));
-                Console.WriteLine("Dialog closed");
             }
             else
             {
-                Console.WriteLine($"Reservation creation failed: {result.Message}");
                 _errorMessage = result.Message;
             }
         }

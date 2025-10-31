@@ -26,6 +26,7 @@ public class NotificationService : INotificationService
     /// </summary>
     public async Task NotifyAsync(string userId, string title, string message, NotificationType type)
     {
+        _logger.LogInformation($"[NOTIF DEBUG NotifyAsync] DÉBUT - userId={userId}, title={title}");
         try
         {
             if (!int.TryParse(userId, out int userIdInt))
@@ -41,6 +42,8 @@ public class NotificationService : INotificationService
                 _logger.LogWarning("Tentative de notification vers un utilisateur inexistant : {UserId}", userId);
                 return;
             }
+
+            _logger.LogInformation($"[NOTIF DEBUG NotifyAsync] User trouvé : {user.NomComplet} ({user.Email})");
 
             // Log avec format très visible dans la console (utilise LogWarning pour être en jaune/orange)
             var separator = new string('=', 80);

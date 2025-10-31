@@ -162,7 +162,7 @@
     private List<ReservationDto>? _reservations;
     private List<AlveoleDto>? _alveoles;
     private List<FermetureClubDto>? _fermetures;
-    private bool _loading = true;
+    private bool _loading = false;  // Corrigé: initialisé à false au lieu de true
     private string? _currentUserId;
     private bool _isMoniteur = false;
     private bool _isInitialized = false;
@@ -220,6 +220,9 @@
 
     private async Task LoadData()
     {
+        // Guard contre les appels concurrents multiples
+        if (_loading) return;
+
         _loading = true;
         try
         {
@@ -251,8 +254,11 @@
             _currentMonth = 12;
             _currentYear--;
         }
+        // NavigateToMonth pour mettre à jour l'URL
         NavigateToMonth(_currentYear, _currentMonth);
+        // Chargement direct - le guard empêche les doubles appels
         await LoadData();
+        StateHasChanged();
     }
 
     private async Task NextMonth()
@@ -263,8 +269,11 @@
             _currentMonth = 1;
             _currentYear++;
         }
+        // NavigateToMonth pour mettre à jour l'URL
         NavigateToMonth(_currentYear, _currentMonth);
+        // Chargement direct - le guard empêche les doubles appels
         await LoadData();
+        StateHasChanged();
     }
 
     private void NavigateToMonth(int year, int month)
@@ -451,12 +460,10 @@
         var dialog = await DialogService.ShowAsync<CreateReservationDialog>(Loc["NewReservation"], options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
-        {
-            await LoadData();
-            StateHasChanged();
-            // Le Snackbar est affiché dans CreateReservationDialog pour un feedback immédiat
-        }
+        // Toujours rafraîchir le calendrier après fermeture du dialogue
+        // pour afficher les nouvelles réservations
+        await LoadData();
+        StateHasChanged();
     }
 
     private async Task OpenReservationDetails(ReservationDto reservation)
