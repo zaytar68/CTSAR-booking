@@ -80,7 +80,6 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@Loc["Cancel"]</MudButton>
         <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
                    OnClick="Submit"
@@ -101,6 +100,12 @@
 @code {
     [CascadingParameter]
     public MudBlazor.IDialogReference? DialogRef { get; set; }
+
+    [Parameter]
+    public int? CurrentYear { get; set; }
+
+    [Parameter]
+    public int? CurrentMonth { get; set; }
 
     private MudForm _form = null!;
     private CreateReservationDto _model = new();
@@ -123,11 +128,16 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         _isMoniteur = authState.User.IsInRole("Moniteur");
-    }
 
-    private void Cancel()
-    {
-        DialogRef?.Close(DialogResult.Cancel());
+        // Initialiser la date sur le mois en cours du planning
+        if (CurrentYear.HasValue && CurrentMonth.HasValue)
+        {
+            _dateDebut = new DateTime(CurrentYear.Value, CurrentMonth.Value, 1);
+        }
+        else
+        {
+            _dateDebut = DateTime.Now.Date;
+        }
     }
 
     private async Task Submit()

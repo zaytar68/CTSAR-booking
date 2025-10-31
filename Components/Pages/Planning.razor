@@ -450,14 +450,21 @@
 
     private async Task OpenCreateReservationDialog()
     {
+        var parameters = new DialogParameters
+        {
+            { "CurrentYear", _currentYear },
+            { "CurrentMonth", _currentMonth }
+        };
+
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
+            CloseButton = true,
             MaxWidth = MaxWidth.Small,
             FullWidth = true
         };
 
-        var dialog = await DialogService.ShowAsync<CreateReservationDialog>(Loc["NewReservation"], options);
+        var dialog = await DialogService.ShowAsync<CreateReservationDialog>(Loc["NewReservation"], parameters, options);
         var result = await dialog.Result;
 
         // Toujours rafraîchir le calendrier après fermeture du dialogue
