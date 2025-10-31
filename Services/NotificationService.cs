@@ -45,6 +45,34 @@ public class NotificationService : INotificationService
 
             _logger.LogInformation($"[NOTIF DEBUG NotifyAsync] User trouvé : {user.NomComplet} ({user.Email})");
 
+            // Vérifier les préférences de notification
+            bool shouldSendNotification = false;
+            List<string> channels = new List<string>();
+
+            if (user.NotifMail)
+            {
+                shouldSendNotification = true;
+                channels.Add("Email");
+            }
+            if (user.Notif2)
+            {
+                shouldSendNotification = true;
+                channels.Add("Canal2");
+            }
+            if (user.Notif3)
+            {
+                shouldSendNotification = true;
+                channels.Add("Canal3");
+            }
+
+            if (!shouldSendNotification)
+            {
+                _logger.LogInformation(
+                    "[NOTIFICATION IGNORÉE] L'utilisateur {UserEmail} a désactivé toutes les notifications",
+                    user.Email);
+                return;
+            }
+
             // Log avec format très visible dans la console (utilise LogWarning pour être en jaune/orange)
             var separator = new string('=', 80);
             Console.WriteLine();
@@ -53,6 +81,7 @@ public class NotificationService : INotificationService
             Console.WriteLine(separator);
             Console.WriteLine($"Type         : {type}");
             Console.WriteLine($"Destinataire : {user.Prenom} {user.Nom} ({user.Email})");
+            Console.WriteLine($"Canaux       : {string.Join(", ", channels)}");
             Console.WriteLine($"Titre        : {title}");
             Console.WriteLine($"Message      : {message}");
             Console.WriteLine(separator);
@@ -60,10 +89,11 @@ public class NotificationService : INotificationService
 
             // Log normal pour les fichiers de log
             _logger.LogInformation(
-                "[NOTIFICATION] {Type} | To: {UserEmail} ({UserName}) | Title: {Title} | Message: {Message}",
+                "[NOTIFICATION] {Type} | To: {UserEmail} ({UserName}) | Channels: {Channels} | Title: {Title} | Message: {Message}",
                 type,
                 user.Email,
                 $"{user.Prenom} {user.Nom}",
+                string.Join(", ", channels),
                 title,
                 message);
         }

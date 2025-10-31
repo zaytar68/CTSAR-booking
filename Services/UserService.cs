@@ -57,6 +57,10 @@ public class UserService
                 Email = u.Email,
                 Nom = u.Nom,
                 Prenom = u.Prenom,
+                PreferenceLangue = u.PreferenceLangue,
+                NotifMail = u.NotifMail,
+                Notif2 = u.Notif2,
+                Notif3 = u.Notif3,
                 // NomComplet est calculé automatiquement par la propriété
                 Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
             }).ToList();
@@ -96,6 +100,10 @@ public class UserService
                 Email = user.Email,
                 Nom = user.Nom,
                 Prenom = user.Prenom,
+                PreferenceLangue = user.PreferenceLangue,
+                NotifMail = user.NotifMail,
+                Notif2 = user.Notif2,
+                Notif3 = user.Notif3,
                 // NomComplet est calculé automatiquement par la propriété
                 Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
             };
@@ -179,7 +187,11 @@ public class UserService
         string nom,
         string prenom,
         string role,
-        string? newPassword = null)
+        string? newPassword = null,
+        string? preferenceLangue = null,
+        bool? notifMail = null,
+        bool? notif2 = null,
+        bool? notif3 = null)
     {
         try
         {
@@ -201,6 +213,26 @@ public class UserService
             user.Email = email;
             user.Nom = nom;
             user.Prenom = prenom;
+
+            // Mettre à jour la préférence de langue si fournie
+            if (!string.IsNullOrWhiteSpace(preferenceLangue))
+            {
+                user.PreferenceLangue = preferenceLangue;
+            }
+
+            // Mettre à jour les préférences de notification si fournies
+            if (notifMail.HasValue)
+            {
+                user.NotifMail = notifMail.Value;
+            }
+            if (notif2.HasValue)
+            {
+                user.Notif2 = notif2.Value;
+            }
+            if (notif3.HasValue)
+            {
+                user.Notif3 = notif3.Value;
+            }
 
             // Mettre à jour le mot de passe si fourni
             if (!string.IsNullOrWhiteSpace(newPassword))
@@ -302,6 +334,27 @@ public class UserService
             dto.Prenom,
             role);
 
+        if (!success || userId == null)
+        {
+            return (success, errorMessage);
+        }
+
+        // Mettre à jour les préférences de notification et de langue
+        if (!int.TryParse(userId, out int id))
+        {
+            return (false, "ID utilisateur invalide");
+        }
+
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            user.PreferenceLangue = dto.PreferenceLangue;
+            user.NotifMail = dto.NotifMail;
+            user.Notif2 = dto.Notif2;
+            user.Notif3 = dto.Notif3;
+            await _context.SaveChangesAsync();
+        }
+
         return (success, errorMessage);
     }
 
@@ -325,7 +378,11 @@ public class UserService
             dto.Nom,
             dto.Prenom,
             role,
-            dto.PreferenceLangue);
+            null, // newPassword
+            dto.PreferenceLangue,
+            dto.NotifMail,
+            dto.Notif2,
+            dto.Notif3);
     }
 
     /// <summary>

@@ -67,6 +67,21 @@ public class UserDto
     public string PreferenceLangue { get; set; } = "fr";
 
     /// <summary>
+    /// Préférence de notification par email.
+    /// </summary>
+    public bool NotifMail { get; set; } = true;
+
+    /// <summary>
+    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// </summary>
+    public bool Notif2 { get; set; } = false;
+
+    /// <summary>
+    /// Préférence de notification via le canal 3 (réservé pour usage futur).
+    /// </summary>
+    public bool Notif3 { get; set; } = false;
+
+    /// <summary>
     /// Liste des rôles de l'utilisateur.
     /// Exemple : ["Administrateur"] ou ["Moniteur", "Membre"]
     /// Un utilisateur peut avoir plusieurs rôles.
@@ -181,6 +196,21 @@ public class CreateUserDto
     public string PreferenceLangue { get; set; } = "fr";
 
     /// <summary>
+    /// Préférence de notification par email.
+    /// </summary>
+    public bool NotifMail { get; set; } = true;
+
+    /// <summary>
+    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// </summary>
+    public bool Notif2 { get; set; } = false;
+
+    /// <summary>
+    /// Préférence de notification via le canal 3 (réservé pour usage futur).
+    /// </summary>
+    public bool Notif3 { get; set; } = false;
+
+    /// <summary>
     /// Liste des rôles à assigner à l'utilisateur.
     /// Exemple : ["Moniteur"] ou ["Administrateur", "Moniteur"]
     /// Au minimum un rôle doit être sélectionné.
@@ -244,6 +274,21 @@ public class UpdateUserDto
     [Required]
     [MaxLength(5)]
     public string PreferenceLangue { get; set; } = "fr";
+
+    /// <summary>
+    /// Préférence de notification par email.
+    /// </summary>
+    public bool NotifMail { get; set; } = true;
+
+    /// <summary>
+    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// </summary>
+    public bool Notif2 { get; set; } = false;
+
+    /// <summary>
+    /// Préférence de notification via le canal 3 (réservé pour usage futur).
+    /// </summary>
+    public bool Notif3 { get; set; } = false;
 
     /// <summary>
     /// Liste des rôles de l'utilisateur.

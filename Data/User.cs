@@ -73,6 +73,25 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // ================================================================
+    // PRÉFÉRENCES DE NOTIFICATION
+    // ================================================================
+
+    /// <summary>
+    /// Indique si l'utilisateur souhaite recevoir des notifications par email.
+    /// </summary>
+    public bool NotifMail { get; set; } = true;
+
+    /// <summary>
+    /// Indique si l'utilisateur souhaite recevoir des notifications via le canal 2 (ex: WhatsApp).
+    /// </summary>
+    public bool Notif2 { get; set; } = false;
+
+    /// <summary>
+    /// Indique si l'utilisateur souhaite recevoir des notifications via le canal 3 (réservé pour usage futur).
+    /// </summary>
+    public bool Notif3 { get; set; } = false;
+
+    // ================================================================
     // PROPRIÉTÉS DE NAVIGATION (relations avec d'autres tables)
     // ================================================================
 
