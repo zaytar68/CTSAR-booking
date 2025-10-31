@@ -122,7 +122,20 @@ builder.Services.AddScoped<ReservationService>();
 // Ajoute FermetureClubService pour gérer les fermetures planifiées du club
 builder.Services.AddScoped<FermetureClubService>();
 
-// Ajoute NotificationService pour envoyer des notifications aux utilisateurs
+// --------------------------------------------------------------------
+// SERVICES DE NOTIFICATION
+// --------------------------------------------------------------------
+
+// Configure les paramètres SMTP depuis appsettings.json
+// Ces paramètres sont injectés dans EmailService via IOptions<SmtpSettings>
+builder.Services.Configure<CTSAR.Booking.Configuration.SmtpSettings>(
+    builder.Configuration.GetSection("SmtpSettings"));
+
+// Ajoute EmailService pour l'envoi d'emails par SMTP
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Ajoute NotificationService pour envoyer des notifications multi-canaux
+// (Email, WhatsApp, SMS, etc.) en respectant les préférences utilisateur
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // --------------------------------------------------------------------

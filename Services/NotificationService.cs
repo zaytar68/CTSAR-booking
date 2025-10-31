@@ -4,21 +4,26 @@ using Microsoft.EntityFrameworkCore;
 namespace CTSAR.Booking.Services;
 
 /// <summary>
-/// Implémentation du service de notifications
-/// Pour l'instant : logs uniquement
-/// Architecture extensible pour ajouter email/WhatsApp plus tard
+/// Implémentation du service de notifications multi-canaux.
+/// Supporte l'envoi de notifications par :
+/// - Email (si NotifMail = true)
+/// - Logs console (toujours actifs)
+/// Architecture extensible pour ajouter d'autres canaux (WhatsApp, SMS, etc.)
 /// </summary>
 public class NotificationService : INotificationService
 {
     private readonly ILogger<NotificationService> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
     public NotificationService(
         ILogger<NotificationService> logger,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        IEmailService emailService)
     {
         _logger = logger;
         _context = context;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -73,7 +78,81 @@ public class NotificationService : INotificationService
                 return;
             }
 
-            // Log avec format très visible dans la console (utilise LogWarning pour être en jaune/orange)
+            // ================================================================
+            // ENVOI DES NOTIFICATIONS PAR LES CANAUX ACTIVÉS
+            // ================================================================
+
+            // Canal 1 : Envoi par email
+            if (user.NotifMail)
+            {
+                try
+                {
+                    // Créer le corps de l'email en HTML
+                    var emailBody = $@"
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                                .header {{ background-color: #1976d2; color: white; padding: 20px; text-align: center; }}
+                                .content {{ padding: 20px; }}
+                                .footer {{ background-color: #f5f5f5; padding: 10px; text-align: center; font-size: 12px; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class='header'>
+                                <h1>{title}</h1>
+                            </div>
+                            <div class='content'>
+                                <p>Bonjour {user.Prenom} {user.Nom},</p>
+                                <p>{message}</p>
+                            </div>
+                            <div class='footer'>
+                                <p>Ceci est un message automatique de CTSAR Booking. Merci de ne pas répondre à cet email.</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                    // Envoyer l'email de manière asynchrone (ne pas bloquer si ça échoue)
+                    var emailSent = await _emailService.SendEmailAsync(
+                        user.Email!,
+                        title,
+                        emailBody,
+                        isHtml: true);
+
+                    if (!emailSent)
+                    {
+                        _logger.LogWarning(
+                            "[NOTIFICATION] Échec de l'envoi de l'email à {UserEmail}",
+                            user.Email);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Ne pas bloquer toute la notification si l'email échoue
+                    _logger.LogError(ex,
+                        "[NOTIFICATION] Erreur lors de l'envoi de l'email à {UserEmail}",
+                        user.Email);
+                }
+            }
+
+            // Canal 2 : Réservé (ex: WhatsApp)
+            if (user.Notif2)
+            {
+                // TODO : Implémenter l'envoi via le canal 2
+                _logger.LogInformation("[NOTIFICATION] Canal 2 activé mais pas encore implémenté");
+            }
+
+            // Canal 3 : Réservé (usage futur)
+            if (user.Notif3)
+            {
+                // TODO : Implémenter l'envoi via le canal 3
+                _logger.LogInformation("[NOTIFICATION] Canal 3 activé mais pas encore implémenté");
+            }
+
+            // ================================================================
+            // LOGS CONSOLE (TOUJOURS ACTIFS POUR DEBUG)
+            // ================================================================
+
             var separator = new string('=', 80);
             Console.WriteLine();
             Console.WriteLine(separator);
