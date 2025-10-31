@@ -9,6 +9,8 @@ personnelles, voir ses rôles et changer son mot de passe.
 @page "/mon-profil"
 @attribute [Authorize]
 
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<MonProfil> Loc
 @inject UserService UserService
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -202,6 +204,50 @@ personnelles, voir ses rôles et changer son mot de passe.
                         </EditForm>
                     </MudCardContent>
                 </MudCard>
+
+                @* ======================================================== *@
+                @* SECTION 3 : PRÉFÉRENCES DE NOTIFICATION                  *@
+                @* ======================================================== *@
+                <MudCard Class="mt-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-2" />
+                                @Loc["NotificationsTitle"]
+                            </MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-3">
+                            @Loc["NotificationsDescription"]
+                        </MudText>
+
+                        <MudStack Spacing="3">
+                            @* NOTIFICATION PAR EMAIL *@
+                            <MudCheckBox @bind-Value="updateUserDto.NotifMail"
+                                         Label="@Loc["EmailNotificationLabel"]"
+                                         Color="Color.Primary" />
+
+                            @* NOTIFICATION CANAL 2 (WhatsApp) - Désactivé pour le moment *@
+                            <MudCheckBox @bind-Value="updateUserDto.Notif2"
+                                         Label="@Loc["WhatsAppNotificationLabel"]"
+                                         Color="Color.Primary"
+                                         Disabled="true" />
+
+                            @* NOTIFICATION CANAL 3 - Désactivé pour le moment *@
+                            <MudCheckBox @bind-Value="updateUserDto.Notif3"
+                                         Label="@Loc["OtherNotificationLabel"]"
+                                         Color="Color.Primary"
+                                         Disabled="true" />
+                        </MudStack>
+
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="mt-4">
+                            <MudText Typo="Typo.body2">
+                                @Loc["NotificationsInfoMessage"]
+                            </MudText>
+                        </MudAlert>
+                    </MudCardContent>
+                </MudCard>
             </MudItem>
 
             @* ======================================================== *@
@@ -331,6 +377,9 @@ personnelles, voir ses rôles et changer son mot de passe.
                             Email = currentUser.Email,
                             PhoneNumber = currentUser.PhoneNumber,
                             PreferenceLangue = currentUser.PreferenceLangue,
+                            NotifMail = currentUser.NotifMail,
+                            Notif2 = currentUser.Notif2,
+                            Notif3 = currentUser.Notif3,
                             Roles = currentUser.Roles
                         };
 
