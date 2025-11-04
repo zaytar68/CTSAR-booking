@@ -189,10 +189,15 @@ public class EmailService : IEmailService
             using var smtpClient = new SmtpClient();
 
             // Connexion au serveur SMTP
+            // Port 587 nécessite STARTTLS, port 465 nécessite SSL/TLS
+            var secureSocketOptions = _smtpSettings.Port == 587
+                ? SecureSocketOptions.StartTls
+                : (_smtpSettings.EnableSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None);
+
             await smtpClient.ConnectAsync(
                 _smtpSettings.Host,
                 _smtpSettings.Port,
-                _smtpSettings.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
+                secureSocketOptions);
 
             // Authentification
             await smtpClient.AuthenticateAsync(

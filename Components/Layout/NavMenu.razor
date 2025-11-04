@@ -15,6 +15,13 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
 @inject IStringLocalizer<NavMenu> Loc
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
 
+@* ======================================================== *@
+@*    LOGO                                                  *@
+@* ======================================================== *@
+<div class="d-flex justify-center">
+    <MudImage Src="img/logo_ctsar.png" Alt="CTSAR Logo" Width="150" Class="mx-auto my-2" ObjectPosition="ObjectPosition.Center"/>
+</div>
+
 @* ================================================================ *@
 @* MUDBLAZOR DRAWER AVEC MUDNAVMENU                                 *@
 @* ================================================================ *@
@@ -22,7 +29,7 @@ Le menu s'adapte selon les permissions de l'utilisateur (AuthorizeView).
     @* ======================================================== *@
     @* EN-TÊTE DU MENU                                          *@
     @* ======================================================== *@
-    <MudText Typo="Typo.h6" Class="px-4 py-3">CTSAR Booking</MudText>
+    <MudText Typo="Typo.h5" Class="px-4 py-3">CTSAR Booking</MudText>
 
     @* Affichage des informations utilisateur *@
     <AuthorizeView>

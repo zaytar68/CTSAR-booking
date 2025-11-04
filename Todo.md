@@ -18,7 +18,7 @@ ____
 # Présentation
 
 - ~~afficher nom du membre dans le header~~
-- afficher logo et favicon
+- ~~afficher logo et favicon~~
 
 # Fonctionnement
 
@@ -28,3 +28,4 @@ ____
 - ~~ouvrir le modal de création sur le mois en cours~~
 - problème de décalage des heures entre inscription et affichage
 - ~~moniteur peut gérer les fermetures~~
+- implementer le changement de mot de passe
