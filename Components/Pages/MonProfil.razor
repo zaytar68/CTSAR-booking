@@ -246,6 +246,25 @@ personnelles, voir ses rôles et changer son mot de passe.
                                 @Loc["NotificationsInfoMessage"]
                             </MudText>
                         </MudAlert>
+
+                        @* BOUTON ENREGISTRER *@
+                        <MudCardActions Class="pt-4">
+                            <MudButton OnClick="HandleUpdateProfile"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@savingProfile"
+                                       StartIcon="@Icons.Material.Filled.Save">
+                                @if (savingProfile)
+                                {
+                                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                    <span>Enregistrement...</span>
+                                }
+                                else
+                                {
+                                    <span>Enregistrer les préférences</span>
+                                }
+                            </MudButton>
+                        </MudCardActions>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
