@@ -18,6 +18,7 @@
 #r "nuget: MailKit, 4.3.0"
 #r "nuget: Microsoft.Extensions.Configuration, 8.0.0"
 #r "nuget: Microsoft.Extensions.Configuration.Json, 8.0.0"
+#r "nuget: Microsoft.Extensions.Configuration.UserSecrets, 8.0.0"
 
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -30,7 +31,7 @@ using System.IO;
 // ====================================================================
 
 // Email destinataire pour le test
-var emailDestinataire = "votre-email@example.com"; // ⚠️ MODIFIEZ CETTE ADRESSE
+var emailDestinataire = "cedric.tirolf@gmail.com"; // ⚠️ MODIFIEZ CETTE ADRESSE
 
 // Sujet et corps du message
 var sujet = "Test email CTSAR Booking";
@@ -51,17 +52,34 @@ var corpsMessage = @"
 Console.WriteLine("🔧 Chargement de la configuration SMTP...\n");
 
 // Chemin vers appsettings.json (depuis la racine du projet)
-var basePath = Path.GetDirectoryName(Path.GetDirectoryName(Environment.CurrentDirectory));
-if (basePath == null)
+// Le script est dans Scripts/, donc on remonte d'un niveau pour trouver la racine
+var scriptPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
+var basePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
+
+// Si on est déjà dans le dossier racine (CTSAR-booking), on l'utilise
+if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json")))
 {
     basePath = Directory.GetCurrentDirectory();
 }
+// Sinon, chercher le fichier en remontant
+else if (File.Exists(Path.Combine(basePath, "appsettings.json")))
+{
+    // basePath est déjà correctement défini
+}
+else
+{
+    Console.WriteLine("❌ Erreur : Impossible de trouver appsettings.json");
+    Console.WriteLine($"Chemin actuel : {Directory.GetCurrentDirectory()}");
+    Console.WriteLine($"Chemin testé : {basePath}");
+    return;
+}
+
+Console.WriteLine($"📁 Dossier du projet : {basePath}\n");
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(basePath)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
     .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
-    .AddUserSecrets("e15d95e1-e70a-4f06-9b11-ef36d57eb98f", optional: true) // ID du projet
     .Build();
 
 // Lecture des paramètres SMTP

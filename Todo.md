@@ -26,6 +26,7 @@ ____
 - ~~ mémoriser le mois en cours de navigation ? (retour au mois en cours par exemple après avoir fermé l'écran de réservation) ~~
 - ~~créer un compte propose de crée un compte moniteur~~
 - ~~ouvrir le modal de création sur le mois en cours~~
-- problème de décalage des heures entre inscription et affichage
+- ~~ problème de décalage des heures entre inscription et affichage ~~
 - ~~moniteur peut gérer les fermetures~~
 - implementer le changement de mot de passe
+- templates de mails et traductions
