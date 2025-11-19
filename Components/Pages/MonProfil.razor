@@ -15,7 +15,7 @@ personnelles, voir ses rôles et changer son mot de passe.
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Mon profil</PageTitle>
+<PageTitle>@Loc["PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
 
@@ -24,7 +24,7 @@ personnelles, voir ses rôles et changer son mot de passe.
     @* ======================================================== *@
     <MudText Typo="Typo.h4" Class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
-        Mon profil
+        @Loc["PageTitle"]
     </MudText>
 
     @if (loading)
@@ -40,7 +40,7 @@ personnelles, voir ses rôles et changer son mot de passe.
         @* MESSAGE D'ERREUR SI UTILISATEUR NON TROUVÉ              *@
         @* ======================================================== *@
         <MudAlert Severity="Severity.Error">
-            Impossible de charger votre profil. Veuillez vous reconnecter.
+            @Loc["ProfileLoadError"]
         </MudAlert>
     }
     else
@@ -59,7 +59,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">
                                 <MudIcon Icon="@Icons.Material.Filled.Badge" Class="mr-2" />
-                                Informations personnelles
+                                @Loc["PersonalInfoTitle"]
                             </MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
@@ -70,7 +70,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                             <MudGrid>
                                 @* NOM *@
                                 <MudItem xs="12" sm="6">
-                                    <MudTextField Label="Nom"
+                                    <MudTextField Label="@Loc["LastNameLabel"]"
                                                   @bind-Value="updateUserDto.Nom"
                                                   For="@(() => updateUserDto.Nom)"
                                                   Variant="Variant.Outlined"
@@ -79,7 +79,7 @@ personnelles, voir ses rôles et changer son mot de passe.
 
                                 @* PRÉNOM *@
                                 <MudItem xs="12" sm="6">
-                                    <MudTextField Label="Prénom"
+                                    <MudTextField Label="@Loc["FirstNameLabel"]"
                                                   @bind-Value="updateUserDto.Prenom"
                                                   For="@(() => updateUserDto.Prenom)"
                                                   Variant="Variant.Outlined"
@@ -88,7 +88,7 @@ personnelles, voir ses rôles et changer son mot de passe.
 
                                 @* EMAIL *@
                                 <MudItem xs="12">
-                                    <MudTextField Label="Email"
+                                    <MudTextField Label="@Loc["EmailLabel"]"
                                                   @bind-Value="updateUserDto.Email"
                                                   For="@(() => updateUserDto.Email)"
                                                   Variant="Variant.Outlined"
@@ -98,16 +98,16 @@ personnelles, voir ses rôles et changer son mot de passe.
 
                                 @* TÉLÉPHONE *@
                                 <MudItem xs="12" sm="6">
-                                    <MudTextField Label="Téléphone"
+                                    <MudTextField Label="@Loc["PhoneLabel"]"
                                                   @bind-Value="updateUserDto.PhoneNumber"
                                                   For="@(() => updateUserDto.PhoneNumber)"
                                                   Variant="Variant.Outlined"
-                                                  Placeholder="+41 XX XXX XX XX" />
+                                                  Placeholder="@Loc["PhonePlaceholder"]" />
                                 </MudItem>
 
                                 @* LANGUE PRÉFÉRÉE *@
                                 <MudItem xs="12" sm="6">
-                                    <MudSelect Label="Langue préférée"
+                                    <MudSelect Label="@Loc["LanguageLabel"]"
                                                @bind-Value="updateUserDto.PreferenceLangue"
                                                Variant="Variant.Outlined"
                                                Required="true">
@@ -128,11 +128,11 @@ personnelles, voir ses rôles et changer son mot de passe.
                                     @if (savingProfile)
                                     {
                                         <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                                        <span>Enregistrement...</span>
+                                        <span>@Loc["SavingButton"]</span>
                                     }
                                     else
                                     {
-                                        <span>Enregistrer les modifications</span>
+                                        <span>@Loc["SaveChangesButton"]</span>
                                     }
                                 </MudButton>
                             </MudCardActions>
@@ -148,7 +148,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">
                                 <MudIcon Icon="@Icons.Material.Filled.Lock" Class="mr-2" />
-                                Changer mon mot de passe
+                                @Loc["ChangePasswordTitle"]
                             </MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
@@ -157,7 +157,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                             <DataAnnotationsValidator />
 
                             @* MOT DE PASSE ACTUEL *@
-                            <MudTextField Label="Mot de passe actuel"
+                            <MudTextField Label="@Loc["CurrentPasswordLabel"]"
                                           @bind-Value="changePasswordDto.CurrentPassword"
                                           For="@(() => changePasswordDto.CurrentPassword)"
                                           Variant="Variant.Outlined"
@@ -166,17 +166,17 @@ personnelles, voir ses rôles et changer son mot de passe.
                                           Required="true" />
 
                             @* NOUVEAU MOT DE PASSE *@
-                            <MudTextField Label="Nouveau mot de passe"
+                            <MudTextField Label="@Loc["NewPasswordLabel"]"
                                           @bind-Value="changePasswordDto.NewPassword"
                                           For="@(() => changePasswordDto.NewPassword)"
                                           Variant="Variant.Outlined"
                                           InputType="InputType.Password"
                                           Class="mb-3"
                                           Required="true"
-                                          HelperText="Au moins 6 caractères" />
+                                          HelperText="@Loc["PasswordHelperText"]" />
 
                             @* CONFIRMATION DU NOUVEAU MOT DE PASSE *@
-                            <MudTextField Label="Confirmer le nouveau mot de passe"
+                            <MudTextField Label="@Loc["ConfirmPasswordLabel"]"
                                           @bind-Value="changePasswordDto.ConfirmPassword"
                                           For="@(() => changePasswordDto.ConfirmPassword)"
                                           Variant="Variant.Outlined"
@@ -193,11 +193,11 @@ personnelles, voir ses rôles et changer son mot de passe.
                                     @if (changingPassword)
                                     {
                                         <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                                        <span>Changement en cours...</span>
+                                        <span>@Loc["ChangingPasswordButton"]</span>
                                     }
                                     else
                                     {
-                                        <span>Changer le mot de passe</span>
+                                        <span>@Loc["ChangePasswordButton"]</span>
                                     }
                                 </MudButton>
                             </MudCardActions>
@@ -257,11 +257,11 @@ personnelles, voir ses rôles et changer son mot de passe.
                                 @if (savingProfile)
                                 {
                                     <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                                    <span>Enregistrement...</span>
+                                    <span>@Loc["SavingButton"]</span>
                                 }
                                 else
                                 {
-                                    <span>Enregistrer les préférences</span>
+                                    <span>@Loc["SavePreferencesButton"]</span>
                                 }
                             </MudButton>
                         </MudCardActions>
@@ -281,7 +281,7 @@ personnelles, voir ses rôles et changer son mot de passe.
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">
                                 <MudIcon Icon="@Icons.Material.Filled.Shield" Class="mr-2" />
-                                Mes rôles
+                                @Loc["MyRolesTitle"]
                             </MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
@@ -301,14 +301,13 @@ personnelles, voir ses rôles et changer son mot de passe.
                         }
                         else
                         {
-                            <MudText Color="Color.Secondary">Aucun rôle assigné</MudText>
+                            <MudText Color="Color.Secondary">@Loc["NoRolesAssigned"]</MudText>
                         }
 
                         <MudDivider Class="my-4" />
 
                         <MudAlert Severity="Severity.Info" Dense="true">
-                            Vos rôles sont gérés par un administrateur.
-                            Contactez-le pour toute modification.
+                            @Loc["RolesInfoMessage"]
                         </MudAlert>
                     </MudCardContent>
                 </MudCard>
@@ -321,16 +320,16 @@ personnelles, voir ses rôles et changer son mot de passe.
                         <CardHeaderContent>
                             <MudText Typo="Typo.h6">
                                 <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
-                                Informations
+                                @Loc["InfoTitle"]
                             </MudText>
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
                         <MudText Typo="Typo.body2" Class="mb-2">
-                            <strong>Nom complet :</strong> @currentUser.NomComplet
+                            <strong>@Loc["FullNameLabel"]</strong> @currentUser.NomComplet
                         </MudText>
                         <MudText Typo="Typo.body2" Class="mb-2">
-                            <strong>Identifiant :</strong>
+                            <strong>@Loc["UserIdLabel"]</strong>
                         </MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
                             @currentUser.Id
@@ -413,7 +412,7 @@ personnelles, voir ses rôles et changer son mot de passe.
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erreur lors du chargement du profil : {ex.Message}", Severity.Error);
+            Snackbar.Add($"{Loc["ErrorPrefix"]} {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -438,19 +437,19 @@ personnelles, voir ses rôles et changer son mot de passe.
 
             if (success)
             {
-                Snackbar.Add(message, Severity.Success);
+                Snackbar.Add(Loc["ProfileUpdatedSuccess"], Severity.Success);
 
                 // Recharge les données pour afficher les changements
                 currentUser = await UserService.GetUserByIdAsync(updateUserDto.Id);
             }
             else
             {
-                Snackbar.Add(message, Severity.Error);
+                Snackbar.Add(message ?? Loc["ErrorPrefix"], Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erreur : {ex.Message}", Severity.Error);
+            Snackbar.Add($"{Loc["ErrorPrefix"]} {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -471,7 +470,7 @@ personnelles, voir ses rôles et changer son mot de passe.
 
             if (success)
             {
-                Snackbar.Add(message, Severity.Success);
+                Snackbar.Add(Loc["PasswordChangedSuccess"], Severity.Success);
 
                 // Réinitialise le formulaire
                 changePasswordDto = new ChangePasswordDto
@@ -481,12 +480,12 @@ personnelles, voir ses rôles et changer son mot de passe.
             }
             else
             {
-                Snackbar.Add(message, Severity.Error);
+                Snackbar.Add(message ?? Loc["ErrorPrefix"], Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Erreur : {ex.Message}", Severity.Error);
+            Snackbar.Add($"{Loc["ErrorPrefix"]} {ex.Message}", Severity.Error);
         }
         finally
         {

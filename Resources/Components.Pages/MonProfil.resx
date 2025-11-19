@@ -59,6 +59,69 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
+  <!-- Titre de la page -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Mon profil</value>
+  </data>
+
+  <!-- Section Informations personnelles -->
+  <data name="PersonalInfoTitle" xml:space="preserve">
+    <value>Informations personnelles</value>
+  </data>
+  <data name="LastNameLabel" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="FirstNameLabel" xml:space="preserve">
+    <value>Prénom</value>
+  </data>
+  <data name="EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="PhoneLabel" xml:space="preserve">
+    <value>Téléphone</value>
+  </data>
+  <data name="PhonePlaceholder" xml:space="preserve">
+    <value>+41 XX XXX XX XX</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Langue préférée</value>
+  </data>
+  <data name="SaveChangesButton" xml:space="preserve">
+    <value>Enregistrer les modifications</value>
+  </data>
+  <data name="SavingButton" xml:space="preserve">
+    <value>Enregistrement...</value>
+  </data>
+  <data name="ProfileUpdatedSuccess" xml:space="preserve">
+    <value>Profil mis à jour avec succès</value>
+  </data>
+
+  <!-- Section Changement de mot de passe -->
+  <data name="ChangePasswordTitle" xml:space="preserve">
+    <value>Changer mon mot de passe</value>
+  </data>
+  <data name="CurrentPasswordLabel" xml:space="preserve">
+    <value>Mot de passe actuel</value>
+  </data>
+  <data name="NewPasswordLabel" xml:space="preserve">
+    <value>Nouveau mot de passe</value>
+  </data>
+  <data name="ConfirmPasswordLabel" xml:space="preserve">
+    <value>Confirmer le nouveau mot de passe</value>
+  </data>
+  <data name="PasswordHelperText" xml:space="preserve">
+    <value>Au moins 6 caractères</value>
+  </data>
+  <data name="ChangePasswordButton" xml:space="preserve">
+    <value>Changer le mot de passe</value>
+  </data>
+  <data name="ChangingPasswordButton" xml:space="preserve">
+    <value>Changement en cours...</value>
+  </data>
+  <data name="PasswordChangedSuccess" xml:space="preserve">
+    <value>Mot de passe modifié avec succès</value>
+  </data>
+
   <!-- Carte Notifications -->
   <data name="NotificationsTitle" xml:space="preserve">
     <value>Notifications</value>
@@ -77,5 +140,38 @@
   </data>
   <data name="NotificationsInfoMessage" xml:space="preserve">
     <value>Les notifications vous informent des événements importants : validation de réservation, annulation, fermeture du club, etc.</value>
+  </data>
+  <data name="SavePreferencesButton" xml:space="preserve">
+    <value>Enregistrer les préférences</value>
+  </data>
+
+  <!-- Section Mes rôles -->
+  <data name="MyRolesTitle" xml:space="preserve">
+    <value>Mes rôles</value>
+  </data>
+  <data name="NoRolesAssigned" xml:space="preserve">
+    <value>Aucun rôle assigné</value>
+  </data>
+  <data name="RolesInfoMessage" xml:space="preserve">
+    <value>Vos rôles sont gérés par un administrateur. Contactez-le pour toute modification.</value>
+  </data>
+
+  <!-- Section Informations -->
+  <data name="InfoTitle" xml:space="preserve">
+    <value>Informations</value>
+  </data>
+  <data name="FullNameLabel" xml:space="preserve">
+    <value>Nom complet :</value>
+  </data>
+  <data name="UserIdLabel" xml:space="preserve">
+    <value>Identifiant :</value>
+  </data>
+
+  <!-- Messages d'erreur -->
+  <data name="ProfileLoadError" xml:space="preserve">
+    <value>Impossible de charger votre profil. Veuillez vous reconnecter.</value>
+  </data>
+  <data name="ErrorPrefix" xml:space="preserve">
+    <value>Erreur :</value>
   </data>
 </root>

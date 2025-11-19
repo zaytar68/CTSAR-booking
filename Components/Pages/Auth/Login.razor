@@ -41,11 +41,16 @@
                           Class="mb-4"
                           name="password" />
 
-            <MudCheckBox T="bool" @bind-Checked="rememberMe"
-                         Label="@Loc["RememberMe"]"
-                         Color="Color.Primary"
-                         Class="mb-4"
-                         name="rememberMe" />
+            <div class="d-flex align-center mb-4" style="gap: 8px;">
+                <input type="checkbox"
+                       name="rememberMe"
+                       value="true"
+                       id="rememberMe"
+                       style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--mud-palette-primary);" />
+                <label for="rememberMe" style="cursor: pointer; user-select: none;">
+                    @Loc["RememberMe"]
+                </label>
+            </div>
 
             <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
@@ -70,7 +75,6 @@
 @code {
     private string email = "";
     private string password = "";
-    private bool rememberMe;
     private string? errorMessage;
 
     private IStringLocalizer? _loc;
