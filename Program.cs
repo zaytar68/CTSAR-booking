@@ -134,6 +134,9 @@ builder.Services.Configure<CTSAR.Booking.Configuration.SmtpSettings>(
 // Ajoute EmailService pour l'envoi d'emails par SMTP
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// Ajoute EmailTemplateService pour la gestion des templates d'emails multilingues
+builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+
 // Ajoute NotificationService pour envoyer des notifications multi-canaux
 // (Email, WhatsApp, SMS, etc.) en respectant les préférences utilisateur
 builder.Services.AddScoped<INotificationService, NotificationService>();

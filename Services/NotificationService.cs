@@ -1,5 +1,7 @@
+using System.Globalization;
 using CTSAR.Booking.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace CTSAR.Booking.Services;
 
@@ -15,15 +17,21 @@ public class NotificationService : INotificationService
     private readonly ILogger<NotificationService> _logger;
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IConfiguration _configuration;
 
     public NotificationService(
         ILogger<NotificationService> logger,
         ApplicationDbContext context,
-        IEmailService emailService)
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
+        IConfiguration configuration)
     {
         _logger = logger;
         _context = context;
         _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -87,35 +95,23 @@ public class NotificationService : INotificationService
             {
                 try
                 {
-                    // Créer le corps de l'email en HTML
-                    var emailBody = $@"
-                        <html>
-                        <head>
-                            <style>
-                                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
-                                .header {{ background-color: #1976d2; color: white; padding: 20px; text-align: center; }}
-                                .content {{ padding: 20px; }}
-                                .footer {{ background-color: #f5f5f5; padding: 10px; text-align: center; font-size: 12px; }}
-                            </style>
-                        </head>
-                        <body>
-                            <div class='header'>
-                                <h1>{title}</h1>
-                            </div>
-                            <div class='content'>
-                                <p>Bonjour {user.Prenom} {user.Nom},</p>
-                                <p>{message}</p>
-                            </div>
-                            <div class='footer'>
-                                <p>Ceci est un message automatique de CTSAR Booking. Merci de ne pas répondre à cet email.</p>
-                            </div>
-                        </body>
-                        </html>";
+                    // Utiliser le template multilingue
+                    var baseUrl = _configuration["Application:BaseUrl"] ?? "http://localhost:5127";
+                    var emailSubject = _emailTemplateService.GetSubject("NotificationGenerique");
+                    var emailBody = await _emailTemplateService.RenderTemplateAsync("NotificationGenerique", new Dictionary<string, string>
+                    {
+                        { "Titre", title },
+                        { "NomMembre", user.NomComplet },
+                        { "Message", message },
+                        { "UrlApplication", baseUrl },
+                        { "Year", DateTime.Now.Year.ToString() },
+                        { "Lang", CultureInfo.CurrentUICulture.TwoLetterISOLanguageName }
+                    });
 
                     // Envoyer l'email de manière asynchrone (ne pas bloquer si ça échoue)
                     var emailSent = await _emailService.SendEmailAsync(
                         user.Email!,
-                        title,
+                        emailSubject,
                         emailBody,
                         isHtml: true);
 
@@ -293,6 +289,196 @@ public class NotificationService : INotificationService
         {
             _logger.LogError(ex, "Erreur lors de la récupération des utilisateurs impactés par la fermeture du club");
             return new List<AffectedUserInfo>();
+        }
+    }
+
+    /// <summary>
+    /// Envoie une notification de confirmation de réservation à un membre
+    /// </summary>
+    public async Task NotifyReservationConfirmeeAsync(string userId, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomAlveole, string nomMoniteur)
+    {
+        if (!int.TryParse(userId, out int userIdInt))
+        {
+            _logger.LogWarning("UserId invalide : {UserId}", userId);
+            return;
+        }
+
+        var user = await _context.Users.FindAsync(userIdInt);
+        if (user == null || !user.NotifMail)
+            return;
+
+        try
+        {
+            var baseUrl = _configuration["Application:BaseUrl"] ?? "http://localhost:5127";
+
+            // Définir la culture de l'utilisateur pour la génération du template
+            var userCulture = !string.IsNullOrEmpty(user.PreferenceLangue)
+                ? new CultureInfo(user.PreferenceLangue)
+                : CultureInfo.CurrentUICulture;
+
+            CultureInfo.CurrentUICulture = userCulture;
+
+            var subject = _emailTemplateService.GetSubject("ConfirmationReservation");
+            var emailBody = await _emailTemplateService.RenderTemplateAsync("ConfirmationReservation", new Dictionary<string, string>
+            {
+                { "NomMembre", user.NomComplet },
+                { "DateReservation", dateReservation.ToString("dd/MM/yyyy") },
+                { "HeureDebut", heureDebut.ToString(@"hh\:mm") },
+                { "HeureFin", heureFin.ToString(@"hh\:mm") },
+                { "NomAlveole", nomAlveole },
+                { "NomMoniteur", nomMoniteur },
+                { "UrlApplication", baseUrl },
+                { "Year", DateTime.Now.Year.ToString() },
+                { "Lang", userCulture.TwoLetterISOLanguageName }
+            });
+
+            await _emailService.SendEmailAsync(user.Email!, subject, emailBody, isHtml: true);
+            _logger.LogInformation("Email de confirmation de réservation envoyé à {UserEmail}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de l'envoi de l'email de confirmation à {UserId}", userId);
+        }
+    }
+
+    /// <summary>
+    /// Envoie une notification d'annulation de réservation à un membre
+    /// </summary>
+    public async Task NotifyReservationAnnuleeAsync(string userId, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomAlveole, string raisonAnnulation)
+    {
+        if (!int.TryParse(userId, out int userIdInt))
+        {
+            _logger.LogWarning("UserId invalide : {UserId}", userId);
+            return;
+        }
+
+        var user = await _context.Users.FindAsync(userIdInt);
+        if (user == null || !user.NotifMail)
+            return;
+
+        try
+        {
+            var baseUrl = _configuration["Application:BaseUrl"] ?? "http://localhost:5127";
+
+            var userCulture = !string.IsNullOrEmpty(user.PreferenceLangue)
+                ? new CultureInfo(user.PreferenceLangue)
+                : CultureInfo.CurrentUICulture;
+
+            CultureInfo.CurrentUICulture = userCulture;
+
+            var subject = _emailTemplateService.GetSubject("AnnulationReservation");
+            var emailBody = await _emailTemplateService.RenderTemplateAsync("AnnulationReservation", new Dictionary<string, string>
+            {
+                { "NomMembre", user.NomComplet },
+                { "DateReservation", dateReservation.ToString("dd/MM/yyyy") },
+                { "HeureDebut", heureDebut.ToString(@"hh\:mm") },
+                { "HeureFin", heureFin.ToString(@"hh\:mm") },
+                { "NomAlveole", nomAlveole },
+                { "RaisonAnnulation", raisonAnnulation },
+                { "UrlApplication", baseUrl },
+                { "Year", DateTime.Now.Year.ToString() },
+                { "Lang", userCulture.TwoLetterISOLanguageName }
+            });
+
+            await _emailService.SendEmailAsync(user.Email!, subject, emailBody, isHtml: true);
+            _logger.LogInformation("Email d'annulation de réservation envoyé à {UserEmail}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de l'envoi de l'email d'annulation à {UserId}", userId);
+        }
+    }
+
+    /// <summary>
+    /// Envoie une notification à plusieurs membres lorsqu'un moniteur valide sa présence
+    /// </summary>
+    public async Task NotifyMoniteurValideAsync(List<string> userIds, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomMoniteur)
+    {
+        foreach (var userId in userIds)
+        {
+            if (!int.TryParse(userId, out int userIdInt))
+                continue;
+
+            var user = await _context.Users.FindAsync(userIdInt);
+            if (user == null || !user.NotifMail)
+                continue;
+
+            try
+            {
+                var baseUrl = _configuration["Application:BaseUrl"] ?? "http://localhost:5127";
+
+                var userCulture = !string.IsNullOrEmpty(user.PreferenceLangue)
+                    ? new CultureInfo(user.PreferenceLangue)
+                    : CultureInfo.CurrentUICulture;
+
+                CultureInfo.CurrentUICulture = userCulture;
+
+                var subject = _emailTemplateService.GetSubject("MoniteurValide");
+                var emailBody = await _emailTemplateService.RenderTemplateAsync("MoniteurValide", new Dictionary<string, string>
+                {
+                    { "NomMembre", user.NomComplet },
+                    { "DateReservation", dateReservation.ToString("dd/MM/yyyy") },
+                    { "HeureDebut", heureDebut.ToString(@"hh\:mm") },
+                    { "HeureFin", heureFin.ToString(@"hh\:mm") },
+                    { "NomMoniteur", nomMoniteur },
+                    { "UrlApplication", baseUrl },
+                    { "Year", DateTime.Now.Year.ToString() },
+                    { "Lang", userCulture.TwoLetterISOLanguageName }
+                });
+
+                await _emailService.SendEmailAsync(user.Email!, subject, emailBody, isHtml: true);
+                _logger.LogInformation("Email de validation moniteur envoyé à {UserEmail}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'envoi de l'email à {UserId}", userId);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Envoie une notification à plusieurs membres lorsqu'un moniteur annule sa présence
+    /// </summary>
+    public async Task NotifyMoniteurAnnuleAsync(List<string> userIds, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin)
+    {
+        foreach (var userId in userIds)
+        {
+            if (!int.TryParse(userId, out int userIdInt))
+                continue;
+
+            var user = await _context.Users.FindAsync(userIdInt);
+            if (user == null || !user.NotifMail)
+                continue;
+
+            try
+            {
+                var baseUrl = _configuration["Application:BaseUrl"] ?? "http://localhost:5127";
+
+                var userCulture = !string.IsNullOrEmpty(user.PreferenceLangue)
+                    ? new CultureInfo(user.PreferenceLangue)
+                    : CultureInfo.CurrentUICulture;
+
+                CultureInfo.CurrentUICulture = userCulture;
+
+                var subject = _emailTemplateService.GetSubject("MoniteurAnnule");
+                var emailBody = await _emailTemplateService.RenderTemplateAsync("MoniteurAnnule", new Dictionary<string, string>
+                {
+                    { "NomMembre", user.NomComplet },
+                    { "DateReservation", dateReservation.ToString("dd/MM/yyyy") },
+                    { "HeureDebut", heureDebut.ToString(@"hh\:mm") },
+                    { "HeureFin", heureFin.ToString(@"hh\:mm") },
+                    { "UrlApplication", baseUrl },
+                    { "Year", DateTime.Now.Year.ToString() },
+                    { "Lang", userCulture.TwoLetterISOLanguageName }
+                });
+
+                await _emailService.SendEmailAsync(user.Email!, subject, emailBody, isHtml: true);
+                _logger.LogInformation("Email d'annulation moniteur envoyé à {UserEmail}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'envoi de l'email à {UserId}", userId);
+            }
         }
     }
 }

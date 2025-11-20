@@ -16,6 +16,26 @@ public interface INotificationService
     Task NotifyMultipleAsync(List<string> userIds, string title, string message, NotificationType type);
 
     /// <summary>
+    /// Envoie une notification de confirmation de réservation à un membre
+    /// </summary>
+    Task NotifyReservationConfirmeeAsync(string userId, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomAlveole, string nomMoniteur);
+
+    /// <summary>
+    /// Envoie une notification d'annulation de réservation à un membre
+    /// </summary>
+    Task NotifyReservationAnnuleeAsync(string userId, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomAlveole, string raisonAnnulation);
+
+    /// <summary>
+    /// Envoie une notification à plusieurs membres lorsqu'un moniteur valide sa présence
+    /// </summary>
+    Task NotifyMoniteurValideAsync(List<string> userIds, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin, string nomMoniteur);
+
+    /// <summary>
+    /// Envoie une notification à plusieurs membres lorsqu'un moniteur annule sa présence
+    /// </summary>
+    Task NotifyMoniteurAnnuleAsync(List<string> userIds, DateTime dateReservation, TimeSpan heureDebut, TimeSpan heureFin);
+
+    /// <summary>
     /// Récupère la liste des utilisateurs impactés par la fermeture d'une alvéole
     /// </summary>
     Task<List<AffectedUserInfo>> GetUsersAffectedByAlveoleClosureAsync(int alveoleId);
