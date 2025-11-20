@@ -11,9 +11,9 @@ ____
 
 # Notifications
 
-- ✅ Interface de notification de base créée (actuellement logs uniquement)
+- ~~✅ Interface de notification de base créée (actuellement logs uniquement)~~
 - ? Étendre avec canaux réels : Email, WhatsApp (https://waha.devlike.pro/docs/overview/quick-start/)
-- ? Système d'abonnement pour que les membres choisissent leurs canaux de notification
+- ~~? Système d'abonnement pour que les membres choisissent leurs canaux de notification~~
 
 # Présentation
 
@@ -22,11 +22,12 @@ ____
 
 # Fonctionnement
 
-- cookie d'authentification ? (remember me)
+- ~~cookie d'authentification ? (remember me)~~
 - ~~ mémoriser le mois en cours de navigation ? (retour au mois en cours par exemple après avoir fermé l'écran de réservation) ~~
 - ~~créer un compte propose de crée un compte moniteur~~
 - ~~ouvrir le modal de création sur le mois en cours~~
 - ~~ problème de décalage des heures entre inscription et affichage ~~
 - ~~moniteur peut gérer les fermetures~~
-- implementer le changement de mot de passe
-- templates de mails et traductions
+- ~~implementer le changement de mot de passe~~
+- ~~templates de mails et traductions~~
+- sauvegarde base ?
