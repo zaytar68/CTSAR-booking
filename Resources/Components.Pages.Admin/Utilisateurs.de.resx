@@ -92,4 +92,19 @@
   <data name="EditUser" xml:space="preserve">
     <value>{0} bearbeiten</value>
   </data>
+  <data name="TestNotificationButton" xml:space="preserve">
+    <value>Benachrichtigung testen</value>
+  </data>
+  <data name="TestNotificationTitle" xml:space="preserve">
+    <value>Test-Benachrichtigung</value>
+  </data>
+  <data name="TestNotificationMessage" xml:space="preserve">
+    <value>Dies ist eine Testnachricht zur Überprüfung Ihrer Benachrichtigungskonfiguration.</value>
+  </data>
+  <data name="TestNotificationSuccess" xml:space="preserve">
+    <value>Test-Benachrichtigung erfolgreich gesendet!</value>
+  </data>
+  <data name="TestNotificationError" xml:space="preserve">
+    <value>Fehler beim Senden der Benachrichtigung: {0}</value>
+  </data>
 </root>

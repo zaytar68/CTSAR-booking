@@ -23,6 +23,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Utilisateurs> Loc
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
+@inject INotificationService NotificationService
 
 <PageTitle>@Loc["PageTitle"]</PageTitle>
 
@@ -193,6 +194,12 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                                    OnClick="@(() => OpenEditUserDialog(context.Item))"
                                    Title="Modifier" />
 
+                    <MudIconButton Icon="@Icons.Material.Filled.Mail"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   OnClick="@(() => TestNotification(context.Item))"
+                                   Title="@Loc["TestNotificationButton"]" />
+
                     @if (context.Item.EstVerrouille)
                     {
                         <MudIconButton Icon="@Icons.Material.Filled.LockOpen"
@@ -274,7 +281,9 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         try
         {
             _loading = true;
-            _users = await UserService.GetAllUsersAsync();
+            StateHasChanged(); // Force UI update to show loading state
+            var users = await UserService.GetAllUsersAsync();
+            _users = new List<UserDto>(users); // Create new instance to trigger change detection
         }
         catch (Exception ex)
         {
@@ -283,6 +292,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         finally
         {
             _loading = false;
+            StateHasChanged(); // Force UI update with new data
         }
     }
 
@@ -425,6 +435,32 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
             {
                 Snackbar.Add(message, Severity.Error);
             }
+        }
+    }
+
+    // ================================================================
+    // TEST DE NOTIFICATION
+    // ================================================================
+
+    /// <summary>
+    /// Envoie une notification de test à l'utilisateur sélectionné.
+    /// Utilise le système de notification modulaire qui supporte plusieurs canaux.
+    /// </summary>
+    private async Task TestNotification(UserDto user)
+    {
+        try
+        {
+            await NotificationService.NotifyAsync(
+                user.Id.ToString(),
+                Loc["TestNotificationTitle"],
+                Loc["TestNotificationMessage"],
+                NotificationType.Info);
+
+            Snackbar.Add(Loc["TestNotificationSuccess"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(string.Format(Loc["TestNotificationError"], ex.Message), Severity.Error);
         }
     }
 }
