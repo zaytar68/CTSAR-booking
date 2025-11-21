@@ -28,11 +28,11 @@ services:
       # Volume persistant pour la base de données SQLite
       - ctsar-data:/app/Data
     networks:
-      - web
+      - traefik_default
     restart: unless-stopped
 
 networks:
-  web:
+  traefik_default:
     external: true
 
 volumes:
