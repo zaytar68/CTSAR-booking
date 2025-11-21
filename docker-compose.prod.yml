@@ -32,7 +32,7 @@ services:
   sqlite-web:
     image: coleifer/sqlite-web:latest
     container_name: ctsar-sqlite-web
-    command: ["-H", "0.0.0.0", "-p", "8081", "-x", "/data/app.db"]
+    command: -H 0.0.0.0 -p 8081 -x /data/app.db
     environment:
       - SQLITE_DATABASE=/data/app.db
     labels:
