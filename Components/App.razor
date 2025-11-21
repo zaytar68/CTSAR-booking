@@ -14,6 +14,27 @@ Ce fichier définit la structure HTML de base et charge tous les CSS/JS.
     <base href="/" />
 
     @* ============================================================ *@
+    @* PWA : Progressive Web App Configuration                     *@
+    @* ============================================================ *@
+
+    @* Manifest pour Android/Chrome *@
+    <link rel="manifest" href="manifest.json" />
+
+    @* Theme color pour la barre d'adresse mobile *@
+    <meta name="theme-color" content="#3473BE" />
+
+    @* Apple Touch Icons pour iOS *@
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+
+    @* Meta tags pour iOS *@
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CTSAR Booking" />
+
+    @* Description pour les moteurs de recherche *@
+    <meta name="description" content="Application de gestion de réservations d'alvéoles pour club de tir" />
+
+    @* ============================================================ *@
     @* CSS : Feuilles de style                                      *@
     @* ============================================================ *@
 
