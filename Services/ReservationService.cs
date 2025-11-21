@@ -172,11 +172,27 @@ public class ReservationService
                 return (false, "Identifiant utilisateur invalide", null);
             }
 
+            // Récupérer l'utilisateur pour formater le commentaire
+            var creator = await _context.Users.FindAsync(userIdInt);
+            if (creator == null)
+            {
+                _logger.LogError("Utilisateur non trouvé : {userId}", userId);
+                return (false, "Utilisateur non trouvé", null);
+            }
+
+            // Formater le commentaire avec date/heure et nom de l'utilisateur
+            string? commentaireFormate = null;
+            if (!string.IsNullOrWhiteSpace(dto.Commentaire))
+            {
+                var now = DateTime.Now;
+                commentaireFormate = $"[{now:dd/MM HH:mm} - {creator.Prenom} {creator.Nom}] {dto.Commentaire}";
+            }
+
             var reservation = new Reservation
             {
                 DateDebut = dto.DateDebut,
                 DateFin = dto.DateFin,
-                Commentaire = dto.Commentaire,
+                Commentaire = commentaireFormate,
                 CreatedByUserId = userIdInt,
                 DateCreation = DateTime.UtcNow,
                 StatutReservation = isMoniteur ? StatutReservation.Confirmee : StatutReservation.EnAttente
@@ -252,17 +268,14 @@ public class ReservationService
             _logger.LogInformation($"[NOTIF DEBUG CreateReservationAsync] isMoniteur={isMoniteur}, mergedUserIds.Count={mergedUserIds.Count}");
             if (isMoniteur && mergedUserIds.Any())
             {
-                var user = await _context.Users.FindAsync(userIdInt);
-                if (user != null)
-                {
-                    await _notificationService.NotifyMultipleAsync(
-                        mergedUserIds.Select(id => id.ToString()).ToList(),
-                        "Moniteur disponible",
-                        $"{user.Prenom} {user.Nom} a validé votre séance en s'inscrivant comme moniteur",
-                        NotificationType.Success);
+                // Utiliser la variable creator déjà récupérée plus haut
+                await _notificationService.NotifyMultipleAsync(
+                    mergedUserIds.Select(id => id.ToString()).ToList(),
+                    "Moniteur disponible",
+                    $"{creator.Prenom} {creator.Nom} a validé votre séance en s'inscrivant comme moniteur",
+                    NotificationType.Success);
 
-                    _logger.LogInformation($"Notifications envoyées à {mergedUserIds.Count} participant(s) pour la validation par moniteur");
-                }
+                _logger.LogInformation($"Notifications envoyées à {mergedUserIds.Count} participant(s) pour la validation par moniteur");
             }
 
             // 10. Recharger avec toutes les relations pour le DTO
