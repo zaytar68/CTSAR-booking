@@ -29,7 +29,7 @@ Utilise MudBlazor pour le thème et HTML/Bootstrap pour le sélecteur de langue.
 
     @* Switch thème clair/foncé - Simple bouton qui appelle le service *@
     <button type="button"
-            class="btn btn-link p-2"
+            class="btn btn-link p-2 theme-toggle-button"
             @onclick="ToggleTheme"
             title="@(ThemeService.IsDarkMode ? Loc["LightMode"] : Loc["DarkMode"])">
         @if (ThemeService.IsDarkMode)

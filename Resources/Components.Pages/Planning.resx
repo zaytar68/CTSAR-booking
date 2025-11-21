@@ -241,4 +241,7 @@
   <data name="MemberCannotSelectLanes" xml:space="preserve">
     <value>Cette inscription constitue une manifestation de disponibilité. Votre participation à la séance de tir ne sera effective qu'après validation de la présence d'un moniteur.</value>
   </data>
+  <data name="NoReservations" xml:space="preserve">
+    <value>Aucune réservation</value>
+  </data>
 </root>

@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
 @using System.Security.Claims
+@using Microsoft.JSInterop
 @inject ReservationService ReservationService
 @inject AlveoleService AlveoleService
 @inject FermetureClubService FermetureClubService
@@ -14,20 +15,23 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IStringLocalizer<Planning> Loc
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @attribute [Authorize]
+
+@implements IAsyncDisposable
 
 <PageTitle>@Loc["PageTitle"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <!-- Header avec navigation mois -->
+    <!-- Header avec navigation mois - Responsive -->
     <MudPaper Class="pa-4 mb-4">
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudStack Row="@(!_isMobile)" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Spacing="2">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Justify="@(_isMobile ? Justify.Center : Justify.FlexStart)">
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
                                Color="Color.Primary"
                                OnClick="@PreviousMonth" />
-                <MudText Typo="Typo.h5">
+                <MudText Typo="@(_isMobile ? Typo.h6 : Typo.h5)">
                     @GetMonthYearLabel(_currentMonth, _currentYear)
                 </MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
@@ -35,6 +39,7 @@
                                OnClick="@NextMonth" />
                 <MudButton Variant="Variant.Text"
                            Color="Color.Primary"
+                           Size="@(_isMobile ? Size.Small : Size.Medium)"
                            OnClick="@GoToToday">
                     @Loc["Today"]
                 </MudButton>
@@ -43,15 +48,17 @@
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
+                       FullWidth="@_isMobile"
+                       Size="@(_isMobile ? Size.Medium : Size.Medium)"
                        OnClick="@OpenCreateReservationDialog">
                 @Loc["NewReservation"]
             </MudButton>
         </MudStack>
     </MudPaper>
 
-    <!-- Légende des statuts -->
+    <!-- Légende des statuts - Responsive -->
     <MudPaper Class="pa-3 mb-4">
-        <MudStack Row="true" Spacing="4">
+        <MudStack Row="@(!_isMobile)" Spacing="@(_isMobile ? 2 : 4)">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                 <MudIcon Icon="@Icons.Material.Filled.Circle" Color="Color.Success" Size="Size.Small" />
                 <MudText Typo="Typo.body2">@Loc["StatusConfirmed"]</MudText>
@@ -71,9 +78,85 @@
     {
         <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
     }
+    else if (_isMobile)
+    {
+        <!-- Vue liste pour mobile -->
+        @foreach (var day in GetDaysInMonth())
+        {
+            var reservations = GetReservationsForDay(day);
+            var fermetures = GetFermeturesForDay(day);
+            var hasContent = reservations.Any() || fermetures.Any();
+            var isToday = day.Date == DateTime.Now.Date;
+
+            @if (hasContent || isToday)
+            {
+                <MudCard Class="mb-3" Outlined="true" Style="@(isToday ? "border: 2px solid var(--mud-palette-primary);" : "")">
+                    <MudCardHeader Style="padding: 12px 16px;">
+                        <CardHeaderContent>
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                <MudText Typo="Typo.h6" Style="@(isToday ? "color: var(--mud-palette-primary); font-weight: bold;" : "")">
+                                    @day.ToString("dddd dd MMMM", System.Globalization.CultureInfo.CurrentCulture)
+                                </MudText>
+                                @if (isToday)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">@Loc["Today"]</MudChip>
+                                }
+                            </MudStack>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent Style="padding: 8px 16px 16px 16px;">
+                        <MudStack Spacing="2">
+                            @if (!hasContent)
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["NoReservations"]</MudText>
+                            }
+                            else
+                            {
+                                <!-- Réservations du jour -->
+                                @foreach (var reservation in reservations)
+                                {
+                                    <MudAlert Severity="@GetReservationSeverity(reservation)"
+                                              Dense="false"
+                                              NoIcon="false"
+                                              Icon="@GetReservationIcon(reservation)"
+                                              Style="cursor: pointer;"
+                                              @onclick="@(() => OpenReservationDetails(reservation))">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">
+                                            @reservation.DateDebut.ToLocalTime().ToString("HH:mm") - @reservation.NomsAlveoles
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Style="font-size: 0.875rem;">
+                                            @if (reservation.StatutReservation == StatutReservation.Confirmee && reservation.MoniteurPrincipal != null)
+                                            {
+                                                <text>@Loc["Instructor"]: @reservation.MoniteurPrincipal.NomComplet</text>
+                                            }
+                                            else
+                                            {
+                                                <text>@Loc["CreatedBy"]: @reservation.CreatedByNom</text>
+                                            }
+                                        </MudText>
+                                    </MudAlert>
+                                }
+
+                                <!-- Fermetures du jour -->
+                                @foreach (var fermeture in fermetures)
+                                {
+                                    <MudAlert Severity="Severity.Error"
+                                              Dense="false"
+                                              NoIcon="false"
+                                              Icon="@Icons.Material.Filled.Block">
+                                        <MudText Typo="Typo.body2">@GetFermetureLabel(fermeture)</MudText>
+                                    </MudAlert>
+                                }
+                            }
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+        }
+    }
     else
     {
-        <!-- Calendrier mensuel -->
+        <!-- Vue calendrier pour desktop -->
         <MudPaper Class="pa-4">
             <MudTable Items="@GetWeeksInMonth()"
                       Hover="false"
@@ -162,10 +245,12 @@
     private List<ReservationDto>? _reservations;
     private List<AlveoleDto>? _alveoles;
     private List<FermetureClubDto>? _fermetures;
-    private bool _loading = false;  // Corrigé: initialisé à false au lieu de true
+    private bool _loading = false;
     private string? _currentUserId;
     private bool _isMoniteur = false;
     private bool _isInitialized = false;
+    private bool _isMobile = false;
+    private DotNetObjectReference<Planning>? _dotNetRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -190,6 +275,56 @@
 
         await LoadData();
         _isInitialized = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("window.planningHelper.initialize", _dotNetRef);
+
+                // Détecter la taille initiale
+                var width = await JSRuntime.InvokeAsync<int>("window.planningHelper.getWindowWidth");
+                _isMobile = width <= 640;
+                StateHasChanged();
+            }
+            catch (Exception)
+            {
+                // En cas d'erreur, assumer desktop par défaut
+                _isMobile = false;
+            }
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnWindowResize(int width)
+    {
+        var wasMobile = _isMobile;
+        _isMobile = width <= 640;
+
+        if (wasMobile != _isMobile)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef != null)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("window.planningHelper.dispose");
+                _dotNetRef.Dispose();
+            }
+            catch
+            {
+                // Ignore errors during disposal
+            }
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -296,6 +431,23 @@
     {
         var date = new DateTime(year, month, 1);
         return date.ToString("MMMM yyyy");
+    }
+
+    /// <summary>
+    /// Génère la liste de tous les jours du mois (pour la vue liste mobile)
+    /// </summary>
+    private List<DateTime> GetDaysInMonth()
+    {
+        var days = new List<DateTime>();
+        var firstDayOfMonth = new DateTime(_currentYear, _currentMonth, 1);
+        var daysInMonth = DateTime.DaysInMonth(_currentYear, _currentMonth);
+
+        for (int day = 1; day <= daysInMonth; day++)
+        {
+            days.Add(new DateTime(_currentYear, _currentMonth, day));
+        }
+
+        return days;
     }
 
     /// <summary>
@@ -460,8 +612,9 @@
         {
             CloseOnEscapeKey = true,
             CloseButton = true,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
+            MaxWidth = _isMobile ? MaxWidth.ExtraSmall : MaxWidth.Small,
+            FullWidth = true,
+            FullScreen = _isMobile
         };
 
         var dialog = await DialogService.ShowAsync<CreateReservationDialog>(Loc["NewReservation"], parameters, options);
@@ -483,8 +636,9 @@
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
+            MaxWidth = _isMobile ? MaxWidth.ExtraSmall : MaxWidth.Medium,
+            FullWidth = true,
+            FullScreen = _isMobile
         };
 
         var dialog = await DialogService.ShowAsync<ReservationDetailsDialog>(Loc["ReservationDetails"], parameters, options);

@@ -3,7 +3,7 @@
 MainLayout.razor : Layout principal de l'application
 ====================================================================
 Ce composant définit la structure globale de l'application avec
-la sidebar (NavMenu) et les contrôles de thème/langue.
+MudDrawer pour la navigation responsive et MudAppBar pour le header.
 Utilise MudBlazor pour la gestion automatique du thème.
 IMPORTANT : Les providers MudBlazor sont définis ICI et UNIQUEMENT ICI.
 *@
@@ -18,21 +18,31 @@ IMPORTANT : Les providers MudBlazor sont définis ICI et UNIQUEMENT ICI.
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<div class="page @(_isDarkMode ? "dark-theme" : "")">
-    <div class="sidebar">
+<MudLayout Class="@(_isDarkMode ? "dark-theme" : "")">
+    @* AppBar : Header avec bouton hamburger et contrôles *@
+    <MudAppBar Elevation="1" Dense="false">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer" />
+        <MudSpacer />
+        <ThemeLanguageControls />
+    </MudAppBar>
+
+    @* Drawer : Menu de navigation responsive *@
+    <MudDrawer @bind-Open="@_drawerOpen"
+               Elevation="2"
+               Variant="@DrawerVariant.Responsive"
+               Breakpoint="Breakpoint.Md"
+               ClipMode="DrawerClipMode.Never">
         <NavMenu />
-    </div>
+    </MudDrawer>
 
-    <main>
-        <div class="top-row px-4">
-            <ThemeLanguageControls />
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    @* Contenu principal *@
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled exception has occurred.
@@ -42,6 +52,7 @@ IMPORTANT : Les providers MudBlazor sont définis ICI et UNIQUEMENT ICI.
 
 @code {
     private bool _isDarkMode = false;
+    private bool _drawerOpen = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,6 +71,11 @@ IMPORTANT : Les providers MudBlazor sont définis ICI et UNIQUEMENT ICI.
         // Mettre à jour l'état local quand le service change
         _isDarkMode = ThemeService.IsDarkMode;
         StateHasChanged();
+    }
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
     }
 
     public void Dispose()

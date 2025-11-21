@@ -124,3 +124,149 @@ body.dark-mode .bg-white {
 .dark-theme .mud-navmenu {
     background-color: #1e1e1e !important;
 }
+
+/* ====================================================================
+   MUDDRAWER ET MUDAPPBAR : Styles pour le menu responsive
+   ==================================================================== */
+
+/* AppBar : Hauteur cohérente et couleur personnalisée */
+.mud-appbar {
+    height: 64px;
+    background-color: #3473BE !important;
+}
+
+/* Drawer : Largeur par défaut */
+.mud-drawer {
+    width: 250px;
+}
+
+/* Dark mode pour MudDrawer et MudAppBar */
+.dark-theme .mud-drawer {
+    background-color: #1e1e1e !important;
+    border-right-color: #333333 !important;
+}
+
+.dark-theme .mud-appbar {
+    background-color: #3473BE !important;
+    border-bottom-color: #2a5a9a !important;
+}
+
+/* Mobile : Drawer en overlay plein écran */
+@media (max-width: 960px) {
+    .mud-drawer {
+        width: 280px; /* Plus large sur mobile pour meilleure lisibilité */
+    }
+}
+
+/* Ajuster le contenu principal pour éviter le chevauchement avec l'AppBar */
+.mud-main-content {
+    margin-top: 0;
+    padding-top: 80px; /* 64px hauteur AppBar + 16px marge */
+}
+
+/* Icône du bouton de thème - Forcer la couleur blanche pour le contraste */
+.theme-toggle-button {
+    color: white !important;
+}
+
+.theme-toggle-button:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.theme-toggle-button svg {
+    color: white !important;
+    fill: white !important;
+}
+
+/* ====================================================================
+   RESPONSIVE DESIGN : Styles pour mobile
+   ==================================================================== */
+
+/* Mobile : Réduction du padding pour maximiser l'espace */
+@media (max-width: 640px) {
+    .mud-container {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .mud-container.mt-4 {
+        margin-top: 8px !important;
+    }
+
+    /* Réduction du padding des cartes sur mobile */
+    .mud-card {
+        margin-bottom: 12px;
+    }
+
+    .mud-card-header {
+        padding: 12px 16px !important;
+    }
+
+    .mud-card-content {
+        padding: 8px 16px 16px 16px !important;
+    }
+
+    /* Amélioration des zones tactiles */
+    .mud-button {
+        min-height: 44px;
+        padding: 8px 16px;
+    }
+
+    .mud-icon-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Alert dans la vue mobile plus lisible */
+    .mud-alert {
+        font-size: 0.9375rem !important; /* 15px */
+        padding: 12px !important;
+    }
+
+    .mud-alert-message {
+        font-size: 0.875rem !important; /* 14px */
+    }
+
+    /* Espacement des éléments de la légende */
+    .mud-paper .mud-stack {
+        flex-wrap: wrap;
+    }
+
+    /* Text responsive */
+    h1 {
+        font-size: 1.75rem !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+    }
+
+    /* Optimisation du calendrier desktop pour petits écrans */
+    .calendar-table .mud-alert {
+        font-size: 0.65rem !important;
+        padding: 2px 4px !important;
+    }
+}
+
+/* Tablette : optimisations intermédiaires */
+@media (min-width: 641px) and (max-width: 960px) {
+    .mud-container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    /* Amélioration de la lisibilité du calendrier sur tablette */
+    .calendar-table .mud-alert {
+        font-size: 0.75rem !important;
+        padding: 4px 6px !important;
+    }
+}
+
+/* Desktop : styles normaux (pas de modifications) */
+@media (min-width: 961px) {
+    /* Le calendrier garde ses styles par défaut */
+}
