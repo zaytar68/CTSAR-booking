@@ -5,16 +5,16 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      # Application settings (à configurer dans Portainer)
-      # - Application__BaseUrl=https://ctsar.tirolf.me
-      # SMTP settings (à configurer dans Portainer)
-      # - SmtpSettings__Host=smtp.free.fr
-      # - SmtpSettings__Port=587
-      # - SmtpSettings__EnableSsl=true
-      # - SmtpSettings__Username=cedric.tirolf@free.fr
-      # - SmtpSettings__Password=VOTRE_MOT_DE_PASSE
-      # - SmtpSettings__FromEmail=cedric.tirolf@free.fr
-      # - SmtpSettings__FromName=CTSAR Booking
+      # Application settings (injectées depuis les variables d'environnement Portainer)
+      - Application__BaseUrl=${Application__BaseUrl}
+      # SMTP settings (injectées depuis les variables d'environnement Portainer)
+      - SmtpSettings__Host=${SmtpSettings__Host}
+      - SmtpSettings__Port=${SmtpSettings__Port}
+      - SmtpSettings__EnableSsl=${SmtpSettings__EnableSsl}
+      - SmtpSettings__Username=${SmtpSettings__Username}
+      - SmtpSettings__Password=${SmtpSettings__Password}
+      - SmtpSettings__FromEmail=${SmtpSettings__FromEmail}
+      - SmtpSettings__FromName=${SmtpSettings__FromName}
     labels:
       # Traefik configuration
       - "traefik.enable=true"
