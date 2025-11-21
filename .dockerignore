@@ -1,0 +1,45 @@
+# Build artifacts
+bin/
+obj/
+out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Database
+Data/*.db
+Data/*.db-shm
+Data/*.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+appsettings.Development.json
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Documentation
+*.md
+!README.md
+
+# Tests
+Tests/
+*.Tests/

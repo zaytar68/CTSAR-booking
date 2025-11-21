@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  ctsar-booking:
+    image: ghcr.io/zaytar68/ctsar-booking:latest
+    container_name: ctsar-booking
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Application settings (à configurer dans Portainer)
+      # - Application__BaseUrl=https://ctsar.tirolf.me
+      # SMTP settings (à configurer dans Portainer)
+      # - SmtpSettings__Host=smtp.free.fr
+      # - SmtpSettings__Port=587
+      # - SmtpSettings__EnableSsl=true
+      # - SmtpSettings__Username=cedric.tirolf@free.fr
+      # - SmtpSettings__Password=VOTRE_MOT_DE_PASSE
+      # - SmtpSettings__FromEmail=cedric.tirolf@free.fr
+      # - SmtpSettings__FromName=CTSAR Booking
+    labels:
+      # Traefik configuration
+      - "traefik.enable=true"
+      - "traefik.http.routers.ctsar.rule=Host(`ctsar.tirolf.me`)"
+      - "traefik.http.routers.ctsar.entrypoints=websecure"
+      - "traefik.http.routers.ctsar.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ctsar.loadbalancer.server.port=8080"
+    volumes:
+      # Volume persistant pour la base de données SQLite
+      - ctsar-data:/app/Data
+    networks:
+      - web
+    restart: unless-stopped
+
+networks:
+  web:
+    external: true
+
+volumes:
+  ctsar-data:
+    driver: local
