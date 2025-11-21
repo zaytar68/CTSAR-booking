@@ -32,7 +32,6 @@ services:
   sqlite-web:
     image: coleifer/sqlite-web:latest
     container_name: ctsar-sqlite-web
-    command: -H 0.0.0.0 -p 8081 -x /data/app.db
     environment:
       - SQLITE_DATABASE=/data/app.db
     labels:
@@ -41,13 +40,13 @@ services:
       - "traefik.http.routers.ctsar-db.rule=Host(`db.ctsar.tirolf.me`)"
       - "traefik.http.routers.ctsar-db.entrypoints=websecure"
       - "traefik.http.routers.ctsar-db.tls.certresolver=letsencrypt"
-      - "traefik.http.services.ctsar-db.loadbalancer.server.port=8081"
+      - "traefik.http.services.ctsar-db.loadbalancer.server.port=8080"
       # Authentification basique (à configurer dans Portainer)
       # - "traefik.http.routers.ctsar-db.middlewares=ctsar-db-auth"
       # - "traefik.http.middlewares.ctsar-db-auth.basicauth.users=admin:$$apr1$$hash$$here"
     ports:
-      # Port exposé pour accès réseau interne (optionnel si Traefik suffit)
-      - "8081:8081"
+      # Port exposé pour accès réseau interne
+      - "8081:8080"
     volumes:
       # Partage du même volume que l'application principale (lecture/écriture)
       - ctsar-data:/data

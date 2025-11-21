@@ -328,12 +328,12 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
                     Snackbar.Add("Note : Le changement de mot de passe n'est pas encore implémenté", Severity.Warning);
                 }
 
-                Snackbar.Add(message, Severity.Success);
+                Snackbar.Add(message ?? "Utilisateur modifié avec succès", Severity.Success);
                 DialogRef?.Close(DialogResult.Ok(true));
             }
             else
             {
-                Snackbar.Add(message, Severity.Error);
+                Snackbar.Add(message ?? "Erreur lors de la modification", Severity.Error);
             }
         }
         catch (Exception ex)

@@ -173,9 +173,11 @@
     private async Task LoadAlveoles()
     {
         _loading = true;
+        StateHasChanged(); // Force UI update to show loading state
         try
         {
-            _alveoles = await AlveoleService.GetAllAlveolesAsync();
+            var alveoles = await AlveoleService.GetAllAlveolesAsync();
+            _alveoles = new List<AlveoleDto>(alveoles); // Create new instance to trigger change detection
         }
         catch (Exception ex)
         {
@@ -184,18 +186,21 @@
         finally
         {
             _loading = false;
+            StateHasChanged(); // Force UI update with new data
         }
     }
 
     private async Task LoadFermetures()
     {
         _loadingFermetures = true;
+        StateHasChanged(); // Force UI update to show loading state
         try
         {
             // Charger les fermetures pour les 3 prochains mois
             var debut = DateTime.UtcNow;
             var fin = debut.AddMonths(3);
-            _fermetures = await FermetureClubService.GetFermeturesForPeriodAsync(debut, fin);
+            var fermetures = await FermetureClubService.GetFermeturesForPeriodAsync(debut, fin);
+            _fermetures = new List<FermetureClubDto>(fermetures); // Create new instance to trigger change detection
         }
         catch (Exception ex)
         {
@@ -204,6 +209,7 @@
         finally
         {
             _loadingFermetures = false;
+            StateHasChanged(); // Force UI update with new data
         }
     }
 

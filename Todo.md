@@ -31,3 +31,4 @@ ____
 - ~~implementer le changement de mot de passe~~
 - ~~templates de mails et traductions~~
 - sauvegarde base ?
+- édition base ?

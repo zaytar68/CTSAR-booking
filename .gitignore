@@ -374,3 +374,10 @@ FodyWeavers.xsd
 # Claude Code local settings
 .claude/settings.local.json
 nul
+
+# Portainer environment variables (contains secrets)
+portainer-env-vars.txt
+
+# Environment files with secrets
+.env
+appsettings.Production.json

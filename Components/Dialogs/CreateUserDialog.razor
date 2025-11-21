@@ -376,12 +376,12 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
 
             if (success)
             {
-                Snackbar.Add(message, Severity.Success);
+                Snackbar.Add(message ?? "Utilisateur créé avec succès", Severity.Success);
                 DialogRef?.Close(DialogResult.Ok(true));
             }
             else
             {
-                Snackbar.Add(message, Severity.Error);
+                Snackbar.Add(message ?? "Erreur lors de la création", Severity.Error);
             }
         }
         catch (Exception ex)

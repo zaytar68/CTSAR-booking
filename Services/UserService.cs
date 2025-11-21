@@ -265,7 +265,7 @@ public class UserService
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Utilisateur mis à jour : {Email}", email);
-            return (true, null);
+            return (true, $"L'utilisateur {prenom} {nom} a été modifié avec succès");
         }
         catch (Exception ex)
         {
@@ -355,7 +355,7 @@ public class UserService
             await _context.SaveChangesAsync();
         }
 
-        return (success, errorMessage);
+        return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès");
     }
 
     /// <summary>
