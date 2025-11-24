@@ -31,4 +31,6 @@ ____
 - ~~implementer le changement de mot de passe~~
 - ~~templates de mails et traductions~~
 - sauvegarde base ?
-- édition base ?
+- édition base ? OK
+- inscription ouvert à tous, modif par un lien d'invitation ?
+

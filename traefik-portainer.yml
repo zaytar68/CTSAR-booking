@@ -1,0 +1,53 @@
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik_default
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    command:
+      # API Settings
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--entrypoints.traefik.address=:8080"
+
+      # Provider Settings
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik_default"
+
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+
+      # Let's Encrypt Certificate Resolver
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=cedric.tirolf@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+
+      # Logs
+      - "--log.level=INFO"
+      - "--accesslog=true"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+
+    # Pas de labels - Dashboard accessible uniquement en local via http://localhost:8080
+
+networks:
+  traefik_default:
+    name: traefik_default
+
+volumes:
+  traefik-letsencrypt:
+    driver: local
