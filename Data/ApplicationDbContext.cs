@@ -48,6 +48,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// </summary>
     public DbSet<FermetureClub> FermeturesClub { get; set; }
 
+    /// <summary>
+    /// Table des souscriptions push notifications
+    /// </summary>
+    public DbSet<PushSubscription> PushSubscriptions { get; set; }
+
     // ================================================================
     // CONFIGURATION DES MODÈLES
     // ================================================================
@@ -149,5 +154,29 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<Alveole>()
             .HasIndex(a => a.Ordre);
+
+        // ================================================================
+        // CONFIGURATION DES NOTIFICATIONS PUSH
+        // ================================================================
+
+        // Configuration de la relation PushSubscription-User
+        builder.Entity<PushSubscription>()
+            .HasOne(ps => ps.User)
+            .WithMany()
+            .HasForeignKey(ps => ps.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // Supprimer les souscriptions si l'utilisateur est supprimé
+
+        // Index pour optimiser les recherches par utilisateur
+        builder.Entity<PushSubscription>()
+            .HasIndex(ps => ps.UserId);
+
+        // Index pour éviter les doublons d'endpoint par utilisateur
+        builder.Entity<PushSubscription>()
+            .HasIndex(ps => new { ps.UserId, ps.Endpoint })
+            .IsUnique();
+
+        // Index pour le nettoyage des souscriptions expirées
+        builder.Entity<PushSubscription>()
+            .HasIndex(ps => ps.LastUsedAt);
     }
 }
