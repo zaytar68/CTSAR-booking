@@ -15,6 +15,10 @@ services:
       - SmtpSettings__Password=${SmtpSettings__Password}
       - SmtpSettings__FromEmail=${SmtpSettings__FromEmail}
       - SmtpSettings__FromName=${SmtpSettings__FromName}
+      # VAPID settings for Web Push notifications (injectées depuis les variables d'environnement Portainer)
+      - VapidSettings__Subject=${VapidSettings__Subject}
+      - VapidSettings__PublicKey=${VapidSettings__PublicKey}
+      - VapidSettings__PrivateKey=${VapidSettings__PrivateKey}
     labels:
       # Traefik configuration
       - "traefik.enable=true"

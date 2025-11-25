@@ -377,6 +377,10 @@ nul
 
 # Portainer environment variables (contains secrets)
 portainer-env-vars.txt
+portainer-env-vars.env
+
+# VAPID keys for production (contains secrets)
+vapid-keys-production.txt
 
 # Environment files with secrets
 .env
