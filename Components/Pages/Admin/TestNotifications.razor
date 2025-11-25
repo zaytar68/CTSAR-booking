@@ -1,0 +1,486 @@
+@page "/admin/test-notifications"
+@using CTSAR.Booking.Services
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IPushNotificationService PushService
+@attribute [Authorize(Roles = "Administrateur")]
+
+<PageTitle>Test Notifications Push</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" GutterBottom="true">🔔 Test des Notifications Push</MudText>
+    <MudText Typo="Typo.body2" Class="mb-4">
+        Page de test pour vérifier le bon fonctionnement des notifications push Web
+    </MudText>
+
+    <MudGrid>
+        <!-- Carte : Statut du navigateur -->
+        <MudItem xs="12" md="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">📱 Support Navigateur</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Service Worker:</strong>
+                        @if (_isServiceWorkerSupported)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">✓ Supporté</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">✗ Non supporté</MudChip>
+                        }
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Push Manager:</strong>
+                        @if (_isPushSupported)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">✓ Supporté</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">✗ Non supporté</MudChip>
+                        }
+                    </MudText>
+
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Permission actuelle:</strong>
+                        @if (_permissionStatus == "granted")
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">✓ Accordée</MudChip>
+                        }
+                        else if (_permissionStatus == "denied")
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">✗ Refusée</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">⚠ Non demandée</MudChip>
+                        }
+                    </MudText>
+
+                    <MudText Typo="Typo.body2">
+                        <strong>Abonné:</strong>
+                        @if (_isSubscribed)
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">✓ Oui</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Default" Size="Size.Small">Non</MudChip>
+                        }
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="CheckStatus"
+                               StartIcon="@Icons.Material.Filled.Refresh">
+                        Rafraîchir
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <!-- Carte : Actions -->
+        <MudItem xs="12" md="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">⚡ Actions</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Spacing="2">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   FullWidth="true"
+                                   Disabled="@(!_isPushSupported || _permissionStatus == "denied")"
+                                   OnClick="RequestPermission"
+                                   StartIcon="@Icons.Material.Filled.Notifications">
+                            1. Demander la permission
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Secondary"
+                                   FullWidth="true"
+                                   Disabled="@(_permissionStatus != "granted" || _isSubscribed)"
+                                   OnClick="Subscribe"
+                                   StartIcon="@Icons.Material.Filled.NotificationAdd">
+                            2. S'abonner aux notifications
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Info"
+                                   FullWidth="true"
+                                   Disabled="@(_permissionStatus != "granted")"
+                                   OnClick="ShowLocalNotification"
+                                   StartIcon="@Icons.Material.Filled.Notifications">
+                            3. Test notification locale
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   FullWidth="true"
+                                   Disabled="@(!_isSubscribed)"
+                                   OnClick="SendTestNotification"
+                                   StartIcon="@Icons.Material.Filled.Send">
+                            4. Envoyer notification push serveur
+                        </MudButton>
+
+                        <MudDivider />
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   FullWidth="true"
+                                   Disabled="@(!_isSubscribed)"
+                                   OnClick="Unsubscribe"
+                                   StartIcon="@Icons.Material.Filled.NotificationsOff">
+                            Se désabonner
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Carte : Souscriptions actives -->
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">📋 Mes Souscriptions Actives</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Default"
+                                       OnClick="LoadSubscriptions" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_subscriptions == null)
+                    {
+                        <MudProgressCircular Indeterminate="true" />
+                    }
+                    else if (!_subscriptions.Any())
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Aucune souscription active
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudSimpleTable Dense="true" Striped="true">
+                            <thead>
+                                <tr>
+                                    <th>User-Agent</th>
+                                    <th>Créée le</th>
+                                    <th>Dernière utilisation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sub in _subscriptions)
+                                {
+                                    <tr>
+                                        <td>@sub.UserAgent</td>
+                                        <td>@sub.CreatedAt.ToString("g")</td>
+                                        <td>@(sub.LastUsedAt?.ToString("g") ?? "Jamais")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Carte : Logs -->
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">📝 Logs</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Clear"
+                                       Color="Color.Default"
+                                       OnClick="() => _logs.Clear()" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudPaper Class="pa-2" Style="max-height: 300px; overflow-y: auto; background-color: #1e1e1e; color: #d4d4d4; font-family: 'Consolas', monospace; font-size: 0.85rem;">
+                        @foreach (var log in _logs)
+                        {
+                            <div>@log</div>
+                        }
+                        @if (!_logs.Any())
+                        {
+                            <div style="color: #888;">Aucun log...</div>
+                        }
+                    </MudPaper>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private bool _isServiceWorkerSupported;
+    private bool _isPushSupported;
+    private string _permissionStatus = "default";
+    private bool _isSubscribed;
+    private List<SubscriptionInfo>? _subscriptions;
+    private List<string> _logs = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //  Utiliser Task.Run pour exécuter l'initialisation en arrière-plan
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(200); // Donner le temps au composant de finir le rendu
+                await InitializePushApi();
+                await CheckStatus();
+                await LoadSubscriptions();
+            });
+        }
+    }
+
+    private async Task InitializePushApi()
+    {
+        try
+        {
+            AddLog("🔑 Récupération de la clé publique VAPID...");
+
+            // Récupérer la clé publique depuis l'API
+            var response = await Http.GetFromJsonAsync<VapidKeyResponse>("/api/pushnotifications/vapid-public-key");
+
+            if (response?.PublicKey != null)
+            {
+                // Initialiser l'API JavaScript avec la clé
+                await JS.InvokeVoidAsync("pushNotifications.initialize", response.PublicKey);
+                AddLog($"   ✓ API initialisée");
+            }
+            else
+            {
+                AddLog("   ✗ Clé publique introuvable");
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur initialisation: {ex.Message}");
+        }
+    }
+
+    private async Task CheckStatus()
+    {
+        try
+        {
+            AddLog("🔍 Vérification du statut...");
+
+            // Vérifier le support
+            _isServiceWorkerSupported = await JS.InvokeAsync<bool>("eval",
+                "'serviceWorker' in navigator");
+            _isPushSupported = await JS.InvokeAsync<bool>("pushNotifications.isSupported");
+
+            AddLog($"   Service Worker: {(_isServiceWorkerSupported ? "✓" : "✗")}");
+            AddLog($"   Push Manager: {(_isPushSupported ? "✓" : "✗")}");
+
+            if (_isPushSupported)
+            {
+                _permissionStatus = await JS.InvokeAsync<string>("pushNotifications.getPermissionStatus");
+                _isSubscribed = await JS.InvokeAsync<bool>("pushNotifications.isSubscribed");
+
+                AddLog($"   Permission: {_permissionStatus}");
+                AddLog($"   Abonné: {(_isSubscribed ? "✓" : "✗")}");
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            Snackbar.Add($"Erreur: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task RequestPermission()
+    {
+        try
+        {
+            AddLog("🔔 Demande de permission...");
+
+            var permission = await JS.InvokeAsync<string>("pushNotifications.requestPermission");
+            _permissionStatus = permission;
+
+            AddLog($"   Résultat: {permission}");
+
+            if (permission == "granted")
+            {
+                Snackbar.Add("Permission accordée !", Severity.Success);
+            }
+            else if (permission == "denied")
+            {
+                Snackbar.Add("Permission refusée. Vérifiez les paramètres du navigateur.", Severity.Warning);
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            Snackbar.Add($"Erreur: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task Subscribe()
+    {
+        try
+        {
+            AddLog("📝 Création de la souscription...");
+
+            // Appeler la méthode JavaScript qui gère tout
+            await JS.InvokeVoidAsync("pushNotifications.sendSubscriptionToServer");
+
+            _isSubscribed = true;
+            AddLog("   ✓ Souscription créée avec succès");
+            Snackbar.Add("Abonnement réussi !", Severity.Success);
+
+            await LoadSubscriptions();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            Snackbar.Add($"Erreur lors de l'abonnement: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task Unsubscribe()
+    {
+        try
+        {
+            AddLog("🔕 Suppression de la souscription...");
+
+            await JS.InvokeVoidAsync("pushNotifications.removeSubscriptionFromServer");
+
+            _isSubscribed = false;
+            AddLog("   ✓ Souscription supprimée");
+            Snackbar.Add("Désabonnement réussi", Severity.Info);
+
+            await LoadSubscriptions();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            Snackbar.Add($"Erreur lors du désabonnement: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ShowLocalNotification()
+    {
+        try
+        {
+            AddLog("🔔 Test notification locale (sans serveur)...");
+
+            // Vérifier que le script est chargé
+            var isLoaded = await JS.InvokeAsync<bool>("eval", "typeof PushNotifications !== 'undefined'");
+            if (!isLoaded)
+            {
+                AddLog("   ✗ Script push-notifications.js non chargé");
+                Snackbar.Add("Erreur: Script non chargé. Rafraîchissez la page (Ctrl+F5)", Severity.Error);
+                return;
+            }
+
+            var result = await JS.InvokeAsync<bool>(
+                "PushNotifications.showTestNotification",
+                "CTSAR Booking - Test Local",
+                "Cette notification est générée localement par le navigateur"
+            );
+
+            if (result)
+            {
+                AddLog("   ✓ Notification locale affichée");
+                Snackbar.Add("Notification locale affichée avec succès !", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur notification locale: {ex.Message}");
+            Snackbar.Add($"Erreur: Rafraîchissez la page avec Ctrl+F5", Severity.Error);
+        }
+    }
+
+    private async Task SendTestNotification()
+    {
+        try
+        {
+            AddLog("🚀 Envoi de la notification push serveur...");
+
+            var response = await Http.PostAsync("/api/pushnotifications/test", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                AddLog("   ✓ Notification push envoyée au serveur");
+                Snackbar.Add("Notification push envoyée ! Vérifiez votre navigateur.", Severity.Success);
+                await LoadSubscriptions(); // Rafraîchir pour voir LastUsedAt
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                AddLog($"   ✗ Erreur HTTP {response.StatusCode}");
+                Snackbar.Add($"Erreur: {response.StatusCode}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            Snackbar.Add($"Erreur: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadSubscriptions()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<List<SubscriptionInfo>>("/api/pushnotifications/subscriptions");
+            _subscriptions = response ?? new List<SubscriptionInfo>();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur chargement souscriptions: {ex.Message}");
+        }
+    }
+
+    private void AddLog(string message)
+    {
+        _logs.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {message}");
+        if (_logs.Count > 50) // Limiter à 50 logs
+        {
+            _logs.RemoveAt(_logs.Count - 1);
+        }
+    }
+
+    private class SubscriptionInfo
+    {
+        public int Id { get; set; }
+        public string Endpoint { get; set; } = string.Empty;
+        public string UserAgent { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public DateTime? LastUsedAt { get; set; }
+    }
+
+    private class VapidKeyResponse
+    {
+        public string PublicKey { get; set; } = string.Empty;
+    }
+}

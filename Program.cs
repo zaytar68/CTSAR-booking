@@ -10,6 +10,7 @@ using CTSAR.Booking.Services;
 using MudBlazor.Services;  // Pour MudBlazor (interface utilisateur moderne)
 using Blazored.LocalStorage;  // Pour le stockage local (thème, langue, etc.)
 using System.Globalization;  // Pour la gestion des cultures (langues)
+using Microsoft.AspNetCore.Components;  // Pour NavigationManager
 
 // ====================================================================
 // CONFIGURATION DE L'APPLICATION
@@ -30,6 +31,14 @@ builder.Services.AddRazorComponents()
 // HTTP CONTEXT : Nécessaire pour accéder au HttpContext dans les composants
 // --------------------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
+
+// --------------------------------------------------------------------
+// HTTP CLIENT : Pour les appels API depuis les composants Blazor
+// --------------------------------------------------------------------
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(sp.GetRequiredService<NavigationManager>().BaseUri)
+});
 
 // --------------------------------------------------------------------
 // CONTROLLERS : Support des contrôleurs MVC (pour CultureController)

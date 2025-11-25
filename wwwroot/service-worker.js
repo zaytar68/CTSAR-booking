@@ -67,53 +67,19 @@ self.addEventListener('activate', event => {
 });
 
 // ====================================================================
-// GESTION DES REQUÊTES RÉSEAU (stratégie cache-first pour offline)
+// GESTION DES REQUÊTES RÉSEAU
 // ====================================================================
-self.addEventListener('fetch', event => {
-    // Ignorer les requêtes non-GET (POST, PUT, DELETE, etc.)
-    if (event.request.method !== 'GET') {
-        return;
-    }
+// ⚠️ DÉSACTIVÉ : Le cache des requêtes fetch interfère avec Blazor Server (SignalR)
+// Pour Blazor Server, toutes les requêtes doivent passer par le réseau sans interception
+// Le Service Worker gère uniquement les notifications push
+//
+// Note : Pour activer le mode offline dans le futur, il faudrait :
+// 1. Soit migrer vers Blazor WebAssembly (client-side)
+// 2. Soit implémenter une stratégie de cache très sélective qui n'interfère pas avec SignalR
 
-    // Ignorer les requêtes vers les APIs externes
-    if (!event.request.url.startsWith(self.location.origin)) {
-        return;
-    }
-
-    event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
-                if (cachedResponse) {
-                    // Fichier en cache : le retourner immédiatement
-                    return cachedResponse;
-                }
-
-                // Pas en cache : récupérer depuis le réseau
-                return fetch(event.request)
-                    .then(response => {
-                        // Ne pas mettre en cache les réponses non-200
-                        if (!response || response.status !== 200 || response.type === 'error') {
-                            return response;
-                        }
-
-                        // Cloner la réponse pour pouvoir la mettre en cache
-                        const responseToCache = response.clone();
-
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
-
-                        return response;
-                    })
-                    .catch(error => {
-                        console.error('[Service Worker] Fetch failed:', error);
-                        // Retourner une page d'erreur offline si disponible
-                        return caches.match('/offline.html');
-                    });
-            })
-    );
-});
+// self.addEventListener('fetch', event => {
+//     // Code de gestion du cache désactivé
+// });
 
 // ====================================================================
 // RÉCEPTION DE NOTIFICATIONS PUSH
