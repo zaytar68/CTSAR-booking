@@ -204,11 +204,18 @@ public class PushNotificationsController : ControllerBase
     [HttpPost("test")]
     public async Task<IActionResult> SendTestNotification()
     {
+        _logger.LogWarning("========================================");
+        _logger.LogWarning("[PUSH API TEST] Début de l'envoi de notification de test");
+        _logger.LogWarning("========================================");
+
         var userId = GetCurrentUserId();
         if (userId == null)
         {
+            _logger.LogError("[PUSH API TEST] Utilisateur non authentifié");
             return Unauthorized(new { error = "Utilisateur non authentifié" });
         }
+
+        _logger.LogWarning("[PUSH API TEST] UserId: {UserId}", userId.Value);
 
         var notification = new PushNotificationDto
         {
@@ -218,7 +225,13 @@ public class PushNotificationsController : ControllerBase
             Tag = "test"
         };
 
+        _logger.LogWarning("[PUSH API TEST] Notification créée: Title={Title}, Body={Body}",
+            notification.Title, notification.Body);
+
         var success = await _pushService.SendAsync(userId.Value, notification);
+
+        _logger.LogWarning("[PUSH API TEST] Résultat de l'envoi: {Success}", success);
+        _logger.LogWarning("========================================");
 
         if (success)
         {

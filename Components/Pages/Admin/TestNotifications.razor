@@ -1,11 +1,13 @@
 @page "/admin/test-notifications"
 @using CTSAR.Booking.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject IJSRuntime JS
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IPushNotificationService PushService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize(Roles = "Administrateur")]
 
 <PageTitle>Test Notifications Push</PageTitle>
@@ -257,6 +259,56 @@
     {
         try
         {
+            // Charger le script dynamiquement s'il n'est pas déjà chargé
+            var isLoaded = await JS.InvokeAsync<bool>("eval", "typeof PushNotifications !== 'undefined'");
+
+            if (!isLoaded)
+            {
+                AddLog("⏳ Chargement du script push-notifications.js...");
+
+                try
+                {
+                    // Charger le script dynamiquement avec une Promise qui attend l'événement onload
+                    await JS.InvokeVoidAsync("eval", @"
+                        new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = '/js/push-notifications.js';
+                            script.onload = () => {
+                                console.log('[Blazor] Script push-notifications.js loaded');
+                                resolve();
+                            };
+                            script.onerror = (error) => {
+                                console.error('[Blazor] Failed to load push-notifications.js:', error);
+                                reject(error);
+                            };
+                            document.head.appendChild(script);
+                        })
+                    ");
+
+                    // Vérifier que le script est bien chargé
+                    isLoaded = await JS.InvokeAsync<bool>("eval", "typeof PushNotifications !== 'undefined'");
+
+                    if (isLoaded)
+                    {
+                        AddLog("   ✓ Script chargé dynamiquement");
+                    }
+                    else
+                    {
+                        AddLog("   ✗ Script chargé mais PushNotifications non défini");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"   ✗ Erreur lors du chargement : {ex.Message}");
+                    return;
+                }
+            }
+            else
+            {
+                AddLog("✓ Script push-notifications.js déjà chargé");
+            }
+
             AddLog("🔑 Récupération de la clé publique VAPID...");
 
             // Récupérer la clé publique depuis l'API
@@ -425,24 +477,58 @@
         {
             AddLog("🚀 Envoi de la notification push serveur...");
 
-            var response = await Http.PostAsync("/api/pushnotifications/test", null);
+            // Récupérer l'utilisateur actuel
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
 
-            if (response.IsSuccessStatusCode)
+            if (!user.Identity?.IsAuthenticated ?? true)
             {
-                AddLog("   ✓ Notification push envoyée au serveur");
+                AddLog("   ✗ Utilisateur non authentifié");
+                Snackbar.Add("Erreur: Vous devez être connecté", Severity.Error);
+                return;
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                AddLog("   ✗ Impossible de récupérer l'ID utilisateur");
+                Snackbar.Add("Erreur: ID utilisateur invalide", Severity.Error);
+                return;
+            }
+
+            AddLog($"   UserId: {userId}");
+
+            // Créer la notification de test
+            var notification = new PushNotificationDto
+            {
+                Title = "Test - CTSAR Booking",
+                Body = "Ceci est une notification de test. Vos notifications fonctionnent correctement !",
+                Url = "/",
+                Tag = "test"
+            };
+
+            AddLog($"   Titre: {notification.Title}");
+            AddLog($"   Message: {notification.Body}");
+
+            // Appeler directement le service
+            var success = await PushService.SendAsync(userId, notification);
+
+            if (success)
+            {
+                AddLog("   ✓ Notification push envoyée avec succès !");
                 Snackbar.Add("Notification push envoyée ! Vérifiez votre navigateur.", Severity.Success);
                 await LoadSubscriptions(); // Rafraîchir pour voir LastUsedAt
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                AddLog($"   ✗ Erreur HTTP {response.StatusCode}");
-                Snackbar.Add($"Erreur: {response.StatusCode}", Severity.Error);
+                AddLog("   ✗ Échec de l'envoi de la notification");
+                Snackbar.Add("Erreur: Impossible d'envoyer la notification", Severity.Error);
             }
         }
         catch (Exception ex)
         {
             AddLog($"❌ Erreur: {ex.Message}");
+            AddLog($"❌ StackTrace: {ex.StackTrace}");
             Snackbar.Add($"Erreur: {ex.Message}", Severity.Error);
         }
     }
@@ -451,8 +537,35 @@
     {
         try
         {
-            var response = await Http.GetFromJsonAsync<List<SubscriptionInfo>>("/api/pushnotifications/subscriptions");
-            _subscriptions = response ?? new List<SubscriptionInfo>();
+            // Récupérer l'utilisateur actuel
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (!user.Identity?.IsAuthenticated ?? true)
+            {
+                _subscriptions = new List<SubscriptionInfo>();
+                return;
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                _subscriptions = new List<SubscriptionInfo>();
+                return;
+            }
+
+            // Appeler directement le service
+            var subscriptions = await PushService.GetUserSubscriptionsAsync(userId);
+
+            _subscriptions = subscriptions.Select(s => new SubscriptionInfo
+            {
+                Id = s.Id,
+                Endpoint = s.Endpoint.Substring(0, Math.Min(50, s.Endpoint.Length)) + "...",
+                UserAgent = s.UserAgent ?? "Inconnu",
+                CreatedAt = s.CreatedAt,
+                LastUsedAt = s.LastUsedAt
+            }).ToList();
+
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)

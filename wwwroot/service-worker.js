@@ -85,36 +85,68 @@ self.addEventListener('activate', event => {
 // RÉCEPTION DE NOTIFICATIONS PUSH
 // ====================================================================
 self.addEventListener('push', event => {
-    console.log('[Service Worker] Push notification received:', event);
+    console.log('[Service Worker] 🔔 Push event received!');
+    console.log('[Service Worker] Event type:', event.type);
+    console.log('[Service Worker] Event data:', event.data);
 
-    // Extraire les données de la notification
-    const data = event.data ? event.data.json() : {};
+    try {
+        // Extraire les données de la notification
+        let data = {};
+        let rawText = '';
 
-    const title = data.title || 'CTSAR Booking';
-    const options = {
-        body: data.body || 'Nouvelle notification',
-        icon: data.icon || '/icons/icon-192x192.png',
-        badge: data.badge || '/icons/icon-192x192.png',
-        data: {
-            url: data.url || '/',
-            timestamp: Date.now()
-        },
-        vibrate: [200, 100, 200], // Pattern de vibration
-        tag: data.tag || 'default', // Tag pour grouper les notifications
-        requireInteraction: data.requireInteraction || false,
-        actions: data.actions || [] // Boutons d'action (si supportés)
-    };
+        if (event.data) {
+            rawText = event.data.text();
+            console.log('[Service Worker] Raw data text (length: ' + rawText.length + '):', rawText);
 
-    // Afficher la notification
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-            .then(() => {
-                console.log('[Service Worker] Notification displayed');
-            })
-            .catch(error => {
-                console.error('[Service Worker] Failed to show notification:', error);
-            })
-    );
+            try {
+                data = event.data.json();
+                console.log('[Service Worker] ✅ Parsed JSON data:', data);
+            } catch (jsonError) {
+                console.error('[Service Worker] ❌ Failed to parse JSON:', jsonError);
+                console.warn('[Service Worker] Using raw text as body instead');
+                // Si ce n'est pas du JSON, utiliser le texte brut comme body
+                data = {
+                    title: 'CTSAR Booking',
+                    body: rawText
+                };
+            }
+        } else {
+            console.warn('[Service Worker] ⚠️ No data in push event');
+        }
+
+        const title = data.title || 'CTSAR Booking';
+        const options = {
+            body: data.body || 'Nouvelle notification',
+            icon: data.icon || '/icons/icon-192x192.png',
+            badge: data.badge || '/icons/icon-192x192.png',
+            data: {
+                url: data.url || '/',
+                timestamp: Date.now()
+            },
+            vibrate: [200, 100, 200], // Pattern de vibration
+            tag: data.tag || 'default', // Tag pour grouper les notifications
+            requireInteraction: data.requireInteraction || false,
+            actions: data.actions || [] // Boutons d'action (si supportés)
+        };
+
+        console.log('[Service Worker] 📝 Showing notification with title:', title);
+        console.log('[Service Worker] 📝 Notification options:', JSON.stringify(options, null, 2));
+
+        // Afficher la notification
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+                .then(() => {
+                    console.log('[Service Worker] ✅ Notification displayed successfully!');
+                })
+                .catch(error => {
+                    console.error('[Service Worker] ❌ Failed to show notification:', error);
+                    console.error('[Service Worker] Error details:', error.message, error.stack);
+                })
+        );
+    } catch (error) {
+        console.error('[Service Worker] ❌ Error in push event handler:', error);
+        console.error('[Service Worker] Error details:', error.message, error.stack);
+    }
 });
 
 // ====================================================================

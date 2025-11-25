@@ -170,6 +170,10 @@ public class PushNotificationService : IPushNotificationService
                 requireInteraction = notification.RequireInteraction
             });
 
+            _logger.LogInformation(
+                "[PUSH] Payload JSON préparé (longueur: {Length}): {Payload}",
+                payload.Length, payload);
+
             bool atLeastOneSuccess = false;
 
             // Envoyer à toutes les souscriptions de l'utilisateur

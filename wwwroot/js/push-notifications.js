@@ -369,3 +369,21 @@ if ('serviceWorker' in navigator) {
 }
 
 console.log('[Push Notifications] API loaded');
+
+// Alias pour compatibilité (majuscule)
+window.PushNotifications = window.pushNotifications;
+
+// Fonction de test simple qui utilise l'API Notification directement (sans Service Worker)
+window.testNotificationDirect = function() {
+    if (Notification.permission === 'granted') {
+        new Notification('CTSAR Booking - Test Direct', {
+            body: 'Cette notification utilise l\'API Notification directement',
+            icon: '/icons/icon-192x192.png'
+        });
+        console.log('[Test] Direct notification created');
+        return true;
+    } else {
+        console.error('[Test] Permission not granted');
+        return false;
+    }
+};
