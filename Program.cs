@@ -10,6 +10,7 @@ using CTSAR.Booking.Services;
 using MudBlazor.Services;  // Pour MudBlazor (interface utilisateur moderne)
 using Blazored.LocalStorage;  // Pour le stockage local (thème, langue, etc.)
 using System.Globalization;  // Pour la gestion des cultures (langues)
+using Microsoft.AspNetCore.Components;  // Pour NavigationManager
 
 // ====================================================================
 // CONFIGURATION DE L'APPLICATION
@@ -30,6 +31,14 @@ builder.Services.AddRazorComponents()
 // HTTP CONTEXT : Nécessaire pour accéder au HttpContext dans les composants
 // --------------------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
+
+// --------------------------------------------------------------------
+// HTTP CLIENT : Pour les appels API depuis les composants Blazor
+// --------------------------------------------------------------------
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(sp.GetRequiredService<NavigationManager>().BaseUri)
+});
 
 // --------------------------------------------------------------------
 // CONTROLLERS : Support des contrôleurs MVC (pour CultureController)
@@ -131,14 +140,22 @@ builder.Services.AddScoped<FermetureClubService>();
 builder.Services.Configure<CTSAR.Booking.Configuration.SmtpSettings>(
     builder.Configuration.GetSection("SmtpSettings"));
 
+// Configure les paramètres VAPID pour les notifications push Web
+// Les clés sont stockées dans les user secrets (développement) ou variables d'environnement (production)
+builder.Services.Configure<CTSAR.Booking.Configuration.VapidSettings>(
+    builder.Configuration.GetSection("VapidSettings"));
+
 // Ajoute EmailService pour l'envoi d'emails par SMTP
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Ajoute EmailTemplateService pour la gestion des templates d'emails multilingues
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 
+// Ajoute PushNotificationService pour l'envoi de notifications push Web
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+
 // Ajoute NotificationService pour envoyer des notifications multi-canaux
-// (Email, WhatsApp, SMS, etc.) en respectant les préférences utilisateur
+// (Email, Push, WhatsApp, SMS, etc.) en respectant les préférences utilisateur
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // --------------------------------------------------------------------
