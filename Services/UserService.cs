@@ -324,38 +324,73 @@ public class UserService
             return (false, "Au moins un rôle doit être sélectionné");
         }
 
-        // Prendre le premier rôle pour la création (simplification)
-        string role = dto.Roles.First();
-
-        var (success, errorMessage, userId) = await CreateUserAsync(
-            dto.Email,
-            dto.Password,
-            dto.Nom,
-            dto.Prenom,
-            role);
-
-        if (!success || userId == null)
+        try
         {
-            return (success, errorMessage);
-        }
+            // Vérifier que tous les rôles sont valides
+            foreach (var roleName in dto.Roles)
+            {
+                if (!RoleNames.All.Contains(roleName))
+                {
+                    _logger.LogWarning("Tentative de création d'utilisateur avec un rôle invalide: {RoleName}", roleName);
+                    return (false, $"Le rôle '{roleName}' n'est pas valide");
+                }
+            }
 
-        // Mettre à jour les préférences de notification et de langue
-        if (!int.TryParse(userId, out int id))
-        {
-            return (false, "ID utilisateur invalide");
-        }
+            // Vérifier si l'email existe déjà
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (existingUser != null)
+            {
+                return (false, "Un compte avec cet email existe déjà");
+            }
 
-        var user = await _context.Users.FindAsync(id);
-        if (user != null)
-        {
-            user.PreferenceLangue = dto.PreferenceLangue;
-            user.NotifMail = dto.NotifMail;
-            user.Notif2 = dto.Notif2;
-            user.Notif3 = dto.Notif3;
+            // Hasher le mot de passe avec BCrypt
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            // Créer l'utilisateur
+            var user = new User
+            {
+                Email = dto.Email,
+                PasswordHash = passwordHash,
+                Nom = dto.Nom,
+                Prenom = dto.Prenom,
+                PreferenceLangue = dto.PreferenceLangue,
+                NotifMail = dto.NotifMail,
+                Notif2 = dto.Notif2,
+                Notif3 = dto.Notif3,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-        }
 
-        return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès");
+            // Ajouter TOUS les rôles sélectionnés
+            foreach (var roleName in dto.Roles)
+            {
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+                if (role != null)
+                {
+                    var userRole = new UserRole
+                    {
+                        UserId = user.Id,
+                        RoleId = role.Id
+                    };
+                    _context.UserRoles.Add(userRole);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            var rolesText = string.Join(", ", dto.Roles);
+            _logger.LogInformation("Utilisateur créé: {Email} avec les rôles: {Roles}", dto.Email, rolesText);
+
+            return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès avec les rôles: {rolesText}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la création de l'utilisateur {Email}", dto.Email);
+            return (false, "Une erreur est survenue lors de la création de l'utilisateur");
+        }
     }
 
     /// <summary>
@@ -369,20 +404,75 @@ public class UserService
             return (false, "Au moins un rôle doit être sélectionné");
         }
 
-        // Prendre le premier rôle pour la mise à jour (simplification)
-        string role = dto.Roles.First();
+        try
+        {
+            if (!int.TryParse(dto.Id, out int id))
+            {
+                return (false, "ID utilisateur invalide");
+            }
 
-        return await UpdateUserAsync(
-            dto.Id,
-            dto.Email,
-            dto.Nom,
-            dto.Prenom,
-            role,
-            null, // newPassword
-            dto.PreferenceLangue,
-            dto.NotifMail,
-            dto.Notif2,
-            dto.Notif3);
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null)
+            {
+                return (false, "Utilisateur introuvable");
+            }
+
+            // Vérifier que tous les rôles sont valides
+            foreach (var roleName in dto.Roles)
+            {
+                if (!RoleNames.All.Contains(roleName))
+                {
+                    _logger.LogWarning("Tentative de mise à jour avec un rôle invalide: {RoleName}", roleName);
+                    return (false, $"Le rôle '{roleName}' n'est pas valide");
+                }
+            }
+
+            // Mettre à jour les informations de base
+            user.Email = dto.Email;
+            user.Nom = dto.Nom;
+            user.Prenom = dto.Prenom;
+            user.PreferenceLangue = dto.PreferenceLangue;
+            user.NotifMail = dto.NotifMail;
+            user.Notif2 = dto.Notif2;
+            user.Notif3 = dto.Notif3;
+
+            // Supprimer TOUS les anciens rôles
+            var oldUserRoles = user.UserRoles.ToList();
+            foreach (var oldUserRole in oldUserRoles)
+            {
+                _context.UserRoles.Remove(oldUserRole);
+            }
+
+            // Ajouter TOUS les nouveaux rôles
+            foreach (var roleName in dto.Roles)
+            {
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+                if (role != null)
+                {
+                    var newUserRole = new UserRole
+                    {
+                        UserId = user.Id,
+                        RoleId = role.Id
+                    };
+                    _context.UserRoles.Add(newUserRole);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            var rolesText = string.Join(", ", dto.Roles);
+            _logger.LogInformation("Utilisateur mis à jour: {Email} avec les rôles: {Roles}", dto.Email, rolesText);
+
+            return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été modifié avec succès. Rôles: {rolesText}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la mise à jour de l'utilisateur {UserId}", dto.Id);
+            return (false, "Une erreur est survenue lors de la mise à jour");
+        }
     }
 
     /// <summary>
