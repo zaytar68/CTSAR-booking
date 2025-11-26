@@ -14,6 +14,7 @@ personnelles, voir ses rôles et changer son mot de passe.
 @inject UserService UserService
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IPushNotificationService PushService
 
 <PageTitle>@Loc["PageTitle"]</PageTitle>
 
@@ -228,11 +229,10 @@ personnelles, voir ses rôles et changer son mot de passe.
                                          Label="@Loc["EmailNotificationLabel"]"
                                          Color="Color.Primary" />
 
-                            @* NOTIFICATION CANAL 2 (WhatsApp) - Désactivé pour le moment *@
+                            @* NOTIFICATION PUSH WEB *@
                             <MudCheckBox @bind-Value="updateUserDto.Notif2"
-                                         Label="@Loc["WhatsAppNotificationLabel"]"
-                                         Color="Color.Primary"
-                                         Disabled="true" />
+                                         Label="@Loc["PushNotificationLabel"]"
+                                         Color="Color.Primary" />
 
                             @* NOTIFICATION CANAL 3 - Désactivé pour le moment *@
                             <MudCheckBox @bind-Value="updateUserDto.Notif3"
@@ -438,6 +438,19 @@ personnelles, voir ses rôles et changer son mot de passe.
             if (success)
             {
                 Snackbar.Add(Loc["ProfileUpdatedSuccess"], Severity.Success);
+
+                // Si notifications push activées mais pas de souscription
+                if (updateUserDto.Notif2 && currentUser != null && int.TryParse(currentUser.Id, out int userId))
+                {
+                    var hasSubscription = await PushService.HasActiveSubscriptionAsync(userId);
+                    if (!hasSubscription)
+                    {
+                        Snackbar.Add(
+                            Loc["PushNotificationSubscriptionNeeded"],
+                            Severity.Info,
+                            config => { config.VisibleStateDuration = 5000; });
+                    }
+                }
 
                 // Recharge les données pour afficher les changements
                 currentUser = await UserService.GetUserByIdAsync(updateUserDto.Id);

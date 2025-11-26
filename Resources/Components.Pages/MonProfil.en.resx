@@ -132,8 +132,11 @@
   <data name="EmailNotificationLabel" xml:space="preserve">
     <value>Receive email notifications</value>
   </data>
-  <data name="WhatsAppNotificationLabel" xml:space="preserve">
-    <value>Receive WhatsApp notifications</value>
+  <data name="PushNotificationLabel" xml:space="preserve">
+    <value>Receive Web push notifications</value>
+  </data>
+  <data name="PushNotificationSubscriptionNeeded" xml:space="preserve">
+    <value>To receive push notifications, allow them in your browser when visiting the Planning page.</value>
   </data>
   <data name="OtherNotificationLabel" xml:space="preserve">
     <value>Other notifications (coming soon)</value>

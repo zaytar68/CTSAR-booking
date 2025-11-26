@@ -72,7 +72,7 @@ public class UserDto
     public bool NotifMail { get; set; } = true;
 
     /// <summary>
-    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// Préférence de notification push Web.
     /// </summary>
     public bool Notif2 { get; set; } = false;
 
@@ -201,7 +201,7 @@ public class CreateUserDto
     public bool NotifMail { get; set; } = true;
 
     /// <summary>
-    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// Préférence de notification push Web.
     /// </summary>
     public bool Notif2 { get; set; } = false;
 
@@ -281,7 +281,7 @@ public class UpdateUserDto
     public bool NotifMail { get; set; } = true;
 
     /// <summary>
-    /// Préférence de notification via le canal 2 (ex: WhatsApp).
+    /// Préférence de notification push Web.
     /// </summary>
     public bool Notif2 { get; set; } = false;
 
