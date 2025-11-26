@@ -9,8 +9,9 @@ namespace CTSAR.Booking.Services;
 /// Implémentation du service de notifications multi-canaux.
 /// Supporte l'envoi de notifications par :
 /// - Email (si NotifMail = true)
+/// - Push Web (si Notif2 = true)
 /// - Logs console (toujours actifs)
-/// Architecture extensible pour ajouter d'autres canaux (WhatsApp, SMS, etc.)
+/// Architecture extensible pour ajouter d'autres canaux (SMS, Notif3, etc.)
 /// </summary>
 public class NotificationService : INotificationService
 {
@@ -19,19 +20,22 @@ public class NotificationService : INotificationService
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IConfiguration _configuration;
+    private readonly IPushNotificationService _pushService;
 
     public NotificationService(
         ILogger<NotificationService> logger,
         ApplicationDbContext context,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IPushNotificationService pushService)
     {
         _logger = logger;
         _context = context;
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
         _configuration = configuration;
+        _pushService = pushService;
     }
 
     /// <summary>
@@ -131,11 +135,57 @@ public class NotificationService : INotificationService
                 }
             }
 
-            // Canal 2 : Réservé (ex: WhatsApp)
+            // Canal 2 : Notifications push Web
             if (user.Notif2)
             {
-                // TODO : Implémenter l'envoi via le canal 2
-                _logger.LogInformation("[NOTIFICATION] Canal 2 activé mais pas encore implémenté");
+                try
+                {
+                    // Vérifier si l'utilisateur a une souscription push active
+                    var hasSubscription = await _pushService.HasActiveSubscriptionAsync(userIdInt);
+
+                    if (hasSubscription)
+                    {
+                        // Construire la notification push
+                        var pushNotification = new PushNotificationDto
+                        {
+                            Title = title,
+                            Body = message,
+                            Url = "/planning",
+                            Tag = type.ToString().ToLower(),
+                            RequireInteraction = type == NotificationType.Warning || type == NotificationType.Error
+                        };
+
+                        var success = await _pushService.SendAsync(userIdInt, pushNotification);
+
+                        if (success)
+                        {
+                            _logger.LogInformation(
+                                "[NOTIFICATION] Notification push envoyée à {UserEmail}",
+                                user.Email);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "[NOTIFICATION] Échec de l'envoi push à {UserEmail}",
+                                user.Email);
+                        }
+                    }
+                    else
+                    {
+                        // L'utilisateur a activé Notif2 mais n'a pas de souscription active
+                        // Ce n'est pas une erreur (changement de navigateur/appareil)
+                        _logger.LogInformation(
+                            "[NOTIFICATION] Notif2 activée pour {UserEmail} mais pas de souscription push active",
+                            user.Email);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Ne pas bloquer toute la notification si le push échoue
+                    _logger.LogError(ex,
+                        "[NOTIFICATION] Erreur lors de l'envoi push à {UserEmail}",
+                        user.Email);
+                }
             }
 
             // Canal 3 : Réservé (usage futur)

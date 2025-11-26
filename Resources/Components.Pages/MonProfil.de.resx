@@ -132,8 +132,11 @@
   <data name="EmailNotificationLabel" xml:space="preserve">
     <value>Benachrichtigungen per E-Mail erhalten</value>
   </data>
-  <data name="WhatsAppNotificationLabel" xml:space="preserve">
-    <value>Benachrichtigungen per WhatsApp erhalten</value>
+  <data name="PushNotificationLabel" xml:space="preserve">
+    <value>Web-Push-Benachrichtigungen erhalten</value>
+  </data>
+  <data name="PushNotificationSubscriptionNeeded" xml:space="preserve">
+    <value>Um Push-Benachrichtigungen zu erhalten, erlauben Sie diese in Ihrem Browser auf der Planungsseite.</value>
   </data>
   <data name="OtherNotificationLabel" xml:space="preserve">
     <value>Weitere Benachrichtigungen (demnächst verfügbar)</value>
