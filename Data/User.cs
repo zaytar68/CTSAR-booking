@@ -82,7 +82,8 @@ public class User
     public bool NotifMail { get; set; } = true;
 
     /// <summary>
-    /// Indique si l'utilisateur souhaite recevoir des notifications via le canal 2 (ex: WhatsApp).
+    /// Indique si l'utilisateur souhaite recevoir des notifications push Web.
+    /// Note : Historiquement nommé Notif2, initialement prévu pour WhatsApp.
     /// </summary>
     public bool Notif2 { get; set; } = false;
 

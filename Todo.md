@@ -33,4 +33,6 @@ ____
 - sauvegarde base ?
 - édition base ? OK
 - inscription ouvert à tous, modif par un lien d'invitation ?
+- Un administrateur peut aussi être moniteur voir fonctionnement
+- pas de filtre sur la liste des membres pour voir les membres verrouillés
 
