@@ -421,10 +421,17 @@
         NavigationManager.NavigateTo(uri);
     }
 
-    private void GoToToday()
+    private async Task GoToToday()
     {
-        // Naviguer vers /planning sans paramètres (revient au mois courant)
-        NavigationManager.NavigateTo("/planning");
+        var today = DateTime.Now;
+        _currentMonth = today.Month;
+        _currentYear = today.Year;
+
+        // Recharger les données pour le mois courant
+        await LoadData();
+
+        // Mettre à jour l'URL sans recharger la page
+        NavigationManager.NavigateTo("/planning", forceLoad: false);
     }
 
     private string GetMonthYearLabel(int month, int year)
