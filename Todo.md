@@ -4,7 +4,7 @@ Ok - alvéole non obligatoire pour création moniteur
 OK - actualisation après mise a jour
 A tester - envoi un mail a tous les moniteurs lors de l'inscription ou la désinscription de qqun
 OK - compteur "membres"
-- page de création de mot de passe à l'inscription
+OK - page de création de mot de passe à l'inscription
 
 
 
