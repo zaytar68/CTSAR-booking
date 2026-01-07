@@ -55,6 +55,12 @@ public class User
     public string Prenom { get; set; } = string.Empty;
 
     /// <summary>
+    /// Numéro de téléphone de l'utilisateur (optionnel).
+    /// </summary>
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
+    /// <summary>
     /// Langue préférée de l'utilisateur pour l'interface.
     /// Valeurs possibles : "fr" (français), "de" (allemand), "en" (anglais)
     /// </summary>
@@ -66,6 +72,18 @@ public class User
     /// Permet de désactiver un compte sans le supprimer.
     /// </summary>
     public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Indique si le verrouillage du compte est activé.
+    /// </summary>
+    public bool LockoutEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Date et heure de fin du verrouillage.
+    /// Si null, le compte n'est pas verrouillé.
+    /// Si dans le futur, le compte est verrouillé jusqu'à cette date.
+    /// </summary>
+    public DateTimeOffset? LockoutEnd { get; set; }
 
     /// <summary>
     /// Date et heure de création du compte.
