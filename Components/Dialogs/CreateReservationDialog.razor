@@ -11,6 +11,7 @@
 @inject IStringLocalizer<Planning> Loc
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <MudDialog>
     <DialogContent>
@@ -80,9 +81,15 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
+        <MudButton @onclick="@Cancel"
+                   ButtonType="ButtonType.Button"
+                   Disabled="_isSubmitting">
+            @Loc["Cancel"]
+        </MudButton>
         <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
-                   OnClick="Submit"
+                   @onclick="@Submit"
+                   ButtonType="ButtonType.Button"
                    Disabled="_isSubmitting">
             @if (_isSubmitting)
             {
@@ -137,6 +144,27 @@
         else
         {
             _dateDebut = DateTime.Now.Date;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        if (DialogRef != null)
+        {
+            DialogRef.Close(DialogResult.Cancel());
+        }
+        else
+        {
+            // Fallback: Use JavaScript to close dialog
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "document.querySelector('.mud-overlay').click()");
+                await Task.Delay(100);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la fermeture du dialogue : {ex.Message}");
+            }
         }
     }
 
