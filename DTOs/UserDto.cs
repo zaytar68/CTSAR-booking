@@ -167,26 +167,6 @@ public class CreateUserDto
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
-    /// Mot de passe (obligatoire, minimum 6 caractères).
-    /// Exemple : "MonMotDePasse123"
-    /// Sera crypté avant d'être stocké en base.
-    /// </summary>
-    [Required(ErrorMessage = "Le mot de passe est obligatoire")]
-    [StringLength(100, ErrorMessage = "Le mot de passe doit contenir au moins {2} caractères", MinimumLength = 6)]
-    [DataType(DataType.Password)]
-    public string Password { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Confirmation du mot de passe (doit être identique).
-    /// Exemple : "MonMotDePasse123"
-    /// Permet d'éviter les erreurs de frappe.
-    /// </summary>
-    [Required(ErrorMessage = "La confirmation du mot de passe est obligatoire")]
-    [Compare("Password", ErrorMessage = "Les mots de passe ne correspondent pas")]
-    [DataType(DataType.Password)]
-    public string ConfirmPassword { get; set; } = string.Empty;
-
-    /// <summary>
     /// Numéro de téléphone (optionnel).
     /// Exemple : "+33 6 12 34 56 78"
     /// </summary>

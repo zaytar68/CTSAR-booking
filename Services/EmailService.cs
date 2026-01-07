@@ -19,6 +19,10 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using CTSAR.Booking.Configuration;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
+using CTSAR.Booking.Resources;
 
 namespace CTSAR.Booking.Services;
 
@@ -30,18 +34,26 @@ public class EmailService : IEmailService
 {
     private readonly SmtpSettings _smtpSettings;
     private readonly ILogger<EmailService> _logger;
+    private readonly IStringLocalizerFactory _localizerFactory;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
     /// Constructeur du service d'emails.
     /// </summary>
     /// <param name="smtpSettings">Configuration SMTP injectée depuis appsettings.json</param>
     /// <param name="logger">Logger pour tracer les envois et les erreurs</param>
+    /// <param name="localizerFactory">Factory pour créer des localisateurs de ressources</param>
+    /// <param name="httpContextAccessor">Accessor pour récupérer le contexte HTTP</param>
     public EmailService(
         IOptions<SmtpSettings> smtpSettings,
-        ILogger<EmailService> logger)
+        ILogger<EmailService> logger,
+        IStringLocalizerFactory localizerFactory,
+        IHttpContextAccessor httpContextAccessor)
     {
         _smtpSettings = smtpSettings.Value;
         _logger = logger;
+        _localizerFactory = localizerFactory;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     // ================================================================
@@ -131,6 +143,90 @@ public class EmailService : IEmailService
             recipients.Count);
 
         return successCount;
+    }
+
+    /// <summary>
+    /// Envoie un email de bienvenue avec le lien de création de mot de passe
+    /// </summary>
+    public async Task<bool> SendWelcomeEmailAsync(
+        string email,
+        string firstName,
+        string lastName,
+        string token,
+        string cultureName)
+    {
+        try
+        {
+            // Créer un localizer pour la culture spécifiée
+            var localizer = _localizerFactory.Create(typeof(EmailTemplateService));
+            var culture = new System.Globalization.CultureInfo(cultureName);
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+            System.Globalization.CultureInfo.CurrentUICulture = culture;
+
+            // Construire l'URL de réinitialisation
+            var baseUrl = _httpContextAccessor.HttpContext?.Request.Scheme + "://" +
+                          _httpContextAccessor.HttpContext?.Request.Host;
+            var resetUrl = $"{baseUrl}/set-password?token={token}";
+
+            // Construire le corps de l'email
+            var subject = localizer["WelcomeEmailSubject"].Value;
+            var body = string.Format(
+                localizer["WelcomeEmailBody"].Value,
+                firstName,
+                lastName,
+                resetUrl);
+
+            return await SendEmailAsync(email, subject, body, isHtml: true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "[EMAIL] Erreur lors de l'envoi de l'email de bienvenue à {Email}",
+                email);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Envoie un email de réinitialisation de mot de passe
+    /// </summary>
+    public async Task<bool> SendPasswordResetEmailAsync(
+        string email,
+        string firstName,
+        string lastName,
+        string token,
+        string cultureName)
+    {
+        try
+        {
+            // Créer un localizer pour la culture spécifiée
+            var localizer = _localizerFactory.Create(typeof(EmailTemplateService));
+            var culture = new System.Globalization.CultureInfo(cultureName);
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+            System.Globalization.CultureInfo.CurrentUICulture = culture;
+
+            // Construire l'URL de réinitialisation
+            var baseUrl = _httpContextAccessor.HttpContext?.Request.Scheme + "://" +
+                          _httpContextAccessor.HttpContext?.Request.Host;
+            var resetUrl = $"{baseUrl}/set-password?token={token}";
+
+            // Construire le corps de l'email
+            var subject = localizer["PasswordResetEmailSubject"].Value;
+            var body = string.Format(
+                localizer["PasswordResetEmailBody"].Value,
+                firstName,
+                lastName,
+                resetUrl);
+
+            return await SendEmailAsync(email, subject, body, isHtml: true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "[EMAIL] Erreur lors de l'envoi de l'email de réinitialisation à {Email}",
+                email);
+            return false;
+        }
     }
 
     // ================================================================

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using CTSAR.Booking.Models;
 
 namespace CTSAR.Booking.Data;
 
@@ -52,6 +53,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// Table des souscriptions push notifications
     /// </summary>
     public DbSet<PushSubscription> PushSubscriptions { get; set; }
+
+    /// <summary>
+    /// Table des tokens de réinitialisation de mot de passe
+    /// </summary>
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     // ================================================================
     // CONFIGURATION DES MODÈLES
@@ -178,5 +184,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Index pour le nettoyage des souscriptions expirées
         builder.Entity<PushSubscription>()
             .HasIndex(ps => ps.LastUsedAt);
+
+        // ================================================================
+        // CONFIGURATION DES TOKENS DE RÉINITIALISATION
+        // ================================================================
+
+        // Configuration de la relation PasswordResetToken-User
+        builder.Entity<PasswordResetToken>()
+            .HasOne(prt => prt.User)
+            .WithMany()
+            .HasForeignKey(prt => prt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Index pour optimiser les recherches par token
+        builder.Entity<PasswordResetToken>()
+            .HasIndex(prt => prt.Token)
+            .IsUnique();
+
+        // Index pour le nettoyage des tokens expirés
+        builder.Entity<PasswordResetToken>()
+            .HasIndex(prt => prt.ExpiresAt);
     }
 }
