@@ -96,6 +96,12 @@ public class UserDto
     public string RolesText => string.Join(", ", Roles);
 
     /// <summary>
+    /// L'utilisateur est-il un Membre ?
+    /// Utile pour les contrôles conditionnels dans l'interface.
+    /// </summary>
+    public bool EstMembre => Roles.Contains("Membre");
+
+    /// <summary>
     /// L'utilisateur est-il un Administrateur ?
     /// Utile pour les contrôles conditionnels dans l'interface.
     /// </summary>

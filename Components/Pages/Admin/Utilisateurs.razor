@@ -98,7 +98,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                     <div class="d-flex align-items-center">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Info" Size="Size.Large" Class="me-3" />
                         <div>
-                            <MudText Typo="Typo.h4">@_users.Count(u => !u.EstAdministrateur && !u.EstMoniteur)</MudText>
+                            <MudText Typo="Typo.h4">@_users.Count(u => u.EstMembre)</MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">@Loc["Members"]</MudText>
                         </div>
                     </div>
