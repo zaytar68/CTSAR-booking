@@ -94,49 +94,6 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
                 </MudItem>
 
                 @* ======================================================== *@
-                @* SÉCURITÉ                                                 *@
-                @* ======================================================== *@
-                <MudItem xs="12" Class="mt-4">
-                    <MudText Typo="Typo.h6" Class="mb-2">
-                        <MudIcon Icon="@Icons.Material.Filled.Lock" Class="me-2" />
-                        Sécurité
-                    </MudText>
-                    <MudDivider />
-                </MudItem>
-
-                @* Mot de passe *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.Password"
-                                  Label="Mot de passe"
-                                  Variant="Variant.Outlined"
-                                  InputType="@_passwordInputType"
-                                  Required="true"
-                                  RequiredError="Le mot de passe est obligatoire"
-                                  Validation="@(new Func<string, string>(ValidatePassword))"
-                                  Immediate="true"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_passwordIcon"
-                                  OnAdornmentClick="TogglePasswordVisibility"
-                                  AdornmentAriaLabel="Afficher/Masquer le mot de passe" />
-                </MudItem>
-
-                @* Confirmation mot de passe *@
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.ConfirmPassword"
-                                  Label="Confirmer le mot de passe"
-                                  Variant="Variant.Outlined"
-                                  InputType="@_passwordInputType"
-                                  Required="true"
-                                  RequiredError="La confirmation est obligatoire"
-                                  Validation="@(new Func<string, string>(ValidateConfirmPassword))"
-                                  Immediate="true"
-                                  Adornment="Adornment.End"
-                                  AdornmentIcon="@_passwordIcon"
-                                  OnAdornmentClick="TogglePasswordVisibility"
-                                  AdornmentAriaLabel="Afficher/Masquer le mot de passe" />
-                </MudItem>
-
-                @* ======================================================== *@
                 @* RÔLES                                                    *@
                 @* ======================================================== *@
                 <MudItem xs="12" Class="mt-4">
@@ -241,17 +198,6 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
     private bool _processing = false;
 
     /// <summary>
-    /// Type d'input pour les champs mot de passe.
-    /// Permet de basculer entre texte visible et masqué.
-    /// </summary>
-    private InputType _passwordInputType = InputType.Password;
-
-    /// <summary>
-    /// Icône pour afficher/masquer le mot de passe.
-    /// </summary>
-    private string _passwordIcon = Icons.Material.Filled.VisibilityOff;
-
-    /// <summary>
     /// Indique si l'utilisateur a le rôle Administrateur.
     /// </summary>
     private bool _isAdministrateur = false;
@@ -275,57 +221,6 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
     {
         // Définir les valeurs par défaut
         _model.PreferenceLangue = "fr";
-    }
-
-    // ================================================================
-    // VALIDATION
-    // ================================================================
-
-    /// <summary>
-    /// Valide le mot de passe.
-    /// Minimum 6 caractères.
-    /// </summary>
-    private string? ValidatePassword(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password))
-            return "Le mot de passe est obligatoire";
-
-        if (password.Length < 6)
-            return "Le mot de passe doit contenir au moins 6 caractères";
-
-        return null;
-    }
-
-    /// <summary>
-    /// Valide la confirmation du mot de passe.
-    /// Doit correspondre au mot de passe.
-    /// </summary>
-    private string? ValidateConfirmPassword(string confirmPassword)
-    {
-        if (string.IsNullOrWhiteSpace(confirmPassword))
-            return "La confirmation est obligatoire";
-
-        if (confirmPassword != _model.Password)
-            return "Les mots de passe ne correspondent pas";
-
-        return null;
-    }
-
-    /// <summary>
-    /// Bascule la visibilité du mot de passe.
-    /// </summary>
-    private void TogglePasswordVisibility()
-    {
-        if (_passwordInputType == InputType.Password)
-        {
-            _passwordInputType = InputType.Text;
-            _passwordIcon = Icons.Material.Filled.Visibility;
-        }
-        else
-        {
-            _passwordInputType = InputType.Password;
-            _passwordIcon = Icons.Material.Filled.VisibilityOff;
-        }
     }
 
     // ================================================================

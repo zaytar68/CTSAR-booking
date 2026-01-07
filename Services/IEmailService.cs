@@ -78,4 +78,26 @@ public interface IEmailService
     ///     "<p>Le club sera fermé demain.</p>");
     /// </example>
     Task<int> SendEmailToMultipleAsync(List<string> recipients, string subject, string body, bool isHtml = true);
+
+    /// <summary>
+    /// Envoie un email de bienvenue avec le lien de création de mot de passe
+    /// </summary>
+    /// <param name="email">Adresse email du destinataire</param>
+    /// <param name="firstName">Prénom de l'utilisateur</param>
+    /// <param name="lastName">Nom de l'utilisateur</param>
+    /// <param name="token">Token de réinitialisation</param>
+    /// <param name="cultureName">Code de culture (fr, de, en)</param>
+    /// <returns>True si l'email a été envoyé avec succès</returns>
+    Task<bool> SendWelcomeEmailAsync(string email, string firstName, string lastName, string token, string cultureName);
+
+    /// <summary>
+    /// Envoie un email de réinitialisation de mot de passe
+    /// </summary>
+    /// <param name="email">Adresse email du destinataire</param>
+    /// <param name="firstName">Prénom de l'utilisateur</param>
+    /// <param name="lastName">Nom de l'utilisateur</param>
+    /// <param name="token">Token de réinitialisation</param>
+    /// <param name="cultureName">Code de culture (fr, de, en)</param>
+    /// <returns>True si l'email a été envoyé avec succès</returns>
+    Task<bool> SendPasswordResetEmailAsync(string email, string firstName, string lastName, string token, string cultureName);
 }

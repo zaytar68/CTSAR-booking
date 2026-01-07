@@ -118,14 +118,8 @@ public class ReservationService
             _logger.LogInformation($"Création d'inscription par utilisateur {userId}");
 
             // 1. Valider les alvéoles (si spécifiées)
-            // Les membres peuvent créer une session sans alvéoles (le moniteur les choisira)
-            // Les moniteurs doivent obligatoirement sélectionner des alvéoles
-            if (isMoniteur && !dto.AlveoleIds.Any())
-            {
-                _logger.LogWarning("Un moniteur doit sélectionner au moins une alvéole");
-                return (false, "Vous devez sélectionner au moins une alvéole", null);
-            }
-
+            // Les moniteurs et les membres peuvent créer une session sans alvéoles
+            // (les alvéoles pourront être définies ultérieurement)
             if (dto.AlveoleIds.Any())
             {
                 var alveoles = await _context.Alveoles
@@ -347,11 +341,14 @@ public class ReservationService
 
             await _context.SaveChangesAsync();
 
-            // Notifier les autres participants si un moniteur s'inscrit
+            // Notifier les autres participants
             _logger.LogInformation($"[NOTIF DEBUG AddParticipantAsync] isMoniteur={isMoniteur}, reservation.Participants.Count={reservation.Participants.Count}");
+
+            var user = await _context.Users.FindAsync(userIdInt);
+
             if (isMoniteur)
             {
-                var user = await _context.Users.FindAsync(userIdInt);
+                // Si un moniteur s'inscrit, notifier les membres
                 var membresInscrits = reservation.Participants
                     .Where(p => !p.EstMoniteur && p.UserId != userIdInt)
                     .Select(p => p.UserId.ToString())
@@ -365,6 +362,38 @@ public class ReservationService
                         "Moniteur disponible",
                         $"{user.Prenom} {user.Nom} s'est inscrit comme moniteur pour votre séance",
                         NotificationType.Success);
+                }
+            }
+            else
+            {
+                // Si un membre s'inscrit, notifier les moniteurs avec la liste des tireurs et les notes
+                var moniteursInscrits = reservation.Participants
+                    .Where(p => p.EstMoniteur && p.UserId != userIdInt)
+                    .Select(p => p.UserId.ToString())
+                    .ToList();
+
+                if (moniteursInscrits.Any() && user != null)
+                {
+                    // Construire le message avec la liste des tireurs et les notes
+                    var allMembers = await _context.ReservationParticipants
+                        .Where(rp => rp.ReservationId == reservationId && !rp.EstMoniteur)
+                        .Join(_context.Users, rp => rp.UserId, u => u.Id, (rp, u) => u.NomComplet)
+                        .ToListAsync();
+
+                    var sessionDate = reservation.DateDebut.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+                    var message = $"{user.Prenom} {user.Nom} s'est inscrit à votre séance du {sessionDate}\n\n" +
+                                  $"Tireurs inscrits ({allMembers.Count}) : {string.Join(", ", allMembers)}";
+
+                    if (!string.IsNullOrWhiteSpace(reservation.Commentaire))
+                    {
+                        message += $"\n\nNotes de la séance : {reservation.Commentaire}";
+                    }
+
+                    await _notificationService.NotifyMultipleAsync(
+                        moniteursInscrits,
+                        "Nouveau tireur inscrit",
+                        message,
+                        NotificationType.Info);
                 }
             }
 
@@ -435,11 +464,14 @@ public class ReservationService
 
             await _context.SaveChangesAsync();
 
-            // Notifier les autres participants si un moniteur se désinscrit
+            // Notifier les autres participants
             _logger.LogInformation($"[NOTIF DEBUG RemoveParticipantAsync] wasMoniteur={wasMoniteur}, reservation.Participants.Count={reservation.Participants.Count}");
+
+            var user = await _context.Users.FindAsync(userIdInt);
+
             if (wasMoniteur)
             {
-                var user = await _context.Users.FindAsync(userIdInt);
+                // Si un moniteur se désinscrit, notifier tous les participants
                 var participantIds = reservation.Participants
                     .Where(p => p.UserId != userIdInt)
                     .Select(p => p.UserId.ToString())
@@ -453,6 +485,38 @@ public class ReservationService
                         "Moniteur absent",
                         $"Le moniteur {user.Prenom} {user.Nom} s'est désinscrit de la séance",
                         NotificationType.Warning);
+                }
+            }
+            else
+            {
+                // Si un membre se désinscrit, notifier les moniteurs avec la liste des tireurs restants et les notes
+                var moniteursInscrits = reservation.Participants
+                    .Where(p => p.EstMoniteur)
+                    .Select(p => p.UserId.ToString())
+                    .ToList();
+
+                if (moniteursInscrits.Any() && user != null)
+                {
+                    // Construire le message avec la liste des tireurs restants et les notes
+                    var remainingMembers = await _context.ReservationParticipants
+                        .Where(rp => rp.ReservationId == reservationId && !rp.EstMoniteur)
+                        .Join(_context.Users, rp => rp.UserId, u => u.Id, (rp, u) => u.NomComplet)
+                        .ToListAsync();
+
+                    var sessionDate = reservation.DateDebut.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+                    var message = $"{user.Prenom} {user.Nom} s'est désinscrit de votre séance du {sessionDate}\n\n" +
+                                  $"Tireurs inscrits ({remainingMembers.Count}) : {(remainingMembers.Any() ? string.Join(", ", remainingMembers) : "Aucun")}";
+
+                    if (!string.IsNullOrWhiteSpace(reservation.Commentaire))
+                    {
+                        message += $"\n\nNotes de la séance : {reservation.Commentaire}";
+                    }
+
+                    await _notificationService.NotifyMultipleAsync(
+                        moniteursInscrits,
+                        "Tireur désinscrit",
+                        message,
+                        NotificationType.Info);
                 }
             }
 

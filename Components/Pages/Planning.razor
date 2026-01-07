@@ -644,11 +644,10 @@
         var dialog = await DialogService.ShowAsync<ReservationDetailsDialog>(Loc["ReservationDetails"], parameters, options);
         var result = await dialog.Result;
 
-        // Si l'utilisateur a modifié la réservation, recharger les données
-        if (!result.Canceled)
-        {
-            await LoadData();
-            StateHasChanged();
-        }
+        // Toujours recharger les données après fermeture du dialogue
+        // (nécessaire car les modifications peuvent être faites sans que DialogRef retourne un résultat)
+        await LoadData();
+        StateHasChanged();
+
     }
 }

@@ -11,6 +11,7 @@
 @inject IStringLocalizer<Planning> Loc
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <MudDialog>
     <DialogContent>
@@ -22,9 +23,7 @@
                     <MudSelect T="int"
                                Label="@Loc["Alveoles"]"
                                MultiSelection="true"
-                               @bind-SelectedValues="_selectedAlveoleIds"
-                               Required="true"
-                               RequiredError="@Loc["AlveolesRequired"]">
+                               @bind-SelectedValues="_selectedAlveoleIds">
                         @if (_alveoles != null)
                         {
                             @foreach (var alveole in _alveoles.Where(a => a.EstActive).OrderBy(a => a.Ordre))
@@ -80,9 +79,15 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
+        <MudButton @onclick="@Cancel"
+                   ButtonType="ButtonType.Button"
+                   Disabled="_isSubmitting">
+            @Loc["Cancel"]
+        </MudButton>
         <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
-                   OnClick="Submit"
+                   @onclick="@Submit"
+                   ButtonType="ButtonType.Button"
                    Disabled="_isSubmitting">
             @if (_isSubmitting)
             {
@@ -140,6 +145,27 @@
         }
     }
 
+    private async Task Cancel()
+    {
+        if (DialogRef != null)
+        {
+            DialogRef.Close(DialogResult.Cancel());
+        }
+        else
+        {
+            // Fallback: Use JavaScript to close dialog
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "document.querySelector('.mud-overlay').click()");
+                await Task.Delay(100);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la fermeture du dialogue : {ex.Message}");
+            }
+        }
+    }
+
     private async Task Submit()
     {
         _errorMessage = null;
@@ -151,14 +177,6 @@
             await _form.Validate();
             if (!_form.IsValid)
             {
-                _isSubmitting = false;
-                return;
-            }
-
-            // Vérifier qu'au moins une alvéole est sélectionnée (uniquement pour les moniteurs)
-            if (_isMoniteur && !_selectedAlveoleIds.Any())
-            {
-                _errorMessage = Loc["AlveolesRequired"];
                 _isSubmitting = false;
                 return;
             }
@@ -198,8 +216,24 @@
                 Snackbar.Add(Loc["ReservationCreatedSuccess"], Severity.Success);
                 StateHasChanged();
 
-                // Fermer le dialogue si DialogRef est disponible
-                DialogRef?.Close(DialogResult.Ok(result.Reservation));
+                // Fermer le dialogue
+                if (DialogRef != null)
+                {
+                    DialogRef.Close(DialogResult.Ok(result.Reservation));
+                }
+                else
+                {
+                    // Fallback: Use JavaScript to close dialog
+                    try
+                    {
+                        await JS.InvokeVoidAsync("eval", "document.querySelector('.mud-overlay').click()");
+                        await Task.Delay(100);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erreur lors de la fermeture du dialogue : {ex.Message}");
+                    }
+                }
             }
             else
             {

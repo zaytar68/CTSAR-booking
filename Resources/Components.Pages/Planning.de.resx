@@ -244,4 +244,22 @@
   <data name="NoReservations" xml:space="preserve">
     <value>Keine Reservierungen</value>
   </data>
+  <data name="MemberJoinedSession" xml:space="preserve">
+    <value>Neuer Schütze angemeldet</value>
+  </data>
+  <data name="MemberLeftSession" xml:space="preserve">
+    <value>Schütze abgemeldet</value>
+  </data>
+  <data name="MemberJoinedMessage" xml:space="preserve">
+    <value>{0} hat sich für Ihre Sitzung am {1} angemeldet</value>
+  </data>
+  <data name="MemberLeftMessage" xml:space="preserve">
+    <value>{0} hat sich von Ihrer Sitzung am {1} abgemeldet</value>
+  </data>
+  <data name="RegisteredShooters" xml:space="preserve">
+    <value>Angemeldete Schützen</value>
+  </data>
+  <data name="SessionNotes" xml:space="preserve">
+    <value>Sitzungsnotizen</value>
+  </data>
 </root>

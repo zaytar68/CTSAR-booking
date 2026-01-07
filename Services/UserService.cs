@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using CTSAR.Booking.Data;
 using CTSAR.Booking.DTOs;
 using CTSAR.Booking.Constants;
+using CTSAR.Booking.Models;
+using System.Security.Cryptography;
 
 namespace CTSAR.Booking.Services;
 
@@ -21,15 +23,18 @@ public class UserService
     private readonly ApplicationDbContext _context;
     private readonly AuthService _authService;
     private readonly ILogger<UserService> _logger;
+    private readonly IEmailService _emailService;
 
     public UserService(
         ApplicationDbContext context,
         AuthService authService,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        IEmailService emailService)
     {
         _context = context;
         _authService = authService;
         _logger = logger;
+        _emailService = emailService;
     }
 
     // ================================================================
@@ -343,14 +348,11 @@ public class UserService
                 return (false, "Un compte avec cet email existe déjà");
             }
 
-            // Hasher le mot de passe avec BCrypt
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            // Créer l'utilisateur
+            // Créer l'utilisateur sans mot de passe (sera défini via email)
             var user = new User
             {
                 Email = dto.Email,
-                PasswordHash = passwordHash,
+                PasswordHash = string.Empty, // Sera défini lors de la première connexion
                 Nom = dto.Nom,
                 Prenom = dto.Prenom,
                 PreferenceLangue = dto.PreferenceLangue,
@@ -384,7 +386,36 @@ public class UserService
             var rolesText = string.Join(", ", dto.Roles);
             _logger.LogInformation("Utilisateur créé: {Email} avec les rôles: {Roles}", dto.Email, rolesText);
 
-            return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès avec les rôles: {rolesText}");
+            // Générer un token de réinitialisation pour la première connexion
+            var token = GenerateSecureToken();
+            var passwordResetToken = new PasswordResetToken
+            {
+                UserId = user.Id,
+                Token = token,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                IsUsed = false,
+                TokenType = "FirstLogin"
+            };
+
+            _context.PasswordResetTokens.Add(passwordResetToken);
+            await _context.SaveChangesAsync();
+
+            // Envoyer l'email de bienvenue avec le lien de création de mot de passe
+            var emailSent = await _emailService.SendWelcomeEmailAsync(
+                user.Email,
+                user.Prenom,
+                user.Nom,
+                token,
+                user.PreferenceLangue ?? "fr");
+
+            if (!emailSent)
+            {
+                _logger.LogWarning("Échec de l'envoi de l'email de bienvenue à {Email}", user.Email);
+                return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès avec les rôles: {rolesText}. ATTENTION: L'email de bienvenue n'a pas pu être envoyé.");
+            }
+
+            return (true, $"L'utilisateur {dto.Prenom} {dto.Nom} a été créé avec succès avec les rôles: {rolesText}. Un email de bienvenue a été envoyé.");
         }
         catch (Exception ex)
         {
@@ -594,6 +625,95 @@ public class UserService
         {
             _logger.LogError(ex, "Erreur lors du changement de mot de passe pour {UserId}", userId);
             return (false, "Une erreur est survenue lors du changement de mot de passe");
+        }
+    }
+
+    // ================================================================
+    // GESTION DES TOKENS DE RÉINITIALISATION DE MOT DE PASSE
+    // ================================================================
+
+    /// <summary>
+    /// Génère un token de réinitialisation de mot de passe pour un utilisateur
+    /// </summary>
+    private string GenerateSecureToken()
+    {
+        var randomNumber = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+    }
+
+    /// <summary>
+    /// Valide un token de réinitialisation de mot de passe
+    /// </summary>
+    public async Task<(bool IsValid, bool IsExpired)> ValidatePasswordResetTokenAsync(string token)
+    {
+        try
+        {
+            var resetToken = await _context.PasswordResetTokens
+                .FirstOrDefaultAsync(t => t.Token == token && !t.IsUsed);
+
+            if (resetToken == null)
+            {
+                return (false, false);
+            }
+
+            if (resetToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return (false, true);
+            }
+
+            return (true, false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la validation du token de réinitialisation");
+            return (false, false);
+        }
+    }
+
+    /// <summary>
+    /// Définit un mot de passe en utilisant un token de réinitialisation
+    /// </summary>
+    public async Task<(bool Success, string? Message)> SetPasswordWithTokenAsync(string token, string newPassword)
+    {
+        try
+        {
+            var resetToken = await _context.PasswordResetTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Token == token && !t.IsUsed);
+
+            if (resetToken == null)
+            {
+                return (false, "Token invalide");
+            }
+
+            if (resetToken.ExpiresAt < DateTime.UtcNow)
+            {
+                return (false, "Le token a expiré");
+            }
+
+            if (resetToken.User == null)
+            {
+                return (false, "Utilisateur introuvable");
+            }
+
+            // Hasher le nouveau mot de passe
+            resetToken.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            // Marquer le token comme utilisé
+            resetToken.IsUsed = true;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Mot de passe défini pour l'utilisateur {Email} via token", resetToken.User.Email);
+
+            return (true, "Mot de passe créé avec succès");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la définition du mot de passe avec token");
+            return (false, "Une erreur est survenue");
         }
     }
 }

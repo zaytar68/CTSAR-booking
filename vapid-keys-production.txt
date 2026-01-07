@@ -1,0 +1,25 @@
+# ============================================================
+# CLÉS VAPID POUR PRODUCTION
+# ============================================================
+#
+# À ajouter dans Portainer Stack → Environment variables
+#
+# ⚠️ CE FICHIER CONTIENT DES SECRETS - NE PAS COMMITTER DANS GIT
+# ============================================================
+
+VapidSettings__Subject=mailto:cedric.tirolf@free.fr
+VapidSettings__PublicKey=BFyfRhNyaTJ7Q2MufUxaQrbpMQLiCdW6-EXLcd62sxeE11NrjsvPH7BPi8_sJFBWWDYklAyitHznck7xGfUuAeM
+VapidSettings__PrivateKey=C50cFYgnxYyHadSqDcwLNMTVDxzQrgiCiCmrMGE5WkE
+
+# ============================================================
+# INSTRUCTIONS PORTAINER
+# ============================================================
+#
+# 1. Portainer → Stacks → Sélectionnez "ctsar-booking"
+# 2. Cliquez sur "Editor"
+# 3. Scrollez vers le bas jusqu'à "Environment variables"
+# 4. Copiez-collez les 3 lignes ci-dessus (sans les commentaires)
+# 5. Cliquez sur "Update the stack"
+# 6. Attendez le redémarrage du container (1-2 minutes)
+#
+# ============================================================

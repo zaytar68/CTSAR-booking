@@ -1,3 +1,12 @@
+OK - fenêtre qui se ferme pas lors de l'inscription
+Ok - alvéole non obligatoire pour création moniteur
+- vérifier si mail au moniteur lors de l'inscription d'un membre
+OK - actualisation après mise a jour
+A tester - envoi un mail a tous les moniteurs lors de l'inscription ou la désinscription de qqun
+OK - compteur "membres"
+OK - page de création de mot de passe à l'inscription
+
+
 
 ____
 # Alvéoles
