@@ -42,7 +42,7 @@ public class UserService
     // ================================================================
 
     /// <summary>
-    /// Récupère TOUS les utilisateurs avec leurs rôles.
+    /// Récupère TOUS les utilisateurs avec leurs rôles (y compris les utilisateurs verrouillés).
     /// </summary>
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
@@ -51,7 +51,6 @@ public class UserService
             var users = await _context.Users
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                .Where(u => u.IsActive)
                 .OrderBy(u => u.Nom)
                 .ThenBy(u => u.Prenom)
                 .ToListAsync();
@@ -62,11 +61,14 @@ public class UserService
                 Email = u.Email,
                 Nom = u.Nom,
                 Prenom = u.Prenom,
+                PhoneNumber = u.PhoneNumber,
                 PreferenceLangue = u.PreferenceLangue,
                 NotifMail = u.NotifMail,
                 Notif2 = u.Notif2,
                 Notif3 = u.Notif3,
-                // NomComplet est calculé automatiquement par la propriété
+                LockoutEnabled = u.LockoutEnabled,
+                LockoutEnd = u.LockoutEnd,
+                // NomComplet et EstVerrouille sont calculés automatiquement par les propriétés
                 Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
             }).ToList();
         }
@@ -105,11 +107,14 @@ public class UserService
                 Email = user.Email,
                 Nom = user.Nom,
                 Prenom = user.Prenom,
+                PhoneNumber = user.PhoneNumber,
                 PreferenceLangue = user.PreferenceLangue,
                 NotifMail = user.NotifMail,
                 Notif2 = user.Notif2,
                 Notif3 = user.Notif3,
-                // NomComplet est calculé automatiquement par la propriété
+                LockoutEnabled = user.LockoutEnabled,
+                LockoutEnd = user.LockoutEnd,
+                // NomComplet et EstVerrouille sont calculés automatiquement par les propriétés
                 Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
             };
         }
@@ -549,10 +554,13 @@ public class UserService
                 return (false, "Utilisateur introuvable");
             }
 
-            user.IsActive = false;
+            // Verrouiller pour 100 ans (verrouillage permanent)
+            user.LockoutEnabled = true;
+            user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
+
             await _context.SaveChangesAsync();
             _logger.LogInformation("Utilisateur {Email} verrouillé", user.Email);
-            return (true, null);
+            return (true, $"L'utilisateur {user.Prenom} {user.Nom} a été verrouillé avec succès");
         }
         catch (Exception ex)
         {
@@ -579,10 +587,12 @@ public class UserService
                 return (false, "Utilisateur introuvable");
             }
 
-            user.IsActive = true;
+            // Déverrouiller en mettant LockoutEnd à null ou dans le passé
+            user.LockoutEnd = null;
+
             await _context.SaveChangesAsync();
             _logger.LogInformation("Utilisateur {Email} déverrouillé", user.Email);
-            return (true, null);
+            return (true, $"L'utilisateur {user.Prenom} {user.Nom} a été déverrouillé avec succès");
         }
         catch (Exception ex)
         {
