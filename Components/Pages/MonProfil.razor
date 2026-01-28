@@ -103,7 +103,8 @@ personnelles, voir ses rôles et changer son mot de passe.
                                                   @bind-Value="updateUserDto.PhoneNumber"
                                                   For="@(() => updateUserDto.PhoneNumber)"
                                                   Variant="Variant.Outlined"
-                                                  Placeholder="@Loc["PhonePlaceholder"]" />
+                                                  Placeholder="@Loc["PhonePlaceholder"]" 
+                                                  Disabled = "true" />
                                 </MudItem>
 
                                 @* LANGUE PRÉFÉRÉE *@

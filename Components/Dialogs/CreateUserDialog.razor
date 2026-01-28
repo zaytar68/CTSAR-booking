@@ -76,8 +76,9 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
                                   Label="Téléphone"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Telephone"
-                                  HelperText="Optionnel"
-                                  Clearable="true" />
+                                  HelperText="Non stocké actuellement"
+                                  Disabled="true"
+                                  Clearable="false" />
                 </MudItem>
 
                 @* Langue *@
@@ -271,8 +272,8 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
 
             if (success)
             {
-                Snackbar.Add(message ?? "Utilisateur créé avec succès", Severity.Success);
-                DialogRef?.Close(DialogResult.Ok(true));
+                // Fermer le dialogue en cas de succès (le message sera affiché par la page parente)
+                DialogRef?.Close(DialogResult.Ok(message ?? "Utilisateur créé avec succès"));
             }
             else
             {
