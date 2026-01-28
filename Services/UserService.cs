@@ -398,7 +398,7 @@ public class UserService
                 UserId = user.Id,
                 Token = token,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddDays(2), // 48 heures
                 IsUsed = false,
                 TokenType = "FirstLogin"
             };
@@ -724,6 +724,81 @@ public class UserService
         {
             _logger.LogError(ex, "Erreur lors de la définition du mot de passe avec token");
             return (false, "Une erreur est survenue");
+        }
+    }
+
+    /// <summary>
+    /// Renvoie un email de création/réinitialisation de mot de passe pour un utilisateur existant.
+    /// Invalide tous les anciens tokens non utilisés et génère un nouveau token valide 48h.
+    /// </summary>
+    public async Task<(bool Success, string? Message)> ResendPasswordCreationEmailAsync(int userId)
+    {
+        try
+        {
+            // Récupérer l'utilisateur
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return (false, "Utilisateur introuvable");
+            }
+
+            // Déterminer si l'utilisateur a déjà créé son mot de passe
+            bool hasPassword = !string.IsNullOrEmpty(user.PasswordHash);
+            var hasUsedFirstLoginToken = await _context.PasswordResetTokens
+                .AnyAsync(t => t.UserId == userId && t.TokenType == "FirstLogin" && t.IsUsed);
+
+            string tokenType = (hasPassword || hasUsedFirstLoginToken) ? "Reset" : "FirstLogin";
+
+            // Invalider tous les anciens tokens non utilisés pour cet utilisateur
+            var oldTokens = await _context.PasswordResetTokens
+                .Where(t => t.UserId == userId && !t.IsUsed)
+                .ToListAsync();
+
+            foreach (var oldToken in oldTokens)
+            {
+                oldToken.IsUsed = true;
+            }
+
+            // Générer un nouveau token
+            var newToken = GenerateSecureToken();
+            var passwordResetToken = new PasswordResetToken
+            {
+                UserId = userId,
+                Token = newToken,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(2), // 48 heures
+                IsUsed = false,
+                TokenType = tokenType
+            };
+
+            _context.PasswordResetTokens.Add(passwordResetToken);
+            await _context.SaveChangesAsync();
+
+            // Envoyer l'email
+            var emailSent = await _emailService.SendWelcomeEmailAsync(
+                user.Email,
+                user.Prenom,
+                user.Nom,
+                newToken,
+                user.PreferenceLangue ?? "fr");
+
+            if (!emailSent)
+            {
+                _logger.LogWarning("Échec de l'envoi de l'email de réinitialisation à {Email}", user.Email);
+                return (false, "Erreur lors de l'envoi de l'email");
+            }
+
+            _logger.LogInformation(
+                "Email de {Type} envoyé à {Email}",
+                tokenType == "FirstLogin" ? "création de mot de passe" : "réinitialisation",
+                user.Email);
+
+            return (true, "Email envoyé avec succès");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du renvoi de l'email de mot de passe pour l'utilisateur {UserId}", userId);
+            return (false, "Une erreur est survenue lors de l'envoi de l'email");
         }
     }
 }

@@ -107,7 +107,7 @@
             <p style="text-align: center;">
                 <a href="{2}" class="button">Create my password</a>
             </p>
-            <p>This link is valid for 24 hours.</p>
+            <p>This link is valid for 48 hours.</p>
             <p>If you did not request the creation of this account, you can ignore this email.</p>
             <p>Best regards,<br/>The CTSAR Team</p>
         </div>
@@ -151,7 +151,7 @@
             <p style="text-align: center;">
                 <a href="{2}" class="button">Reset my password</a>
             </p>
-            <p>This link is valid for 24 hours.</p>
+            <p>This link is valid for 48 hours.</p>
             <p>If you did not request this reset, you can safely ignore this email.</p>
             <p>Best regards,<br/>The CTSAR Team</p>
         </div>
