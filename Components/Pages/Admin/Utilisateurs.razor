@@ -10,6 +10,8 @@ Cette page permet aux administrateurs de :
 - Verrouiller/déverrouiller des comptes
 
 Accessible uniquement aux Administrateurs (Policy="AdminOnly")
+
+Mise à jour : Fermeture automatique des dialogues et rafraîchissement
 *@
 
 @page "/admin/utilisateurs"
@@ -119,7 +121,8 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                  Hover="true"
                  Loading="@_loading"
                  Dense="true"
-                 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive">
+                 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+                 RowsPerPage =50>
 
         @* Colonne Nom complet *@
         <Columns>
@@ -311,7 +314,7 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
     }
 
     // ================================================================
-    // DIALOGUES (À IMPLÉMENTER)
+    // DIALOGUES 
     // ================================================================
 
     /// <summary>
@@ -333,6 +336,11 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         if (!result.Canceled)
         {
             await LoadUsers();
+            await InvokeAsync(StateHasChanged);
+
+            // Afficher le message de succès retourné par le dialogue
+            var successMessage = result.Data?.ToString() ?? Loc["UserCreatedSuccess"];
+            Snackbar.Add(successMessage, Severity.Success);
         }
     }
 
@@ -356,6 +364,24 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
         if (!result.Canceled)
         {
             await LoadUsers();
+            await InvokeAsync(StateHasChanged);
+
+            // Afficher le message de succès retourné par le dialogue
+            if (result.Data != null)
+            {
+                dynamic data = result.Data;
+                Snackbar.Add(data.Message?.ToString() ?? Loc["UserUpdatedSuccess"], Severity.Success);
+
+                // Afficher l'avertissement si présent
+                if (!string.IsNullOrEmpty(data.PasswordWarning?.ToString()))
+                {
+                    Snackbar.Add(data.PasswordWarning.ToString(), Severity.Warning);
+                }
+            }
+            else
+            {
+                Snackbar.Add(Loc["UserUpdatedSuccess"], Severity.Success);
+            }
         }
     }
 

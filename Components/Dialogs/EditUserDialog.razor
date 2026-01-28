@@ -76,8 +76,9 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
                                   Label="Téléphone"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Telephone"
-                                  HelperText="Optionnel"
-                                  Clearable="true" />
+                                  HelperText="Non stocké actuellement"
+                                  Disabled="true"
+                                  Clearable="false" />
                 </MudItem>
 
                 @* Langue *@
@@ -320,16 +321,18 @@ Utilise les composants MudBlazor pour une interface moderne et réactive.
             if (success)
             {
                 // Si un nouveau mot de passe est fourni, le changer
+                string? passwordWarning = null;
                 if (!string.IsNullOrWhiteSpace(_newPassword))
                 {
                     // Note : Cette fonctionnalité nécessiterait une méthode admin
                     // pour changer le mot de passe sans l'ancien mot de passe
                     // Pour l'instant, on l'ignore
-                    Snackbar.Add("Note : Le changement de mot de passe n'est pas encore implémenté", Severity.Warning);
+                    passwordWarning = "Note : Le changement de mot de passe n'est pas encore implémenté";
                 }
 
-                Snackbar.Add(message ?? "Utilisateur modifié avec succès", Severity.Success);
-                DialogRef?.Close(DialogResult.Ok(true));
+                // Fermer le dialogue en cas de succès (le message sera affiché par la page parente)
+                var resultData = new { Message = message ?? "Utilisateur modifié avec succès", PasswordWarning = passwordWarning };
+                DialogRef?.Close(DialogResult.Ok(resultData));
             }
             else
             {

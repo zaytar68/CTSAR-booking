@@ -101,4 +101,10 @@
   <data name="ResendPasswordEmailError" xml:space="preserve">
     <value>Fehler beim Senden der E-Mail: {0}</value>
   </data>
+  <data name="UserCreatedSuccess" xml:space="preserve">
+    <value>Benutzer erfolgreich erstellt</value>
+  </data>
+  <data name="UserUpdatedSuccess" xml:space="preserve">
+    <value>Benutzer erfolgreich geändert</value>
+  </data>
 </root>
