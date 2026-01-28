@@ -107,7 +107,7 @@
             <p style="text-align: center;">
                 <a href="{2}" class="button">Mein Passwort erstellen</a>
             </p>
-            <p>Dieser Link ist 24 Stunden gültig.</p>
+            <p>Dieser Link ist 48 Stunden gültig.</p>
             <p>Wenn Sie die Erstellung dieses Kontos nicht beantragt haben, können Sie diese E-Mail ignorieren.</p>
             <p>Mit freundlichen Grüßen,<br/>Das CTSAR-Team</p>
         </div>
@@ -151,7 +151,7 @@
             <p style="text-align: center;">
                 <a href="{2}" class="button">Mein Passwort zurücksetzen</a>
             </p>
-            <p>Dieser Link ist 24 Stunden gültig.</p>
+            <p>Dieser Link ist 48 Stunden gültig.</p>
             <p>Wenn Sie dieses Zurücksetzen nicht angefordert haben, können Sie diese E-Mail sicher ignorieren.</p>
             <p>Mit freundlichen Grüßen,<br/>Das CTSAR-Team</p>
         </div>

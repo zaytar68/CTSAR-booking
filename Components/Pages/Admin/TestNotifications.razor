@@ -8,6 +8,7 @@
 @inject ISnackbar Snackbar
 @inject IPushNotificationService PushService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IEmailService EmailService
 @attribute [Authorize(Roles = "Administrateur")]
 
 <PageTitle>Test Notifications Push</PageTitle>
@@ -135,6 +136,14 @@
                                    OnClick="SendTestNotification"
                                    StartIcon="@Icons.Material.Filled.Send">
                             4. Envoyer notification push serveur
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Tertiary"
+                                   FullWidth="true"
+                                   OnClick="SendTestEmail"
+                                   StartIcon="@Icons.Material.Filled.Mail">
+                            5. Envoyer email de test
                         </MudButton>
 
                         <MudDivider />
@@ -523,6 +532,61 @@
             {
                 AddLog("   ✗ Échec de l'envoi de la notification");
                 Snackbar.Add("Erreur: Impossible d'envoyer la notification", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog($"❌ Erreur: {ex.Message}");
+            AddLog($"❌ StackTrace: {ex.StackTrace}");
+            Snackbar.Add($"Erreur: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SendTestEmail()
+    {
+        try
+        {
+            AddLog("📧 Envoi de l'email de test...");
+
+            // Récupérer l'utilisateur actuel
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (!user.Identity?.IsAuthenticated ?? true)
+            {
+                AddLog("   ✗ Utilisateur non authentifié");
+                Snackbar.Add("Erreur: Vous devez être connecté", Severity.Error);
+                return;
+            }
+
+            var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+            var userName = user.FindFirst(ClaimTypes.Name)?.Value ?? "Utilisateur";
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                AddLog("   ✗ Impossible de récupérer l'email utilisateur");
+                Snackbar.Add("Erreur: Email utilisateur introuvable", Severity.Error);
+                return;
+            }
+
+            AddLog($"   Email destinataire: {userEmail}");
+
+            // Envoyer un email de test
+            var success = await EmailService.SendEmailAsync(
+                userEmail,
+                "Test - CTSAR Booking",
+                $"<h2>Email de test</h2><p>Bonjour {userName},</p><p>Ceci est un email de test envoyé depuis l'application CTSAR Booking.</p><p>Si vous recevez cet email, cela signifie que le système d'envoi d'emails fonctionne correctement.</p><p><strong>Date/Heure:</strong> {DateTime.Now:dd/MM/yyyy HH:mm:ss}</p><hr/><p style='color: #666; font-size: 0.9em;'>Ceci est un email automatique de test, merci de ne pas y répondre.</p>",
+                isHtml: true);
+
+            if (success)
+            {
+                AddLog("   ✓ Email de test envoyé avec succès !");
+                Snackbar.Add($"Email de test envoyé à {userEmail} !", Severity.Success);
+            }
+            else
+            {
+                AddLog("   ✗ Échec de l'envoi de l'email");
+                Snackbar.Add("Erreur: Impossible d'envoyer l'email. Vérifiez les logs.", Severity.Error);
             }
         }
         catch (Exception ex)

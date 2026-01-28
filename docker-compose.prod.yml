@@ -22,7 +22,8 @@ services:
     labels:
       # Traefik configuration
       - "traefik.enable=true"
-      - "traefik.http.routers.ctsar.rule=Host(`ctsar.tirolf.me`)"
+      #- "traefik.http.routers.ctsar.rule=Host(`ctsar.tirolf.me`)"
+      - "traefik.http.routers.ctsar.rule=Host(`booking.ctsar.eu`)"
       - "traefik.http.routers.ctsar.entrypoints=websecure"
       - "traefik.http.routers.ctsar.tls.certresolver=letsencrypt"
       - "traefik.http.services.ctsar.loadbalancer.server.port=8080"

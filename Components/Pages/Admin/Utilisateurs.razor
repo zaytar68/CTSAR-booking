@@ -23,7 +23,6 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Utilisateurs> Loc
 @inject IStringLocalizer<CTSAR.Booking.Resources.Shared> SharedLoc
-@inject INotificationService NotificationService
 
 <PageTitle>@Loc["PageTitle"]</PageTitle>
 
@@ -197,8 +196,8 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
                     <MudIconButton Icon="@Icons.Material.Filled.Mail"
                                    Color="Color.Info"
                                    Size="Size.Small"
-                                   OnClick="@(() => TestNotification(context.Item))"
-                                   Title="@Loc["TestNotificationButton"]" />
+                                   OnClick="@(() => ResendPasswordEmail(context.Item))"
+                                   Title="@Loc["ResendPasswordEmailButton"]" />
 
                     @if (context.Item.EstVerrouille)
                     {
@@ -439,28 +438,37 @@ Accessible uniquement aux Administrateurs (Policy="AdminOnly")
     }
 
     // ================================================================
-    // TEST DE NOTIFICATION
+    // RENVOI D'EMAIL DE CRÉATION DE MOT DE PASSE
     // ================================================================
 
     /// <summary>
-    /// Envoie une notification de test à l'utilisateur sélectionné.
-    /// Utilise le système de notification modulaire qui supporte plusieurs canaux.
+    /// Renvoie un email de création/réinitialisation de mot de passe à l'utilisateur sélectionné.
+    /// Invalide tous les anciens tokens non utilisés et génère un nouveau token valide 48h.
     /// </summary>
-    private async Task TestNotification(UserDto user)
+    private async Task ResendPasswordEmail(UserDto user)
     {
         try
         {
-            await NotificationService.NotifyAsync(
-                user.Id.ToString(),
-                Loc["TestNotificationTitle"],
-                Loc["TestNotificationMessage"],
-                NotificationType.Info);
+            if (!int.TryParse(user.Id, out int userId))
+            {
+                Snackbar.Add(string.Format(Loc["ResendPasswordEmailError"], "ID utilisateur invalide"), Severity.Error);
+                return;
+            }
 
-            Snackbar.Add(Loc["TestNotificationSuccess"], Severity.Success);
+            var result = await UserService.ResendPasswordCreationEmailAsync(userId);
+
+            if (result.Success)
+            {
+                Snackbar.Add(Loc["ResendPasswordEmailSuccess"], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(string.Format(Loc["ResendPasswordEmailError"], result.Message), Severity.Error);
+            }
         }
         catch (Exception ex)
         {
-            Snackbar.Add(string.Format(Loc["TestNotificationError"], ex.Message), Severity.Error);
+            Snackbar.Add(string.Format(Loc["ResendPasswordEmailError"], ex.Message), Severity.Error);
         }
     }
 }

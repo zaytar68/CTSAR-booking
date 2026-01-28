@@ -92,19 +92,13 @@
   <data name="EditUser" xml:space="preserve">
     <value>Edit {0}</value>
   </data>
-  <data name="TestNotificationButton" xml:space="preserve">
-    <value>Test notification</value>
+  <data name="ResendPasswordEmailButton" xml:space="preserve">
+    <value>Resend password creation email</value>
   </data>
-  <data name="TestNotificationTitle" xml:space="preserve">
-    <value>Notification Test</value>
+  <data name="ResendPasswordEmailSuccess" xml:space="preserve">
+    <value>Password creation email sent successfully!</value>
   </data>
-  <data name="TestNotificationMessage" xml:space="preserve">
-    <value>This is a test message to verify your notification configuration.</value>
-  </data>
-  <data name="TestNotificationSuccess" xml:space="preserve">
-    <value>Test notification sent successfully!</value>
-  </data>
-  <data name="TestNotificationError" xml:space="preserve">
-    <value>Error sending notification: {0}</value>
+  <data name="ResendPasswordEmailError" xml:space="preserve">
+    <value>Error sending email: {0}</value>
   </data>
 </root>

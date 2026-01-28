@@ -40,11 +40,11 @@ public class UserDto
     public string Prenom { get; set; } = string.Empty;
 
     /// <summary>
-    /// Nom complet (Prénom + Nom).
-    /// Exemple : "Jean Dupont"
+    /// Nom complet (Nom + Prénom).
+    /// Exemple : "Dupont Jean"
     /// Calculé automatiquement pour faciliter l'affichage.
     /// </summary>
-    public string NomComplet => $"{Prenom} {Nom}";
+    public string NomComplet => $"{Nom} {Prenom}";
 
     /// <summary>
     /// Adresse email de l'utilisateur (utilisée aussi comme nom d'utilisateur).
