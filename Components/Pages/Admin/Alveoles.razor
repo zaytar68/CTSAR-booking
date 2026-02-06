@@ -250,7 +250,13 @@
 
     private async Task OpenCreateFermetureDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
 
         var dialog = await DialogService.ShowAsync<CreateFermetureDialog>(Loc["PlanClubClosure"], options);
         var result = await dialog.Result;
