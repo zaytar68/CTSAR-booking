@@ -270,3 +270,111 @@ body.dark-mode .bg-white {
 @media (min-width: 961px) {
     /* Le calendrier garde ses styles par défaut */
 }
+
+/* ====================================================================
+   MUDDATEPICKER MOBILE FIX : Calendrier 7 jours complets
+   Correction du problème d'affichage 6 jours au lieu de 7 sur mobile
+   ==================================================================== */
+
+/* Mobile : Forcer exactement 7 colonnes pour le calendrier */
+@media (max-width: 640px) {
+    /* Conteneur du calendrier : utiliser CSS Grid pour éviter les conflits avec les flèches */
+    .mud-picker-calendar {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        grid-auto-rows: 40px !important;
+        width: 100% !important;
+        gap: 0 !important;
+        position: relative !important;
+    }
+
+    /* Chaque bouton jour : remplir sa cellule de grille */
+    .mud-picker-calendar .mud-picker-calendar-day.mud-day {
+        width: 100% !important;
+        height: 40px !important;
+        font-size: 0.75rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+    }
+
+    /* Texte dans les boutons */
+    .mud-picker-calendar .mud-day p {
+        font-size: 0.75rem !important;
+        margin: 0 !important;
+    }
+
+    /* Container principal du header : garder le comportement par défaut */
+    .mud-picker-calendar-header {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Ligne avec les flèches et le titre du mois : flex pour centrer */
+    .mud-picker-calendar-header .mud-picker-calendar-header-switch {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+        min-width: 100% !important;
+    }
+
+    /* Conteneur des en-têtes des jours uniquement */
+    .mud-picker-calendar-header > div:last-child,
+    .mud-picker-calendar-header-day {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        width: 100% !important;
+        gap: 0 !important;
+    }
+
+    .mud-picker-calendar-header .mud-day-label {
+        width: 100% !important;
+        font-size: 0.65rem !important;
+        padding: 4px 0 !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    /* S'assurer que le popover a assez de largeur */
+    .mud-popover.mud-picker-popover {
+        max-width: 95vw !important;
+        min-width: 280px !important;
+    }
+
+    .mud-picker-calendar-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 280px !important;
+        padding: 8px !important;
+    }
+
+    /* Le calendrier doit avoir une largeur minimale */
+    .mud-picker-calendar {
+        min-width: 260px !important;
+    }
+
+    /* Empêcher les jours de déborder */
+    .mud-picker-calendar-container {
+        overflow: visible !important;
+    }
+
+    /* S'assurer que le titre du mois a assez d'espace */
+    .mud-picker-calendar-header .mud-picker-calendar-header-switch {
+        min-width: 120px !important;
+    }
+}
+
+/* Tablette : ajustements similaires */
+@media (min-width: 641px) and (max-width: 960px) {
+    .mud-picker-calendar-header .mud-day-label {
+        font-size: 0.8rem !important;
+    }
+
+    .mud-picker-calendar .mud-day {
+        height: 44px !important;
+        font-size: 0.875rem !important;
+    }
+}
