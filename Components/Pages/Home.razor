@@ -69,8 +69,15 @@ Home.razor : Page d'accueil de l'application
         </NotAuthorized>
     </AuthorizeView>
 
+    @* Carte météo de la semaine *@
+    <div class="row mt-4">
+        <div class="col-12">
+            <WeatherCard />
+        </div>
+    </div>
+
     @* Section informations *@
-    <div class="row mt-5">
+    <div class="row mt-4">
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
@@ -110,4 +117,5 @@ Home.razor : Page d'accueil de l'application
             </div>
         </div>
     </div>
+
 </div>

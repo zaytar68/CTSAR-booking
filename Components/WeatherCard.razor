@@ -1,0 +1,207 @@
+@*
+====================================================================
+WeatherCard.razor : Carte météo de la semaine pour Saint-Louis (68)
+====================================================================
+Utilise l'API Open-Meteo (gratuite, sans clé API).
+Affiche les prévisions sur 7 jours avec détail matin (10h) / après-midi (15h).
+Les icônes utilisent des emoji météo natifs (colorés, universels).
+Design mobile-first avec scroll horizontal.
+====================================================================
+*@
+
+@using Microsoft.Extensions.Localization
+@using System.Globalization
+@inject IStringLocalizer<WeatherCard> Loc
+@inject WeatherService WeatherService
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6" Class="d-flex align-center gap-2">
+                <span style="font-size: 1.3rem; line-height: 1;">🌤️</span>
+                @Loc["WeatherTitle"]
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+
+    <MudCardContent>
+        @if (_loading)
+        {
+            <div class="d-flex justify-center align-center pa-4 gap-3">
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                <MudText>@Loc["WeatherLoading"]</MudText>
+            </div>
+        }
+        else if (_error || _forecast is null || _forecast.Count == 0)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                @Loc["WeatherError"]
+            </MudAlert>
+        }
+        else
+        {
+            <div style="overflow-x: auto; padding-bottom: 4px;">
+                <div class="d-flex gap-2" style="min-width: max-content;">
+                    @foreach (var day in _forecast)
+                    {
+                        var isToday = day.Date == DateOnly.FromDateTime(DateTime.Today);
+                        <MudPaper Elevation="@(isToday ? 3 : 1)"
+                                  Class="pa-2 text-center"
+                                  Style="@($"min-width: 96px; flex: 0 0 auto; {(isToday ? "border: 2px solid var(--mud-palette-primary);" : "")}")">
+
+                            @* En-tête : jour + date *@
+                            <MudText Typo="Typo.caption"
+                                     Color="@(isToday ? Color.Primary : Color.Default)"
+                                     Style="font-weight: 700; text-transform: uppercase; display: block;">
+                                @GetDayAbbreviation(day.Date)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="opacity: 0.65; display: block; font-size: 0.65rem;">
+                                @day.Date.ToString("dd/MM")
+                            </MudText>
+
+                            <MudDivider Class="my-1" />
+
+                            @* Matin (10h) *@
+                            <MudText Typo="Typo.caption" Style="display: block; font-size: 0.65rem; opacity: 0.75; margin-bottom: 2px;">
+                                @Loc["WeatherMorning"]
+                            </MudText>
+                            @if (day.Morning is not null)
+                            {
+                                <MudTooltip Text="@GetWeatherCondition(day.Morning.Code)">
+                                    <span style="font-size: 1.8rem; line-height: 1.2; display: block; cursor: default;">
+                                        @GetWeatherEmoji(day.Morning.Code)
+                                    </span>
+                                </MudTooltip>
+                                <MudText Typo="Typo.body2" Style="display: block; font-weight: 600; font-size: 0.85rem;">
+                                    @FormatTemp(day.Morning.Temp)
+                                </MudText>
+                            }
+                            else
+                            {
+                                <span style="font-size: 1.8rem; line-height: 1.2; display: block;">—</span>
+                                <MudText Typo="Typo.body2" Style="display: block; font-size: 0.85rem;">--</MudText>
+                            }
+
+                            <MudDivider Class="my-1" />
+
+                            @* Après-midi (15h) *@
+                            <MudText Typo="Typo.caption" Style="display: block; font-size: 0.65rem; opacity: 0.75; margin-bottom: 2px;">
+                                @Loc["WeatherAfternoon"]
+                            </MudText>
+                            @if (day.Afternoon is not null)
+                            {
+                                <MudTooltip Text="@GetWeatherCondition(day.Afternoon.Code)">
+                                    <span style="font-size: 1.8rem; line-height: 1.2; display: block; cursor: default;">
+                                        @GetWeatherEmoji(day.Afternoon.Code)
+                                    </span>
+                                </MudTooltip>
+                                <MudText Typo="Typo.body2" Style="display: block; font-weight: 600; font-size: 0.85rem;">
+                                    @FormatTemp(day.Afternoon.Temp)
+                                </MudText>
+                            }
+                            else
+                            {
+                                <span style="font-size: 1.8rem; line-height: 1.2; display: block;">—</span>
+                                <MudText Typo="Typo.body2" Style="display: block; font-size: 0.85rem;">--</MudText>
+                            }
+
+                            <MudDivider Class="my-1" />
+
+                            @* Min / Max journaliers *@
+                            <MudText Typo="Typo.caption" Style="color: #e53935; display: block; font-weight: 700;">
+                                ▲ @FormatTemp(day.MaxTemp)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color: #1e88e5; display: block;">
+                                ▼ @FormatTemp(day.MinTemp)
+                            </MudText>
+
+                            @* Précipitations (seulement si > 0) *@
+                            @if (day.Precipitation.HasValue && day.Precipitation.Value > 0)
+                            {
+                                <MudText Typo="Typo.caption" Style="display: block; color: #1976d2; margin-top: 3px;">
+                                    💧 @day.Precipitation.Value.ToString("0.0") mm
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Style="display: block; visibility: hidden; margin-top: 3px;">
+                                    💧 0.0 mm
+                                </MudText>
+                            }
+                        </MudPaper>
+                    }
+                </div>
+            </div>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private List<DayWeather>? _forecast;
+    private bool _loading = true;
+    private bool _error = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _forecast = await WeatherService.GetWeeklyForecastAsync();
+            _error = _forecast is null;
+        }
+        catch
+        {
+            _error = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string GetDayAbbreviation(DateOnly date)
+    {
+        var dateTime = date.ToDateTime(TimeOnly.MinValue);
+        return dateTime.ToString("ddd", CultureInfo.CurrentUICulture);
+    }
+
+    /// <summary>
+    /// Retourne l'emoji météo correspondant au code WMO.
+    /// Les emoji sont rendus en couleur nativement par le navigateur/OS.
+    /// </summary>
+    private static string GetWeatherEmoji(int? code) => code switch
+    {
+        0                    => "☀️",   // Ciel dégagé
+        1                    => "🌤️",  // Principalement dégagé
+        2                    => "⛅",   // Partiellement nuageux
+        3                    => "☁️",   // Couvert
+        45 or 48             => "🌫️",  // Brouillard
+        51 or 53 or 55       => "🌦️",  // Bruine
+        56 or 57             => "🌨️",  // Bruine givrante
+        61 or 63 or 65       => "🌧️",  // Pluie
+        66 or 67             => "🌨️",  // Pluie givrante
+        71 or 73 or 75 or 77 => "❄️",  // Neige
+        80 or 81 or 82       => "🌦️",  // Averses de pluie
+        85 or 86             => "🌨️",  // Averses de neige
+        95                   => "⛈️",  // Orage
+        96 or 99             => "⛈️",  // Orage avec grêle
+        _                    => "🌡️"   // Inconnu
+    };
+
+    private string GetWeatherCondition(int? code) => code switch
+    {
+        0 or 1                      => Loc["WeatherConditionClear"],
+        2                           => Loc["WeatherConditionPartlyCloudy"],
+        3                           => Loc["WeatherConditionCloudy"],
+        45 or 48                    => Loc["WeatherConditionFog"],
+        51 or 53 or 55 or 56 or 57  => Loc["WeatherConditionDrizzle"],
+        61 or 63 or 65 or 66 or 67  => Loc["WeatherConditionRain"],
+        71 or 73 or 75 or 77        => Loc["WeatherConditionSnow"],
+        80 or 81 or 82              => Loc["WeatherConditionShowers"],
+        85 or 86                    => Loc["WeatherConditionSnow"],
+        95 or 96 or 99              => Loc["WeatherConditionThunderstorm"],
+        _                           => Loc["WeatherConditionUnknown"]
+    };
+
+    private static string FormatTemp(double? temp) =>
+        temp.HasValue ? $"{temp.Value:0}°" : "--";
+}

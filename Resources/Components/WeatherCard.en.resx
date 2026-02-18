@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="WeatherTitle" xml:space="preserve">
+    <value>Weekly Weather – Saint-Louis</value>
+  </data>
+  <data name="WeatherLoading" xml:space="preserve">
+    <value>Loading weather...</value>
+  </data>
+  <data name="WeatherError" xml:space="preserve">
+    <value>Weather temporarily unavailable</value>
+  </data>
+  <data name="WeatherMax" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="WeatherMin" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="WeatherPrecip" xml:space="preserve">
+    <value>Precip.</value>
+  </data>
+  <data name="WeatherConditionClear" xml:space="preserve">
+    <value>Sunny</value>
+  </data>
+  <data name="WeatherConditionPartlyCloudy" xml:space="preserve">
+    <value>Partly Cloudy</value>
+  </data>
+  <data name="WeatherConditionCloudy" xml:space="preserve">
+    <value>Cloudy</value>
+  </data>
+  <data name="WeatherConditionFog" xml:space="preserve">
+    <value>Fog</value>
+  </data>
+  <data name="WeatherConditionDrizzle" xml:space="preserve">
+    <value>Drizzle</value>
+  </data>
+  <data name="WeatherConditionRain" xml:space="preserve">
+    <value>Rain</value>
+  </data>
+  <data name="WeatherConditionSnow" xml:space="preserve">
+    <value>Snow</value>
+  </data>
+  <data name="WeatherConditionShowers" xml:space="preserve">
+    <value>Showers</value>
+  </data>
+  <data name="WeatherConditionThunderstorm" xml:space="preserve">
+    <value>Thunderstorm</value>
+  </data>
+  <data name="WeatherConditionUnknown" xml:space="preserve">
+    <value>Variable</value>
+  </data>
+  <data name="WeatherMorning" xml:space="preserve">
+    <value>Morning</value>
+  </data>
+  <data name="WeatherAfternoon" xml:space="preserve">
+    <value>Afternoon</value>
+  </data>
+</root>
