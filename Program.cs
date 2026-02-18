@@ -109,6 +109,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // --------------------------------------------------------------------
+// CACHE MÉMOIRE : Pour les données à durée de vie limitée (météo, etc.)
+// --------------------------------------------------------------------
+builder.Services.AddMemoryCache();
+
+// --------------------------------------------------------------------
 // NOS SERVICES MÉTIER : Services personnalisés de l'application
 // --------------------------------------------------------------------
 // Service d'authentification custom (remplace UserManager/SignInManager)
@@ -130,6 +135,13 @@ builder.Services.AddScoped<ReservationService>();
 
 // Ajoute FermetureClubService pour gérer les fermetures planifiées du club
 builder.Services.AddScoped<FermetureClubService>();
+
+// Ajoute WeatherService pour afficher la météo de la semaine (Open-Meteo)
+// AddHttpClient enregistre WeatherService avec un HttpClient dédié (API externe)
+builder.Services.AddHttpClient<WeatherService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 // --------------------------------------------------------------------
 // SERVICES DE NOTIFICATION
