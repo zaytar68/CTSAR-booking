@@ -3,7 +3,7 @@
 Document de référence pour le déploiement et l'exploitation de l'application de
 réservation d'alvéoles.
 
-> Dernière révision : 14 septembre 2026
+> Dernière révision : 29 octobre 2026
 
 ---
 
@@ -20,12 +20,14 @@ Traefik v3.6  ──────── réseau Docker « traefik_default » (ext
    │                          │
    │  booking.ctsar.eu        │
    ▼                          ▼
-ctsar-booking            sqlite-web (optionnel, debug)
-  (ASP.NET 8)                 │
-   │                          │
-   └────── volume « ctsar-data » ──────┘
-                 │
-                 └── app.db  (SQLite)
+ctsar-booking            sqlite-web (optionnel, debug)        backup
+  (ASP.NET 8)                 │                                  │
+   │                          │                                  │
+   └──── /home/cedric/appdata/CTSAR-booking/data ────────────────┤
+                 ├── app.db  (SQLite)                            │
+                 └── keys/   (clés Data Protection)              │
+                                                                 ▼
+                      /home/cedric/appdata/CTSAR-booking/backups
 ```
 
 | Composant | Rôle | Exposition |
@@ -34,6 +36,7 @@ ctsar-booking            sqlite-web (optionnel, debug)
 | `portainer` | Administration Docker (Portainer EE 2.45) | 9443 |
 | `ctsar-booking` | Application Blazor Web App | via Traefik uniquement |
 | `sqlite-web` | Consultation de la base, hors production | `127.0.0.1:8081` |
+| `backup` | Sauvegarde quotidienne de la base (§6) | aucune |
 
 ---
 
@@ -63,18 +66,26 @@ curl -s "https://ghcr.io/token?scope=repository:zaytar68/ctsar-booking:pull&serv
 
 ## 3. Persistance des données
 
-La base SQLite est **`app.db`**, dans le volume Docker `ctsar-data`, monté sur
-`/app/Data` dans le conteneur applicatif.
+Les données sont stockées dans des dossiers de l'hôte, montés en **bind mount** :
 
-Le volume est déclaré **`external`**. C'est délibéré : un volume nommé
-ordinaire est préfixé par le nom du projet Compose (donc par le nom du stack
-Portainer), et se retrouve donc recréé vide au moindre renommage du stack.
-En externe, il est indépendant du cycle de vie des stacks.
+| Dossier hôte (par défaut) | Variable Portainer | Monté sur | Contenu |
+|---|---|---|---|
+| `/home/cedric/appdata/CTSAR-booking/data` | `CTSAR_DATA_PATH` | `/app/Data` | `app.db` (+ `-wal`, `-shm`), `keys/` |
+| `/home/cedric/appdata/CTSAR-booking/backups` | `CTSAR_BACKUP_PATH` | `/backups` (service `backup`) | `app-AAAAMMJJ-HHMMSS.db.gz` |
 
-Si le volume n'existe pas encore sur un nouvel hôte :
+Le bind mount est délibéré : comme un volume `external`, il est indépendant du
+cycle de vie des stacks (pas de recréation à vide au renommage, §8.1), et les
+fichiers sont directement accessibles sur l'hôte pour les sauvegardes et les
+copies hors site.
+
+`keys/` contient les clés Data Protection qui chiffrent les cookies
+d'authentification. Elles sont persistées pour que les utilisateurs restent
+connectés après un redéploiement. Les perdre n'entraîne qu'une déconnexion.
+
+Sur un nouvel hôte :
 
 ```bash
-docker volume create ctsar-data
+mkdir -p /home/cedric/appdata/CTSAR-booking/data /home/cedric/appdata/CTSAR-booking/backups
 ```
 
 ---
@@ -86,61 +97,13 @@ nommé `ctsar-booking`.
 
 ### 4.1 docker-compose
 
-```yaml
-services:
-  ctsar-booking:
-    image: ghcr.io/zaytar68/ctsar-booking:latest
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - Application__BaseUrl=${Application__BaseUrl}
-      - SmtpSettings__Host=${SmtpSettings__Host}
-      - SmtpSettings__Port=${SmtpSettings__Port}
-      - SmtpSettings__EnableSsl=${SmtpSettings__EnableSsl}
-      - SmtpSettings__Username=${SmtpSettings__Username}
-      - SmtpSettings__Password=${SmtpSettings__Password}
-      - SmtpSettings__FromEmail=${SmtpSettings__FromEmail}
-      - SmtpSettings__FromName=${SmtpSettings__FromName}
-      - VapidSettings__Subject=${VapidSettings__Subject}
-      - VapidSettings__PublicKey=${VapidSettings__PublicKey}
-      - VapidSettings__PrivateKey=${VapidSettings__PrivateKey}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ctsar.rule=Host(`booking.ctsar.eu`)"
-      - "traefik.http.routers.ctsar.entrypoints=websecure"
-      - "traefik.http.routers.ctsar.tls.certresolver=letsencrypt"
-      - "traefik.http.services.ctsar.loadbalancer.server.port=8080"
-    volumes:
-      - ctsar-data:/app/Data
-    networks:
-      - traefik_default
-    restart: unless-stopped
+Le contenu à coller dans l'éditeur du stack est le fichier
+[docker-compose.prod.yml](docker-compose.prod.yml) du dépôt : c'est la
+référence, ne pas le recopier ici pour éviter les divergences.
 
-  sqlite-web:
-    image: coleifer/sqlite-web:latest
-    environment:
-      - SQLITE_DATABASE=/data/app.db
-    labels:
-      - "traefik.enable=false"
-    ports:
-      - "127.0.0.1:8081:8080"
-    volumes:
-      - ctsar-data:/data
-    networks:
-      - traefik_default
-    restart: unless-stopped
+Il définit trois services : `ctsar-booking`, `sqlite-web` et `backup`.
 
-networks:
-  traefik_default:
-    external: true
-
-volumes:
-  ctsar-data:
-    external: true
-    name: ctsar-data
-```
-
-Deux choix à noter :
+Choix à noter :
 
 - **Pas de `container_name`.** Compose nomme lui-même les conteneurs
   `<stack>-<service>-1`. Fixer les noms empêche deux stacks de coexister et
@@ -148,6 +111,7 @@ Deux choix à noter :
   décrite au §8.1.
 - **`sqlite-web` ne porte aucun label Traefik.** Il n'est joignable que depuis
   l'hôte (§7).
+- **Bind mounts plutôt que volume Docker** (§3).
 
 ### 4.2 Variables d'environnement
 
@@ -168,11 +132,20 @@ sont **jamais** versionnées dans le dépôt.
 | `VapidSettings__PublicKey` | clé publique VAPID |
 | `VapidSettings__PrivateKey` | **secret** |
 
+Facultatives (valeurs par défaut dans le compose) :
+
+| Variable | Défaut |
+|---|---|
+| `CTSAR_DATA_PATH` | `/home/cedric/appdata/CTSAR-booking/data` |
+| `CTSAR_BACKUP_PATH` | `/home/cedric/appdata/CTSAR-booking/backups` |
+| `BACKUP_TIME` | `03:00` (heure de Paris) |
+| `BACKUP_RETENTION_DAYS` | `30` |
+
 ### 4.3 Prérequis côté hôte
 
 - Le réseau `traefik_default` doit exister (il est créé par le stack Traefik).
   Vérifier : `docker network ls | grep traefik`
-- Le volume `ctsar-data` doit exister (§3).
+- Les dossiers `data` et `backups` doivent exister (§3).
 - Le DNS `booking.ctsar.eu` doit pointer sur l'IP publique, et les ports 80/443
   être redirigés vers l'hôte — le challenge HTTP de Let's Encrypt en dépend.
 
@@ -243,41 +216,68 @@ image: ghcr.io/zaytar68/ctsar-booking:production-256aec7
 
 ## 6. Sauvegarde et restauration
 
-### 6.1 Sauvegarde
+### 6.1 Sauvegarde automatique
 
-Archive complète du volume, conteneur arrêté :
+Le service `backup` du stack effectue chaque jour à `BACKUP_TIME` une
+sauvegarde **à chaud**, sans interruption de service, via l'API de sauvegarde
+SQLite — qui gère correctement le journal WAL, contrairement à une simple copie
+de fichier. Chaque sauvegarde est vérifiée (`PRAGMA integrity_check`),
+compressée, puis les fichiers plus anciens que `BACKUP_RETENTION_DAYS` sont
+supprimés.
 
-```bash
-docker compose -p ctsar-booking stop
-docker run --rm -v ctsar-data:/d -v "$HOME/backup":/b alpine \
-  tar czf /b/ctsar-$(date +%F).tgz -C /d .
-docker compose -p ctsar-booking start
-```
-
-À chaud, sans interruption de service, via l'API de sauvegarde SQLite — qui
-gère correctement le journal WAL, contrairement à une simple copie de fichier :
+C'est la seule protection contre une migration EF Core qui se passerait mal
+lors d'un déploiement automatique.
 
 ```bash
-docker run --rm -v ctsar-data:/d -v "$HOME/backup":/b keinos/sqlite3 \
-  sqlite3 /d/app.db ".backup '/b/app-$(date +%F).db'"
+# Sauvegarde manuelle immédiate (par exemple avant un déploiement)
+docker exec ctsar-booking-backup-1 backup-now
+
+# Lister les sauvegardes
+ls -lh /home/cedric/appdata/CTSAR-booking/backups
+
+# Journal du service
+docker logs ctsar-booking-backup-1
 ```
 
-À planifier quotidiennement (cron ou timer systemd), avec une rétention d'au
-moins 30 jours. C'est la seule protection contre une migration EF Core qui se
-passerait mal lors d'un déploiement automatique.
+⚠️ Les sauvegardes restent sur le même hôte. Copier régulièrement le dossier
+`backups` hors site (NAS, rclone, rsync…).
 
 ### 6.2 Restauration
 
 ```bash
 docker compose -p ctsar-booking stop
-docker run --rm -v ctsar-data:/d -v "$HOME/backup":/b alpine \
-  sh -c 'rm -f /d/app.db*; cp /b/app-2026-09-14.db /d/app.db'
+cd /home/cedric/appdata/CTSAR-booking/data
+rm -f app.db app.db-wal app.db-shm
+gunzip -c ../backups/app-20260914-030000.db.gz > app.db
 docker compose -p ctsar-booking start
 ```
 
 Les fichiers `app.db-wal` et `app.db-shm` doivent être supprimés en même temps
 que la base : restaurer un `.db` en laissant l'ancien WAL à côté corrompt
 l'ensemble.
+
+### 6.3 Migration depuis le volume `ctsar-data`
+
+À faire **une seule fois**, avant de déployer le compose à bind mounts — sinon
+l'application démarre sur un dossier vide et EF Core y crée une base neuve.
+
+```bash
+# 1. Arrêter le stack (Portainer → Stacks → ctsar-booking → Stop)
+
+# 2. Créer les dossiers
+mkdir -p /home/cedric/appdata/CTSAR-booking/data /home/cedric/appdata/CTSAR-booking/backups
+
+# 3. Copier le contenu du volume
+docker run --rm \
+  -v ctsar-data:/from:ro \
+  -v /home/cedric/appdata/CTSAR-booking/data:/to \
+  alpine sh -c "cp -a /from/. /to/ && ls -l /to"
+```
+
+`app.db` doit apparaître dans la liste. Mettre ensuite à jour le stack avec le
+nouveau compose et déployer. Le volume `ctsar-data` reste intact et sert de
+retour arrière : ne le supprimer (`docker volume rm ctsar-data`) qu'après
+quelques jours sans problème.
 
 ---
 
@@ -324,7 +324,7 @@ docker inspect <ancien-conteneur> \
   --format '{{range .Mounts}}{{.Name}} => {{.Destination}}{{end}}'
 ```
 
-**Correctif** : le volume `external` du §3. C'est la raison de ce choix.
+**Correctif** : les bind mounts du §3, indépendants du nom du stack.
 
 ### 8.2 Collision de noms de routeurs Traefik
 
@@ -338,7 +338,7 @@ stack.
 Un stack déployé en ligne de commande apparaît dans Portainer en lecture seule :
 pas d'éditeur, pas de webhook. Pour en reprendre la main, il faut le supprimer
 (`docker compose down`, qui conserve les volumes nommés) puis le recréer depuis
-l'interface. Avec un volume `external`, l'opération est sans risque pour les
+l'interface. Avec les bind mounts, l'opération est sans risque pour les
 données.
 
 ### 8.4 Nom du fichier de base
@@ -356,7 +356,10 @@ sans erreur, ce qui donne l'illusion d'une perte de données.
 docker ps --filter name=ctsar
 
 # la base est bien montée et non vide
-docker run --rm -v ctsar-data:/d alpine ls -la /d
+ls -la /home/cedric/appdata/CTSAR-booking/data
+
+# le service de sauvegarde tourne
+docker logs ctsar-booking-backup-1
 
 # le site répond
 curl -sI https://booking.ctsar.eu | head -1

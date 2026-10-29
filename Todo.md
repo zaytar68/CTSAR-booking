@@ -39,7 +39,7 @@ ____
 - ~~moniteur peut gérer les fermetures~~
 - ~~implementer le changement de mot de passe~~
 - ~~templates de mails et traductions~~
-- sauvegarde base ?
+- ~~sauvegarde base ?~~ (bind mount + service ctsar-backup, voir DEPLOIEMENT.md)
 - édition base ? OK
 - inscription ouvert à tous, modif par un lien d'invitation ?
 - Un administrateur peut aussi être moniteur voir fonctionnement

@@ -46,6 +46,9 @@ bld/
 *.db-shm
 *.db-wal
 
+# Clés Data Protection (chiffrement des cookies d'authentification)
+Data/keys/
+
 # NuGet Packages
 *.nupkg
 *.snupkg

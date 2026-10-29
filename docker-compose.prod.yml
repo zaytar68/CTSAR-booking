@@ -1,7 +1,6 @@
 services:
   ctsar-booking:
     image: ghcr.io/zaytar68/ctsar-booking:latest
-    container_name: ctsar-booking
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
@@ -15,52 +14,81 @@ services:
       - SmtpSettings__Password=${SmtpSettings__Password}
       - SmtpSettings__FromEmail=${SmtpSettings__FromEmail}
       - SmtpSettings__FromName=${SmtpSettings__FromName}
+      # Notifications push (injectées depuis les variables d'environnement Portainer)
+      - VapidSettings__Subject=${VapidSettings__Subject}
+      - VapidSettings__PublicKey=${VapidSettings__PublicKey}
+      - VapidSettings__PrivateKey=${VapidSettings__PrivateKey}
     labels:
       # Traefik configuration
       - "traefik.enable=true"
-      #- "traefik.http.routers.ctsar.rule=Host(`ctsar.tirolf.me`)"
       - "traefik.http.routers.ctsar.rule=Host(`booking.ctsar.eu`)"
       - "traefik.http.routers.ctsar.entrypoints=websecure"
       - "traefik.http.routers.ctsar.tls.certresolver=letsencrypt"
       - "traefik.http.services.ctsar.loadbalancer.server.port=8080"
     volumes:
-      # Volume persistant pour la base de données SQLite
-      - ctsar-data:/app/Data
+      # Bind mount : base SQLite (app.db) et clés Data Protection (keys/) sur l'hôte
+      - ${CTSAR_DATA_PATH:-/home/cedric/appdata/CTSAR-booking/data}:/app/Data
     networks:
       - traefik_default
     restart: unless-stopped
 
   sqlite-web:
     image: coleifer/sqlite-web:latest
-    container_name: ctsar-sqlite-web
     environment:
       - SQLITE_DATABASE=/data/app.db
     labels:
-      # Traefik configuration
-      - "traefik.enable=true"
-      - "traefik.http.routers.ctsar-db.rule=Host(`db.ctsar.tirolf.me`)"
-      - "traefik.http.routers.ctsar-db.entrypoints=websecure"
-      - "traefik.http.routers.ctsar-db.tls.certresolver=letsencrypt"
-      - "traefik.http.services.ctsar-db.loadbalancer.server.port=8080"
-      # Authentification basique (à configurer dans Portainer)
-      # - "traefik.http.routers.ctsar-db.middlewares=ctsar-db-auth"
-      # - "traefik.http.middlewares.ctsar-db-auth.basicauth.users=admin:$$apr1$$hash$$here"
+      # Accessible uniquement depuis l'hôte (tunnel SSH), jamais via Traefik
+      - "traefik.enable=false"
     ports:
-      # Port exposé pour accès réseau interne
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"
     volumes:
-      # Partage du même volume que l'application principale (lecture/écriture)
-      - ctsar-data:/data
+      # Partage du même dossier que l'application principale (lecture/écriture)
+      - ${CTSAR_DATA_PATH:-/home/cedric/appdata/CTSAR-booking/data}:/data
     networks:
       - traefik_default
     restart: unless-stopped
-    depends_on:
-      - ctsar-booking
+
+  backup:
+    image: alpine:3.20
+    environment:
+      - TZ=Europe/Paris
+      # Heure de la sauvegarde quotidienne (HH:MM)
+      - BACKUP_TIME=${BACKUP_TIME:-03:00}
+      # Nombre de jours de rétention des sauvegardes
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+    labels:
+      - "traefik.enable=false"
+    # Sauvegarde à chaud via l'API backup de SQLite (cohérente même pendant les écritures / mode WAL)
+    # Sauvegarde manuelle : docker exec ctsar-booking-backup-1 backup-now
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache sqlite tzdata > /dev/null
+        cat > /usr/local/bin/backup-now <<'SCRIPT'
+        #!/bin/sh
+        set -e
+        backup_file="/backups/app-$$(date +%Y%m%d-%H%M%S).db"
+        sqlite3 /data/app.db ".backup '$$backup_file'"
+        sqlite3 "$$backup_file" "PRAGMA integrity_check;" | grep -q '^ok$$'
+        gzip "$$backup_file"
+        find /backups -name 'app-*.db.gz' -mtime +$$BACKUP_RETENTION_DAYS -delete
+        echo "$$(date '+%F %T') Sauvegarde OK : $$backup_file.gz"
+        SCRIPT
+        chmod +x /usr/local/bin/backup-now
+        echo "Sauvegarde quotidienne à $$BACKUP_TIME, rétention $$BACKUP_RETENTION_DAYS jours"
+        while true; do
+          if [ "$$(date +%H:%M)" = "$$BACKUP_TIME" ]; then
+            backup-now || echo "$$(date '+%F %T') ERREUR de sauvegarde"
+            sleep 60
+          fi
+          sleep 20
+        done
+    volumes:
+      - ${CTSAR_DATA_PATH:-/home/cedric/appdata/CTSAR-booking/data}:/data
+      - ${CTSAR_BACKUP_PATH:-/home/cedric/appdata/CTSAR-booking/backups}:/backups
+    restart: unless-stopped
 
 networks:
   traefik_default:
     external: true
-
-volumes:
-  ctsar-data:
-    driver: local

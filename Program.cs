@@ -3,6 +3,7 @@
 // ====================================================================
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;  // Pour la persistance des clés de chiffrement des cookies
 using Microsoft.EntityFrameworkCore;
 using CTSAR.Booking.Components;
 using CTSAR.Booking.Data;
@@ -93,6 +94,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(8);  // Session de 8 heures par défaut
         options.SlidingExpiration = true;  // Renouveler la session automatiquement
     });
+
+// Data Protection : persiste les clés de chiffrement des cookies dans Data/keys
+//   (bind mount en production) pour que les sessions survivent aux redéploiements
+var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "keys");
+builder.Services.AddDataProtection()
+    .SetApplicationName("CTSAR.Booking")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 
 // --------------------------------------------------------------------
 // BASE DE DONNÉES : Configuration d'Entity Framework Core avec SQLite
